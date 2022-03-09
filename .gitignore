@@ -10,6 +10,10 @@
 # Build/test artifacts
 /artifacts/
 
+# Misc. files generated when shelling into container
+.bash_history
+.irb_history
+
 ############################################################
 # Generated ignores
 
