@@ -13,6 +13,6 @@ group :development, :test do
 end
 
 group :development do
-  gem 'rubocop', '~> 1.18.0'
-  gem 'rubocop-rails', '~> 2.9'
+  gem 'rubocop', '~> 1.26.0'
+  gem 'rubocop-rails', '~> 2.13'
 end
