@@ -1034,7 +1034,12 @@ class PopulateItemsTable < ActiveRecord::Migration[7.0]
     { id: 1116, image: 'Max(Poster).jpg', image_base: 'Max(Poster)', title: 'East Bay Print Sale Poster', artist: 'Unknown', artist_url: nil, date: '2020', decade: 'After 1999', description: 'Risograph poster advertising the 2020 East Bay Print Sale, run by Max\'s Garage Press.', medium: 'Stencil', colors: 'Color', genre: 'Figurative, Text Based', dimensions: '16 x 22"', size: 'Small', series: nil, bib_number: nil, mms_id: nil, barcode: nil, circulation: nil, location: nil, value: nil, appraisal_date: nil, notes: nil, reserve_date: nil }
   ]
 
-  def change
+  def up
     Item.insert_all!(DATA)
+  end
+
+  def down
+    ids = DATA.map { |row| row[:id] }
+    Item.where(id: ids).delete_all
   end
 end
