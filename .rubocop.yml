@@ -2,11 +2,13 @@ require:
   - rubocop-rails
 
 AllCops:
-  # Exclude generated files
   Exclude:
+    # Exclude generated files
     - 'bin/**/*'
     - 'db/**/*'
     - 'out/**/*'
+    # Exclude vendor files in GitHub build
+    - 'vendor/**/*'
 
 # Allow one line around block body (Layout/EmptyLines will still disallow two or more)
 Layout/EmptyLinesAroundBlockBody:

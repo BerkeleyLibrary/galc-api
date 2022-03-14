@@ -39,19 +39,32 @@
     <orderEntry type="library" scope="PROVIDED" name="activerecord (v7.0.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activestorage (v7.0.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activesupport (v7.0.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="addressable (v2.8.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="amazing_print (v1.4.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ast (v2.4.2, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="berkeley_library-logging (v0.2.6, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="brakeman (v5.2.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="builder (v3.2.4, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundle-audit (v0.1.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="bundler (v2.2.33, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundler-audit (v0.9.0.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="colorize (v0.8.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.1.9, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="crack (v0.4.5, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="crass (v1.0.6, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="debug (v1.4.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="database_cleaner-active_record (v2.0.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="database_cleaner-core (v2.0.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="diff-lcs (v1.5.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="digest (v3.1.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="docile (v1.4.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="erubi (v1.10.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="factory_bot (v6.2.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="factory_bot_rails (v6.2.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="globalid (v1.0.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="hashdiff (v1.0.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="i18n (v1.10.0, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="io-console (v0.5.11, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="io-wait (v0.2.1, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="irb (v1.4.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="lograge (v0.11.2, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="loofah (v2.14.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mail (v2.7.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="marcel (v1.0.2, RVM: ruby-3.0.3) [gem]" level="application" />
@@ -63,9 +76,12 @@
     <orderEntry type="library" scope="PROVIDED" name="net-smtp (v0.3.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nio4r (v2.5.8, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nokogiri (v1.13.3, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="oj (v3.13.11, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ougai (v1.9.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="parallel (v1.21.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="parser (v3.1.1.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="pg (v1.3.3, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="public_suffix (v4.0.6, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="puma (v5.6.2, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="racc (v1.6.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack (v2.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
@@ -78,16 +94,29 @@
     <orderEntry type="library" scope="PROVIDED" name="rainbow (v3.1.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rake (v13.0.6, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="regexp_parser (v2.2.1, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="reline (v0.3.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="request_store (v1.5.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rexml (v3.2.5, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec (v3.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec-core (v3.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec-expectations (v3.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec-mocks (v3.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec-rails (v5.1.1, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec-support (v3.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rspec_junit_formatter (v0.5.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop (v1.26.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop-ast (v1.16.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop-rails (v2.13.2, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rubocop-rspec (v2.4.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-progressbar (v1.11.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="simplecov (v0.21.2, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="simplecov-html (v0.12.3, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="simplecov-rcov (v0.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="simplecov_json_formatter (v0.1.4, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="thor (v1.2.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="timeout (v0.2.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="tzinfo (v2.0.4, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="unicode-display_width (v2.1.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="webmock (v3.14.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="websocket-driver (v0.7.5, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="websocket-extensions (v0.1.5, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="zeitwerk (v2.5.4, RVM: ruby-3.0.3) [gem]" level="application" />
@@ -107,6 +136,7 @@
         <option value="benchmark" />
         <option value="channel" />
         <option value="controller" />
+        <option value="factory_bot:model" />
         <option value="generator" />
         <option value="integration_test" />
         <option value="job" />
@@ -115,6 +145,21 @@
         <option value="migration" />
         <option value="model" />
         <option value="resource" />
+        <option value="rspec:channel" />
+        <option value="rspec:controller" />
+        <option value="rspec:feature" />
+        <option value="rspec:generator" />
+        <option value="rspec:helper" />
+        <option value="rspec:install" />
+        <option value="rspec:integration" />
+        <option value="rspec:job" />
+        <option value="rspec:mailbox" />
+        <option value="rspec:mailer" />
+        <option value="rspec:model" />
+        <option value="rspec:request" />
+        <option value="rspec:scaffold" />
+        <option value="rspec:system" />
+        <option value="rspec:view" />
         <option value="scaffold" />
         <option value="scaffold_controller" />
         <option value="system_test" />
@@ -144,6 +189,7 @@
         <option value="benchmark" />
         <option value="channel" />
         <option value="controller" />
+        <option value="factory_bot:model" />
         <option value="generator" />
         <option value="integration_test" />
         <option value="job" />
@@ -152,6 +198,21 @@
         <option value="migration" />
         <option value="model" />
         <option value="resource" />
+        <option value="rspec:channel" />
+        <option value="rspec:controller" />
+        <option value="rspec:feature" />
+        <option value="rspec:generator" />
+        <option value="rspec:helper" />
+        <option value="rspec:install" />
+        <option value="rspec:integration" />
+        <option value="rspec:job" />
+        <option value="rspec:mailbox" />
+        <option value="rspec:mailer" />
+        <option value="rspec:model" />
+        <option value="rspec:request" />
+        <option value="rspec:scaffold" />
+        <option value="rspec:system" />
+        <option value="rspec:view" />
         <option value="scaffold" />
         <option value="scaffold_controller" />
         <option value="system_test" />
@@ -197,8 +258,11 @@
               </RakeTaskImpl>
             </subtasks>
           </RakeTaskImpl>
+          <RakeTaskImpl description="Set up, check test coverage" fullCommand="check" id="check" />
+          <RakeTaskImpl description="Run all specs in spec directory, with coverage" fullCommand="coverage" id="coverage" />
           <RakeTaskImpl id="db">
             <subtasks>
+              <RakeTaskImpl description="Wait until the database is ready to accept connections" fullCommand="db:await" id="await" />
               <RakeTaskImpl description="Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases, except when DATABASE_URL is present" fullCommand="db:create" id="create" />
               <RakeTaskImpl description="Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to dropping the development and test databases, except when DATABASE_URL is present" fullCommand="db:drop" id="drop" />
               <RakeTaskImpl id="encryption">
@@ -295,14 +359,32 @@
               <RakeTaskImpl description="" fullCommand="db:truncate_all" id="truncate_all" />
             </subtasks>
           </RakeTaskImpl>
+          <RakeTaskImpl description="Set up, run tests, check code style, check test coverage, check for vulnerabilities" fullCommand="default" id="default" />
           <RakeTaskImpl id="log">
             <subtasks>
               <RakeTaskImpl description="Truncates all/specified *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)" fullCommand="log:clear" id="clear" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl description="Prints out your Rack middleware stack" fullCommand="middleware" id="middleware" />
+          <RakeTaskImpl description="Run RuboCop with auto-correct, and output results to console" fullCommand="ra" id="ra" />
           <RakeTaskImpl description="Restart app by touching tmp/restart.txt" fullCommand="restart" id="restart" />
+          <RakeTaskImpl description="Run rubocop with HTML output" fullCommand="rubocop" id="rubocop" />
+          <RakeTaskImpl id="rubocop">
+            <subtasks>
+              <RakeTaskImpl description="Auto-correct RuboCop offenses" fullCommand="rubocop:auto_correct" id="auto_correct" />
+            </subtasks>
+          </RakeTaskImpl>
           <RakeTaskImpl description="Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions)" fullCommand="secret" id="secret" />
+          <RakeTaskImpl description="Set up DB" fullCommand="setup" id="setup" />
+          <RakeTaskImpl description="Run all specs in spec directory (excluding plugin specs)" fullCommand="spec" id="spec" />
+          <RakeTaskImpl id="spec">
+            <subtasks>
+              <RakeTaskImpl description="Run the code examples in spec/lib" fullCommand="spec:lib" id="lib" />
+              <RakeTaskImpl description="Run the code examples in spec/requests" fullCommand="spec:requests" id="requests" />
+              <RakeTaskImpl description="" fullCommand="spec:prepare" id="prepare" />
+              <RakeTaskImpl description="" fullCommand="spec:statsetup" id="statsetup" />
+            </subtasks>
+          </RakeTaskImpl>
           <RakeTaskImpl description="Report code statistics (KLOCs, etc) from the application or engine" fullCommand="stats" id="stats" />
           <RakeTaskImpl id="time">
             <subtasks>
