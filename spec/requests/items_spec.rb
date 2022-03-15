@@ -1,21 +1,27 @@
 require 'rails_helper'
 
 RSpec.describe 'Items', type: :request do
-  describe 'GET /index' do
-    it 'returns 403 Forbidden for HTML requests' do
-      get items_url, as: :html
-      expect(response.status).to eq(403)
-      expect(response.content_type).to start_with('text/html')
-    end
+  before do
+    # misusing an internal API, but what can you do?
+    # https://github.com/thoughtbot/factory_bot/issues/1534
+    FactoryBot.factories.each { |f| create(f.name) if f.build_class == Item }
+  end
 
-    it 'returns the items for JSON requests' do
-      get items_url, as: :json
+  describe 'GET /index' do
+    it 'returns the items' do
+      expect(Item).to exist # just to be sure
+
+      get items_url
 
       expect(response).to be_successful
       expect(response.content_type).to start_with('application/json')
 
       parsed_response = JSON.parse(response.body)
       expect(parsed_response).to be_an(Array)
+
+      expect(parsed_response.size).to eq(Item.count)
+
+      # TODO: check response content / format
     end
   end
 end

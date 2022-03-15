@@ -16,7 +16,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_11_190417) do
 
   create_table "items", force: :cascade do |t|
     t.string "image"
-    t.string "image_base"
+    t.string "image_base" # TODO: drop this, it's just `image` without the file extension
     t.string "title"
     t.string "artist"
     t.string "artist_url"
@@ -29,7 +29,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_11_190417) do
     t.string "dimensions"
     t.string "size"
     t.string "series"
-    t.string "bib_number"
+    t.string "bib_number" # TODO: drop this, it's all MMS IDs now
     t.string "mms_id"
     t.string "barcode"
     t.string "circulation"

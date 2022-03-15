@@ -52,6 +52,14 @@ RSpec/DescribedClass:
 RSpec/DescribeSymbol:
   Enabled: false
 
+# setup cost / time >>> failure granularity
+RSpec/ExampleLength:
+  Max: 10
+  CountAsOne:
+    - array
+    - hash
+    - heredoc
+
 # we meant to do that
 RSpec/ExpectInHook:
   Enabled: false
