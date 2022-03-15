@@ -28,3 +28,8 @@ end
 # FactoryBot
 
 require 'support/factory_bot'
+
+# ------------------------------------------------------------
+# Custom matchers
+
+require 'support/rails_matchers'

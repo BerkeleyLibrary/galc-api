@@ -1,16 +1,18 @@
 class ItemsController < ApplicationController
+  include JSONAPI::Fetching
+
   before_action :set_item, only: %i[show update destroy]
 
   # GET /items
   def index
     @items = Item.all
 
-    render json: @items
+    render jsonapi: @items
   end
 
   # GET /items/1
   def show
-    render json: @item
+    render jsonapi: @item
   end
 
   # POST /items
@@ -18,18 +20,18 @@ class ItemsController < ApplicationController
     @item = Item.new(item_params)
 
     if @item.save
-      render json: @item, status: :created, location: @item
+      render jsonapi: @item, status: :created, location: @item
     else
-      render json: @item.errors, status: :unprocessable_entity
+      render jsonapi: @item.errors, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /items/1
   def update
     if @item.update(item_params)
-      render json: @item
+      render jsonapi: @item
     else
-      render json: @item.errors, status: :unprocessable_entity
+      render jsonapi: @item.errors, status: :unprocessable_entity
     end
   end
 
@@ -40,33 +42,7 @@ class ItemsController < ApplicationController
 
   private
 
-  TRUSTED_PARAMS = %i[
-    id
-    image
-    image_base
-    title
-    artist
-    artist_url
-    date
-    decade
-    description
-    medium
-    colors
-    genre
-    dimensions
-    size
-    series
-    bib_number
-    mms_id
-    barcode
-    circulation
-    location
-    value
-    appraisal_date
-    notes
-    reserve_date
-  ].freeze
-
+  TRUSTED_PARAMS = Item::EDIT_ATTRS
   private_constant :TRUSTED_PARAMS
 
   # Use callbacks to share common setup or constraints between actions.

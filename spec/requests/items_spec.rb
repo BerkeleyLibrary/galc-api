@@ -15,14 +15,14 @@ RSpec.describe 'Items', type: :request do
         get items_url
 
         expect(response).to be_successful
-        expect(response.content_type).to start_with('application/json')
+        expect(response.content_type).to start_with('application/vnd.api+json')
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to be_an(Array)
+        expect(parsed_response).to be_a(Hash)
 
-        expect(parsed_response.size).to eq(Item.count)
-
-        # TODO: check response content / format
+        data = parsed_response['data']
+        expected_json = Item.all.map { |i| jsonapi_for(i) }
+        expect(data).to match_array(expected_json)
       end
     end
 
@@ -32,12 +32,15 @@ RSpec.describe 'Items', type: :request do
         get item_url(item)
 
         expect(response).to be_successful
-        expect(response.content_type).to start_with('application/json')
+        expect(response.content_type).to start_with('application/vnd.api+json')
 
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to be_a(Hash)
 
-        # TODO: check response content / format
+        result = parsed_response['data']
+        expect(result).to be_a(Hash)
+
+        expect(result).to be_jsonapi_for(item)
       end
     end
   end
