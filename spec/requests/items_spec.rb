@@ -7,21 +7,75 @@ RSpec.describe 'Items', type: :request do
     FactoryBot.factories.each { |f| create(f.name) if f.build_class == Item }
   end
 
-  describe 'GET /index' do
-    it 'returns the items' do
-      expect(Item).to exist # just to be sure
+  describe 'reading' do
+    describe :index do
+      it 'returns the items' do
+        expect(Item).to exist # just to be sure
 
-      get items_url
+        get items_url
 
-      expect(response).to be_successful
-      expect(response.content_type).to start_with('application/json')
+        expect(response).to be_successful
+        expect(response.content_type).to start_with('application/json')
 
-      parsed_response = JSON.parse(response.body)
-      expect(parsed_response).to be_an(Array)
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to be_an(Array)
 
-      expect(parsed_response.size).to eq(Item.count)
+        expect(parsed_response.size).to eq(Item.count)
 
-      # TODO: check response content / format
+        # TODO: check response content / format
+      end
+    end
+
+    describe :show do
+      it 'returns an item' do
+        item = Item.take
+        get item_url(item)
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with('application/json')
+
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to be_a(Hash)
+
+        # TODO: check response content / format
+      end
+    end
+  end
+
+  describe 'writing' do
+    let(:valid_attributes) do
+      {
+        image: 'viera da silva (composition).jpg',
+        image_base: 'viera da silva (composition)',
+        title: 'Composition (Le Gardin)',
+        artist: 'Vieira da Silva, Maria Elena',
+        artist_url: 'https://en.wikipedia.org/wiki/Maria_Helena_Vieira_da_Silva',
+        date: '1959',
+        decade: '1950-1959',
+        description: 'Annotated "Epreuve d\'artiste."',
+        medium: 'Serigraph',
+        colors: 'Color',
+        genre: 'Still Life',
+        dimensions: '19 x 15"',
+        size: 'Small',
+        series: 'Artist\'s Proof',
+        bib_number: 'b16398237',
+        mms_id: '991051333089706532',
+        barcode: 'c093329284',
+        circulation: 'NON-CIRC',
+        location: 'Stored in box',
+        value: '800',
+        appraisal_date: '2006',
+        notes: '17741786',
+        reserve_date: '2019-09-16'
+      }
+    end
+
+    describe :create do
+      xit 'creates an item'
+      xit 'requires a title'
+      xit 'accepts a nil MMS ID'
+      xit 'requires a unique MMS ID'
     end
   end
 end
