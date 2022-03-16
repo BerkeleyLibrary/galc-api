@@ -4,8 +4,7 @@ class Item < ApplicationRecord
   DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
   EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at]).freeze
 
-  validates :mms_id, uniqueness: true
-  validates :bib_number, uniqueness: true
+  validates :mms_id, uniqueness: { allow_nil: true }
 
   validates :title, presence: true
 

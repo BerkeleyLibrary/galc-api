@@ -1,4 +1,5 @@
 class ItemsController < ApplicationController
+  include JSONAPI::Deserialization
   include JSONAPI::Fetching
 
   before_action :set_item, only: %i[show update destroy]
@@ -22,7 +23,7 @@ class ItemsController < ApplicationController
     if @item.save
       render jsonapi: @item, status: :created, location: @item
     else
-      render jsonapi: @item.errors, status: :unprocessable_entity
+      render jsonapi_errors: @item.errors, status: :unprocessable_entity
     end
   end
 
@@ -31,7 +32,7 @@ class ItemsController < ApplicationController
     if @item.update(item_params)
       render jsonapi: @item
     else
-      render jsonapi: @item.errors, status: :unprocessable_entity
+      render jsonapi_errors: @item.errors, status: :unprocessable_entity
     end
   end
 
@@ -52,6 +53,6 @@ class ItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def item_params
-    params.require(:item).permit(*TRUSTED_PARAMS)
+    jsonapi_deserialize(params, only: TRUSTED_PARAMS)
   end
 end
