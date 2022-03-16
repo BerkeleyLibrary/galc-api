@@ -18,22 +18,14 @@ class ItemsController < ApplicationController
 
   # POST /items
   def create
-    @item = Item.new(item_params)
-
-    if @item.save
-      render jsonapi: @item, status: :created, location: @item
-    else
-      render jsonapi_errors: @item.errors, status: :unprocessable_entity
-    end
+    @item = Item.create!(item_params)
+    render jsonapi: @item, status: :created, location: @item
   end
 
   # PATCH/PUT /items/1
   def update
-    if @item.update(item_params)
-      render jsonapi: @item
-    else
-      render jsonapi_errors: @item.errors, status: :unprocessable_entity
-    end
+    @item.update!(item_params)
+    render jsonapi: @item
   end
 
   # DELETE /items/1

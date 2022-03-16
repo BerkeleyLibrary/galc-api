@@ -83,145 +83,192 @@ RSpec.describe 'Items', type: :request do
     # TODO: use UUIDs for top-level ID
 
     describe :create do
-      it 'creates an item' do
-        payload = { data: { type: 'item', attributes: valid_attributes } }
-        expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+      describe 'success' do
+        it 'creates an item' do
+          payload = { data: { type: 'item', attributes: valid_attributes } }
+          expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
 
-        expect(response).to have_http_status(:created)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+          expect(response).to have_http_status(:created)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        parsed_response = JSON.parse(response.body)
-        response_data = parsed_response['data']
+          parsed_response = JSON.parse(response.body)
+          response_data = parsed_response['data']
 
-        item = Item.find(response_data['id'].to_i)
-        expect(item).not_to be_nil
-        valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+          item = Item.find(response_data['id'].to_i)
+          expect(item).not_to be_nil
+          valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-        expect(response_data).to be_jsonapi_for(item)
-        expect(response.headers['Location']).to eq(item_url(item))
+          expect(response_data).to be_jsonapi_for(item)
+          expect(response.headers['Location']).to eq(item_url(item))
+        end
+
+        it 'accepts a nil MMS ID' do
+          attributes = valid_attributes.except(:mms_id)
+
+          payload = { data: { type: 'item', attributes: attributes } }
+          expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+
+          expect(response).to have_http_status(:created)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+          parsed_response = JSON.parse(response.body)
+          response_data = parsed_response['data']
+
+          item = Item.find(response_data['id'].to_i)
+          expect(item).not_to be_nil
+          attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+
+          expect(response_data).to be_jsonapi_for(item)
+          expect(response.headers['Location']).to eq(item_url(item))
+        end
       end
 
-      it 'accepts a nil MMS ID' do
-        attributes = valid_attributes.except(:mms_id)
+      describe 'failure' do
+        it 'fails with 422 Unprocessable Entity for a missing title' do
+          invalid_attributes = valid_attributes.except(:title)
+          payload = { data: { type: 'item', attributes: invalid_attributes } }
 
-        payload = { data: { type: 'item', attributes: attributes } }
-        expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+          allow(Rails.logger).to receive(:error)
+          expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+          expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-        expect(response).to have_http_status(:created)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        parsed_response = JSON.parse(response.body)
-        response_data = parsed_response['data']
+          expected_errors = expected_errors_for(invalid_attributes)
+          expect(expected_errors).not_to be_empty # just to be sure
 
-        item = Item.find(response_data['id'].to_i)
-        expect(item).not_to be_nil
-        attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+          actual_errors = JSON.parse(response.body)['errors']
+          expect(actual_errors).to be_a(Array)
 
-        expect(response_data).to be_jsonapi_for(item)
-        expect(response.headers['Location']).to eq(item_url(item))
+          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+        end
+
+        it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
+          existing_mms_id = Item.pluck(:mms_id).compact.first
+          invalid_attributes = valid_attributes.merge({ mms_id: existing_mms_id })
+          payload = { data: { type: 'item', attributes: invalid_attributes } }
+
+          allow(Rails.logger).to receive(:error)
+          expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+          expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+          expected_errors = expected_errors_for(invalid_attributes)
+          expect(expected_errors).not_to be_empty # just to be sure
+
+          actual_errors = JSON.parse(response.body)['errors']
+          expect(actual_errors).to be_a(Array)
+
+          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+        end
+
+        xit 'returns 403 forbidden for a client-generated ID'
       end
-
-      it 'requires a title' do
-        invalid_attributes = valid_attributes.except(:title)
-        payload = { data: { type: 'item', attributes: invalid_attributes } }
-        expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
-
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
-
-        expected_errors = expected_errors_for(invalid_attributes)
-        expect(expected_errors).not_to be_empty # just to be sure
-
-        actual_errors = JSON.parse(response.body)['errors']
-        expect(actual_errors).to be_a(Array)
-
-        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
-      end
-
-      it 'rejects a duplicate MMS ID' do
-        existing_mms_id = Item.pluck(:mms_id).compact.first
-        invalid_attributes = valid_attributes.merge({ mms_id: existing_mms_id })
-        payload = { data: { type: 'item', attributes: invalid_attributes } }
-        expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
-
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
-
-        expected_errors = expected_errors_for(invalid_attributes)
-        expect(expected_errors).not_to be_empty # just to be sure
-
-        actual_errors = JSON.parse(response.body)['errors']
-        expect(actual_errors).to be_a(Array)
-
-        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
-      end
-
-      xit 'returns 403 forbidden for a client-generated ID'
     end
 
     describe :update do
-      it 'updates an item' do
-        item = Item.take
+      describe 'success' do
+        it 'updates an item' do
+          item = Item.take
 
-        old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
-        new_attributes = old_attributes.transform_values.with_index { |v, i| (i % 3 == 0) && v.is_a?(String) ? "#{v} (new)" : v }
+          old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
+          new_attributes = old_attributes.transform_values.with_index { |v, i| (i % 3 == 0) && v.is_a?(String) ? "#{v} (new)" : v }
 
-        payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes } }
-        patch item_url(item), params: payload, as: :jsonapi
+          payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes } }
+          patch item_url(item), params: payload, as: :jsonapi
 
-        expect(response).to have_http_status(:ok)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+          expect(response).to have_http_status(:ok)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        item.reload
-        old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
+          item.reload
+          old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
-        response_data = JSON.parse(response.body)['data']
-        expect(response_data).to be_jsonapi_for(item)
+          response_data = JSON.parse(response.body)['data']
+          expect(response_data).to be_jsonapi_for(item)
+        end
       end
 
-      it 'requires a title' do
-        item = Item.take
+      describe 'failure' do
+        it 'fails with 422 Unprocessable Entity for a missing title' do
+          item = Item.take
 
-        invalid_attributes = { title: nil }
-        payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
-        patch item_url(item), params: payload, as: :jsonapi
+          invalid_attributes = { title: nil }
+          payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+          allow(Rails.logger).to receive(:error)
+          patch item_url(item), params: payload, as: :jsonapi
+          expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-        expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
-        expect(expected_errors).not_to be_empty # just to be sure
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        actual_errors = JSON.parse(response.body)['errors']
-        expect(actual_errors).to be_a(Array)
+          expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
+          expect(expected_errors).not_to be_empty # just to be sure
 
-        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          actual_errors = JSON.parse(response.body)['errors']
+          expect(actual_errors).to be_a(Array)
+
+          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+        end
+
+        it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
+          item = Item.take
+
+          mms_id = Item.pluck(:mms_id).find { |id| id && id != item.mms_id }
+
+          invalid_attributes = { mms_id: mms_id }
+          payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
+
+          allow(Rails.logger).to receive(:error)
+          patch item_url(item), params: payload, as: :jsonapi
+          expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+          expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
+          expect(expected_errors).not_to be_empty # just to be sure
+
+          actual_errors = JSON.parse(response.body)['errors']
+          expect(actual_errors).to be_a(Array)
+
+          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+        end
+
+        xit 'returns 409 conflict for an invalid type'
+        xit 'returns 409 conflict for an ID that does not match the URL'
+        xit 'returns 404 not found for a nonexistent object'
+      end
+    end
+
+    describe :destroy do
+      describe 'success' do
+        it 'deletes an item' do
+          item = Item.take
+          expect { delete item_url(item), as: :json }.to change(Item, :count).by(-1)
+
+          expect(response).to have_http_status(:no_content)
+          expect(response.body).to be_empty
+
+          expect(Item.where(id: item.id)).not_to exist
+        end
       end
 
-      it 'rejects a duplicate MMS ID' do
-        item = Item.take
+      describe 'failure' do
+        it 'fails with 404 Not Found if the item already does not exist' do
+          item = Item.take
+          item.destroy!
 
-        mms_id = Item.pluck(:mms_id).find { |id| id && id != item.mms_id }
+          allow(Rails.logger).to receive(:error)
+          expect { delete item_url(item), as: :json }.not_to change(Item, :count)
+          expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordNotFound))
 
-        invalid_attributes = { mms_id: mms_id }
-        payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
-        patch item_url(item), params: payload, as: :jsonapi
-
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
-
-        expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
-        expect(expected_errors).not_to be_empty # just to be sure
-
-        actual_errors = JSON.parse(response.body)['errors']
-        expect(actual_errors).to be_a(Array)
-
-        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          expect(response).to have_http_status(:not_found)
+        end
       end
-
-      xit 'returns 409 conflict for an invalid type'
-      xit 'returns 409 conflict for an ID that does not match the URL'
-      xit 'returns 404 not found for a nonexistent object'
     end
   end
 end
