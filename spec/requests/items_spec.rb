@@ -21,6 +21,7 @@ RSpec.describe 'Items', type: :request do
         expect(parsed_response).to be_a(Hash)
 
         data = parsed_response['data']
+
         expected_json = Item.all.map { |i| jsonapi_for(i) }
         expect(data).to match_array(expected_json)
       end
@@ -38,7 +39,7 @@ RSpec.describe 'Items', type: :request do
         expect(parsed_response).to be_a(Hash)
 
         result = parsed_response['data']
-        expect(result).to be_jsonapi_for(item)
+        expect(result).to contain_jsonapi_for(item)
       end
     end
   end
@@ -73,10 +74,10 @@ RSpec.describe 'Items', type: :request do
     end
 
     def expected_errors_for(invalid_attributes, item_to_update: nil)
-      item = item_to_update ? Item.find(item_to_update.id) : Item.new
-      item.tap do |it|
-        it.assign_attributes(**invalid_attributes)
-        it.validate
+      (item_to_update ? Item.find(item_to_update.id) : Item.new).tap do |item|
+        item.assign_attributes(**invalid_attributes)
+        item.validate
+        expect(item).not_to be_valid # just to be sure
       end.errors
     end
 
@@ -98,7 +99,7 @@ RSpec.describe 'Items', type: :request do
           expect(item).not_to be_nil
           valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-          expect(response_data).to be_jsonapi_for(item)
+          expect(response_data).to contain_jsonapi_for(item)
           expect(response.headers['Location']).to eq(item_url(item))
         end
 
@@ -118,7 +119,7 @@ RSpec.describe 'Items', type: :request do
           expect(item).not_to be_nil
           attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-          expect(response_data).to be_jsonapi_for(item)
+          expect(response_data).to contain_jsonapi_for(item)
           expect(response.headers['Location']).to eq(item_url(item))
         end
       end
@@ -135,13 +136,11 @@ RSpec.describe 'Items', type: :request do
           expect(response).to have_http_status(:unprocessable_entity)
           expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-          expected_errors = expected_errors_for(invalid_attributes)
-          expect(expected_errors).not_to be_empty # just to be sure
-
           actual_errors = JSON.parse(response.body)['errors']
-          expect(actual_errors).to be_a(Array)
 
-          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          expected_errors_for(invalid_attributes).each do |expected|
+            expect(actual_errors).to include(jsonapi_for(expected))
+          end
         end
 
         it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
@@ -157,12 +156,8 @@ RSpec.describe 'Items', type: :request do
           expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
           expected_errors = expected_errors_for(invalid_attributes)
-          expect(expected_errors).not_to be_empty # just to be sure
-
           actual_errors = JSON.parse(response.body)['errors']
-          expect(actual_errors).to be_a(Array)
-
-          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          expect(actual_errors).to match_array(expected_errors.map { |err| jsonapi_for(err) })
         end
 
         xit 'returns 403 forbidden for a client-generated ID'
@@ -187,7 +182,7 @@ RSpec.describe 'Items', type: :request do
           old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
           response_data = JSON.parse(response.body)['data']
-          expect(response_data).to be_jsonapi_for(item)
+          expect(response_data).to contain_jsonapi_for(item)
         end
       end
 
@@ -205,13 +200,12 @@ RSpec.describe 'Items', type: :request do
           expect(response).to have_http_status(:unprocessable_entity)
           expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-          expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
-          expect(expected_errors).not_to be_empty # just to be sure
-
           actual_errors = JSON.parse(response.body)['errors']
           expect(actual_errors).to be_a(Array)
 
-          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          expected_errors_for(invalid_attributes, item_to_update: item).each do |expected|
+            expect(actual_errors).to include(jsonapi_for(expected))
+          end
         end
 
         it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
@@ -229,13 +223,12 @@ RSpec.describe 'Items', type: :request do
           expect(response).to have_http_status(:unprocessable_entity)
           expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-          expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
-          expect(expected_errors).not_to be_empty # just to be sure
-
           actual_errors = JSON.parse(response.body)['errors']
           expect(actual_errors).to be_a(Array)
 
-          expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+          expected_errors_for(invalid_attributes, item_to_update: item).each do |expected|
+            expect(actual_errors).to include(jsonapi_for(expected))
+          end
         end
 
         xit 'returns 409 conflict for an invalid type'

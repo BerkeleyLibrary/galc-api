@@ -30,6 +30,19 @@ end
 require 'support/factory_bot'
 
 # ------------------------------------------------------------
+# jsonapi-rspec matchers
+
+require 'jsonapi/rspec'
+
+RSpec.configure do |config|
+  config.include JSONAPI::RSpec
+end
+
+# ------------------------------------------------------------
 # Custom matchers
 
-require 'support/rails_matchers'
+require 'support/jsonapi_matchers'
+
+RSpec.configure do |config|
+  config.include JsonApiMatchers
+end

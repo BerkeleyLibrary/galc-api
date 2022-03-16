@@ -18,6 +18,7 @@ group :development, :test do
 end
 
 group :development do
+  gem 'jsonapi-rspec', '~> 0.0.10'
   gem 'rspec', '~> 3.10'
   gem 'rspec_junit_formatter', '~> 0.5'
   gem 'rspec-rails', '~> 5.0'
