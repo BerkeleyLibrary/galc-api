@@ -72,6 +72,14 @@ RSpec.describe 'Items', type: :request do
       }
     end
 
+    def expected_errors_for(invalid_attributes, item_to_update: nil)
+      item = item_to_update ? Item.find(item_to_update.id) : Item.new
+      item.tap do |it|
+        it.assign_attributes(**invalid_attributes)
+        it.validate
+      end.errors
+    end
+
     # TODO: use UUIDs for top-level ID
 
     describe :create do
@@ -121,16 +129,13 @@ RSpec.describe 'Items', type: :request do
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        expected_errors = Item.new(**invalid_attributes).tap(&:validate).errors
+        expected_errors = expected_errors_for(invalid_attributes)
         expect(expected_errors).not_to be_empty # just to be sure
 
-        parsed_response = JSON.parse(response.body)
-        actual_errors = parsed_response['errors']
+        actual_errors = JSON.parse(response.body)['errors']
         expect(actual_errors).to be_a(Array)
 
-        expected_errors.each do |expected|
-          expect(actual_errors).to include(jsonapi_for(expected))
-        end
+        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
       end
 
       it 'rejects a duplicate MMS ID' do
@@ -142,16 +147,13 @@ RSpec.describe 'Items', type: :request do
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
-        expected_errors = Item.new(**invalid_attributes).tap(&:validate).errors
+        expected_errors = expected_errors_for(invalid_attributes)
         expect(expected_errors).not_to be_empty # just to be sure
 
-        parsed_response = JSON.parse(response.body)
-        actual_errors = parsed_response['errors']
+        actual_errors = JSON.parse(response.body)['errors']
         expect(actual_errors).to be_a(Array)
 
-        expected_errors.each do |expected|
-          expect(actual_errors).to include(jsonapi_for(expected))
-        end
+        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
       end
 
       xit 'returns 403 forbidden for a client-generated ID'
@@ -175,6 +177,46 @@ RSpec.describe 'Items', type: :request do
 
         response_data = JSON.parse(response.body)['data']
         expect(response_data).to be_jsonapi_for(item)
+      end
+
+      it 'requires a title' do
+        item = Item.take
+
+        invalid_attributes = { title: nil }
+        payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
+        patch item_url(item), params: payload, as: :jsonapi
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
+        expect(expected_errors).not_to be_empty # just to be sure
+
+        actual_errors = JSON.parse(response.body)['errors']
+        expect(actual_errors).to be_a(Array)
+
+        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
+      end
+
+      it 'rejects a duplicate MMS ID' do
+        item = Item.take
+
+        mms_id = Item.pluck(:mms_id).find { |id| id && id != item.mms_id }
+
+        invalid_attributes = { mms_id: mms_id }
+        payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
+        patch item_url(item), params: payload, as: :jsonapi
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
+        expect(expected_errors).not_to be_empty # just to be sure
+
+        actual_errors = JSON.parse(response.body)['errors']
+        expect(actual_errors).to be_a(Array)
+
+        expected_errors.each { |expected| expect(actual_errors).to include(jsonapi_for(expected)) }
       end
 
       xit 'returns 409 conflict for an invalid type'
