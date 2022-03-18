@@ -9,6 +9,7 @@
 
 # Build/test artifacts
 /artifacts/
+/.cache/
 
 # Misc. files generated when shelling into container
 .bash_history

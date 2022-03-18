@@ -39,5 +39,13 @@ module GalcApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # CAS configuration
+    # - NOTE: overridden in production.rb
+    config.cas_host = ENV.fetch('CAS_HOST') { 'auth-test.berkeley.edu' }
+
+    config.after_initialize do
+      BuildInfo.log!
+    end
   end
 end
