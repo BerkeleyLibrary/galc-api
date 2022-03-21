@@ -1,20 +1,24 @@
-Rails.application.config.middleware.use OmniAuth::Builder do
-  fetch_raw_info = proc do |_strategy, _opts, _ticket, _user_info, rawxml|
-    next {} if rawxml.empty?
+# Override the default 'puts' logger that Omniauth uses.
+OmniAuth.config.logger = Rails.logger
 
-    groups_txt = rawxml.xpath('//cas:berkeleyEduIsMemberOf').map(&:text)
-    affiliations_txt = rawxml.xpath('//cas:berkeleyEduAffiliations').map(&:text)
+# https://github.com/omniauth/omniauth/wiki/Resolving-CVE-2015-9284
+OmniAuth.config.allowed_request_methods = [:post]
 
-    { 'berkeleyEduIsMemberOf' => groups_txt, 'berkeleyEduAffiliations' => affiliations_txt }
-  end
+Rails.application.configure do
+  cas_opts = {
+    name: :calnet,
+    host: config.cas_host,
+    login_url: '/cas/login',
+    service_validate_url: '/cas/p3/serviceValidate',
+    fetch_raw_info: ->(_strategy, _opts, _ticket, _user_info, rawxml) {
+      next {} if rawxml.empty?
 
-  provider :cas,
-           name: :calnet,
-           host: Rails.application.config.cas_host,
-           login_url: '/cas/login',
-           service_validate_url: '/cas/p3/serviceValidate',
-           fetch_raw_info: fetch_raw_info
+      {
+        'berkeleyEduIsMemberOf' => rawxml.xpath('//cas:berkeleyEduIsMemberOf').map(&:text),
+        'berkeleyEduAffiliations' => rawxml.xpath('//cas:berkeleyEduAffiliations').map(&:text)
+      }
+    }
+  }
 
-  # Override the default 'puts' logger that Omniauth uses.
-  OmniAuth.config.logger = Rails.logger
+  config.middleware.use(OmniAuth::Builder) { provider(:cas, **cas_opts) }
 end
