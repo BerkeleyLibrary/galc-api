@@ -76,6 +76,10 @@ RSpec/InstanceVariable:
 RSpec/IteratedExpectation:
   Enabled: false
 
+# we meant to do that
+RSpec/MessageSpies:
+  Enabled: false
+
 # too late now
 RSpec/MultipleMemoizedHelpers:
   Enabled: false

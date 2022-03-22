@@ -1,0 +1,35 @@
+<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+    <cas:authenticationSuccess>
+        <cas:user>5551215</cas:user>
+        <cas:attributes>
+            <cas:commonName>Roe, Rachel</cas:commonName>
+            <cas:mail>rroe@berkeley.edu</cas:mail>
+            <cas:authnContextClass>mfa-duo</cas:authnContextClass>
+            <cas:displayName>Rachel Roe</cas:displayName>
+            <cas:berkeleyEduKerberosPrincipalString>rroe</cas:berkeleyEduKerberosPrincipalString>
+            <cas:employeeNumber>95551215</cas:employeeNumber>
+            <cas:uid>5551215</cas:uid>
+            <cas:berkeleyEduCSID>9995551215</cas:berkeleyEduCSID>
+            <cas:surname>Roe</cas:surname>
+            <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:official:all-accounts-people-ou,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
+            <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:org:libr:galc:LIBR-galc-admins,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
+            <cas:serverIpAddress>127.0.0.1</cas:serverIpAddress>
+            <cas:longTermAuthenticationRequestTokenUsed>false</cas:longTermAuthenticationRequestTokenUsed>
+            <cas:clientIpAddress>10.136.128.33</cas:clientIpAddress>
+            <cas:isFromNewLogin>true</cas:isFromNewLogin>
+            <cas:authenticationDate>2022-03-21T19:49:59.999593Z</cas:authenticationDate>
+            <cas:bypassMultifactorAuthentication>false</cas:bypassMultifactorAuthentication>
+            <cas:givenName>Rachel</cas:givenName>
+            <cas:successfulAuthenticationHandlers>DuoSecurityAuthenticationHandler</cas:successfulAuthenticationHandlers>
+            <cas:userAgent>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36</cas:userAgent>
+            <cas:berkeleyEduUCPathID>95551215</cas:berkeleyEduUCPathID>
+            <cas:credentialType>DuoSecurityUniversalPromptCredential</cas:credentialType>
+            <cas:samlAuthenticationStatementAuthMethod>urn:oasis:names:tc:SAML:1.0:am:unspecified</cas:samlAuthenticationStatementAuthMethod>
+            <cas:authenticationMethod>DuoSecurityAuthenticationHandler</cas:authenticationMethod>
+            <cas:geoLocation>unknown</cas:geoLocation>
+            <cas:departmentNumber>KPADM</cas:departmentNumber>
+            <cas:berkeleyEduAffiliations>EMPLOYEE-TYPE-STAFF</cas:berkeleyEduAffiliations>
+            <cas:berkeleyEduOfficialEmail>rroe@berkeley.edu</cas:berkeleyEduOfficialEmail>
+            </cas:attributes>
+    </cas:authenticationSuccess>
+</cas:serviceResponse>
