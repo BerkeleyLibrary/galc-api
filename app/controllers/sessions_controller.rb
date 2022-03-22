@@ -1,6 +1,8 @@
 class SessionsController < ApplicationController
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash })
+
+    session[User::SESSION_KEY] = User.from_omniauth(auth_hash)
   end
 
   private

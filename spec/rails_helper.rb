@@ -32,8 +32,8 @@ require 'support/factory_bot'
 # ------------------------------------------------------------
 # Custom matchers
 
-require 'support/jsonapi_matchers'
+require 'support/matchers'
 
 RSpec.configure do |config|
-  config.include JsonApiMatchers
+  config.include BerkeleyLibrary::Matchers
 end

@@ -30,7 +30,7 @@ RSpec.describe 'Sessions', type: :request do
   end
 
   before do
-    stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: File.read('spec/data/cas/rawxml.xml'))
+    stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: File.read('spec/data/cas/5551215.xml'))
   end
 
   # ------------------------------------------------------------
@@ -50,6 +50,16 @@ RSpec.describe 'Sessions', type: :request do
   #       app-specific configuration and CalNet-specific data, to
   #       be completely sure we know what we're doing
   describe 'authentication flow' do
+
+    def callback_url_from_cas_redirect(cas_login_url)
+      cas_login_uri_actual = URI.parse(cas_login_url)
+      service_url_param = CGI.parse(cas_login_uri_actual.query)['service'].first
+      URI.parse(service_url_param).tap do |uri|
+        params = CGI.parse(uri.query).merge(ticket: ticket)
+        uri.query = params.to_query
+      end.to_s
+    end
+
     describe 'login' do
       it 'routes to CAS' do
         post login_path, params: { origin: origin_url }
@@ -61,34 +71,29 @@ RSpec.describe 'Sessions', type: :request do
         expect(response.headers['Location']).to start_with(cas_login_url)
       end
 
-      it 'sets/reads session variables around the callback' do
+      it 'logs the user in' do
         post login_path, params: { origin: origin_url }
 
+        user = session[User::SESSION_KEY]
+        expect(user).to be_nil # just to be sure
+
         # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
-        #       thinks all requests are local, so we just pretend we hit the
+        #       thinks all requests are local; so we just pretend we hit the
         #       CAS login URL and it redirected the browser back here.
-        cas_login_uri_actual = URI.parse(response.headers['Location'])
-        service_url_param = CGI.parse(cas_login_uri_actual.query)['service'].first
-        full_callback_url = URI.parse(service_url_param).tap do |uri|
-          params = CGI.parse(uri.query).merge(ticket: ticket)
-          uri.query = params.to_query
-        end.to_s
+        get callback_url_from_cas_redirect(response.headers['Location'])
 
-        expected_message = {
-          msg: 'Received omniauth callback',
-          omniauth: hash_including(
-            {
-              # TODO: test auth/extra
-              'credentials' => { 'ticket' => ticket },
-              'provider' => :calnet,
-              'uid' => '5551215'
-            }
-          )
-        }
-        expect(Rails.logger).to receive(:debug).with(expected_message)
+        user = session[User::SESSION_KEY]
+        expect(user).to be_a(User)
 
-        get full_callback_url
-        # TODO: test that the callback URL does the thing
+        {
+          uid: '5551215',
+          display_name: 'Rachel Roe',
+          email: 'rroe@berkeley.edu',
+          galc_admin: true
+        }.each do |attr, v_expected|
+          v_actual = user.send(attr)
+          expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected}, was #{v_actual}"
+        end
       end
     end
   end
