@@ -10,6 +10,7 @@ RSpec.describe 'Sessions', type: :request do
   let(:cas_host) { Rails.application.config.cas_host }
 
   let(:origin_url) { 'https://galc.example.test/galc' }
+  let(:origin_uri) { URI.parse(origin_url) }
 
   let(:ticket) { 'ST-99-SGVsbG8hIEknbSBhIHRpY2tldCE-auth-t02' }
 
@@ -94,6 +95,8 @@ RSpec.describe 'Sessions', type: :request do
           v_actual = user.send(attr)
           expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected}, was #{v_actual}"
         end
+
+        expect(response).to redirect_to(origin_url)
       end
     end
   end

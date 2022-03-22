@@ -66,4 +66,9 @@ Rails.application.configure do
   # CAS configuration
   # - NOTE: overrides application.rb
   config.cas_host = ENV.fetch('CAS_HOST') { 'auth.berkeley.edu' }
+
+  if ENV['CI'].blank? # TODO: what if it's not?
+    Rails.application.config.hosts << '.ucblib.org'
+    Rails.application.config.hosts << '.lib.berkeley.edu'
+  end
 end
