@@ -71,7 +71,7 @@ module ExceptionHandlers
       status_code = status_code(status)
       error = {
         status: status_code.to_s,
-        title: Rack::Utils::HTTP_STATUS_CODES(status_code)
+        title: Rack::Utils::HTTP_STATUS_CODES[status_code]
       }
       render(jsonapi_errors: [error], status: status_code)
     end

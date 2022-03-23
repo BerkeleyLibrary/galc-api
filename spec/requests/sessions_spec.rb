@@ -108,7 +108,7 @@ RSpec.describe 'Sessions', type: :request do
     end
 
     describe 'logout' do
-      before(:each) do
+      before do
         post login_path, params: { origin: origin_url }
         get callback_url_from_cas_redirect(response.headers['Location'])
       end

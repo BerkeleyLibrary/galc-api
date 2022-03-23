@@ -3,6 +3,7 @@ class ItemsController < ApplicationController
   include JSONAPI::Fetching
 
   before_action :set_item, only: %i[show update destroy]
+  before_action :require_galc_admin!, only: %i[create update destroy]
 
   # GET /items
   def index
