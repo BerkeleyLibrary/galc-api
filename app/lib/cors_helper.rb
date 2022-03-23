@@ -13,7 +13,7 @@ class CorsHelper < ActionDispatch::HostAuthorization::Permissions
   end
 
   def allow?(source, _env)
-    return unless (source_uri = safe_parse_uri(source))
+    return false unless (source_uri = safe_parse_uri(source))
 
     empty? || allows?(source_uri.host)
   end
