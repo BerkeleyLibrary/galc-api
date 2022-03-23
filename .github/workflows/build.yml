@@ -21,6 +21,10 @@ jobs:
         # disable TTY: workaround for https://github.com/actions/runner/issues/241
         run: docker-compose exec -T app rake RAILS_ENV=test
 
+      - name: logs
+        if: ${{ always() }}
+        run: docker-compose logs | tee artifacts/docker-compose.log
+
       - name: upload artifacts
         if: hashFiles('artifacts/**') != ''
         uses: actions/upload-artifact@v3
