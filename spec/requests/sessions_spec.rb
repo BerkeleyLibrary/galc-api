@@ -31,6 +31,7 @@ RSpec.describe 'Sessions', type: :request do
   end
 
   before do
+    allow(Rails.application.config).to receive(:hosts).and_return([origin_uri.host])
     stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: File.read('spec/data/cas/5551215.xml'))
   end
 
@@ -96,6 +97,17 @@ RSpec.describe 'Sessions', type: :request do
         end
 
         expect(response).to redirect_to(origin_url)
+      end
+
+      it 'rejects an invalid origin' do
+        bad_origin_url = origin_url.sub(origin_uri.host, "not-#{origin_uri.host}")
+        post login_path, params: { origin: bad_origin_url }
+
+        callback_url = callback_url_from_cas_redirect(response.headers['Location'])
+        expect { get callback_url }.to raise_error(ActionController::Redirecting::UnsafeRedirectError)
+
+        user = session[User::SESSION_KEY]
+        expect(user).to be_nil
       end
     end
   end
