@@ -1,0 +1,32 @@
+name: Build
+on: [ push, pull_request, workflow_dispatch ]
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: build
+        run: docker-compose build --pull
+
+      - name: up
+        run: docker-compose up -d
+
+      - name: test
+        run: docker-compose exec app rake RAILS_ENV=test
+
+      - name: upload artifacts
+        if: hashFiles('artifacts/**') != ''
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts/*
+
+      - name: down
+        if: ${{ always() }}
+        run: docker-compose down --remove-orphans
