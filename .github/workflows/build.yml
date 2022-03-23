@@ -18,7 +18,8 @@ jobs:
         run: docker-compose up -d
 
       - name: test
-        run: docker-compose exec app rake RAILS_ENV=test
+        # disable TTY: workaround for https://github.com/actions/runner/issues/241
+        run: docker-compose exec -T app rake RAILS_ENV=test
 
       - name: upload artifacts
         if: hashFiles('artifacts/**') != ''
