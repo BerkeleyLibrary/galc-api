@@ -56,7 +56,7 @@ class User
       )
     end
 
-    def from_session
+    def from_session(session)
       session_attributes = (session && session[SESSION_KEY]) || {}
       allowed_attributes = session_attributes.slice(*attribute_names)
       new(**allowed_attributes.symbolize_keys)
@@ -67,10 +67,20 @@ class User
     def galc_admin?(cal_groups)
       cal_groups && cal_groups.include?(GALC_ADMIN_GROUP)
     end
+
+    def attribute_names
+      # Hack to leverage ActiveModel::Serialization#attribute_names
+      @attribute_names ||= User.new.attribute_names
+    end
   end
 
   # ------------------------------------------------------------
   # Instance methods
+
+  # @return [Boolean] True if the current user is authenticated, false otherwise
+  def authenticated?
+    !uid.nil?
+  end
 
   # ------------------------------
   # ActiveModel::Serialization

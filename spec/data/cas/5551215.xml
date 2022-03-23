@@ -3,7 +3,7 @@
         <cas:user>5551215</cas:user>
         <cas:attributes>
             <cas:commonName>Roe, Rachel</cas:commonName>
-            <cas:mail>rroe@berkeley.edu</cas:mail>
+            <cas:mail>rroe@berkeley.test</cas:mail>
             <cas:authnContextClass>mfa-duo</cas:authnContextClass>
             <cas:displayName>Rachel Roe</cas:displayName>
             <cas:berkeleyEduKerberosPrincipalString>rroe</cas:berkeleyEduKerberosPrincipalString>
@@ -29,7 +29,7 @@
             <cas:geoLocation>unknown</cas:geoLocation>
             <cas:departmentNumber>KPADM</cas:departmentNumber>
             <cas:berkeleyEduAffiliations>EMPLOYEE-TYPE-STAFF</cas:berkeleyEduAffiliations>
-            <cas:berkeleyEduOfficialEmail>rroe@berkeley.edu</cas:berkeleyEduOfficialEmail>
+            <cas:berkeleyEduOfficialEmail>rroe@berkeley.test</cas:berkeleyEduOfficialEmail>
             </cas:attributes>
     </cas:authenticationSuccess>
 </cas:serviceResponse>

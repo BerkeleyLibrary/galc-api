@@ -72,7 +72,7 @@ RSpec.describe 'Sessions', type: :request do
         expect(response.headers['Location']).to start_with(cas_login_url)
       end
 
-      it 'logs the user in' do
+      it 'initializes a user from the auth response and stores it in the session' do
         post login_path, params: { origin: origin_url }
 
         user = session[User::SESSION_KEY]
@@ -85,11 +85,10 @@ RSpec.describe 'Sessions', type: :request do
 
         user = session[User::SESSION_KEY]
         expect(user).to be_a(User)
-
         {
           uid: '5551215',
           display_name: 'Rachel Roe',
-          email: 'rroe@berkeley.edu',
+          email: 'rroe@berkeley.test',
           galc_admin: true
         }.each do |attr, v_expected|
           v_actual = user.send(attr)
