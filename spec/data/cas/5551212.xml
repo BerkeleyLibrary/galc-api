@@ -1,0 +1,12 @@
+<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+  <cas:authenticationSuccess>
+    <cas:user>5551212</cas:user>
+    <cas:attributes>
+      <cas:displayName>Jane Doe</cas:displayName>
+      <cas:uid>5551212</cas:uid>
+      <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:official:all-accounts-people-ou,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
+      <cas:berkeleyEduAffiliations>STUDENT-TYPE-REGISTERED</cas:berkeleyEduAffiliations>
+      <cas:berkeleyEduOfficialEmail>jdoe@berkeley.test</cas:berkeleyEduOfficialEmail>
+    </cas:attributes>
+  </cas:authenticationSuccess>
+</cas:serviceResponse>

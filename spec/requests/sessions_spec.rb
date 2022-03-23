@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'support/cas_contexts'
 
 RSpec.describe 'Sessions', type: :request do
 
@@ -31,7 +32,7 @@ RSpec.describe 'Sessions', type: :request do
   end
 
   before do
-    allow(Rails.application.config).to receive(:hosts).and_return([origin_uri.host])
+    allow(Rails.application.config).to receive(:hosts).and_return([cas_host, origin_uri.host])
     stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: File.read('spec/data/cas/5551215.xml'))
   end
 
@@ -53,13 +54,8 @@ RSpec.describe 'Sessions', type: :request do
   #       be completely sure we know what we're doing
   describe 'authentication flow' do
 
-    def callback_url_from_cas_redirect(cas_login_url)
-      cas_login_uri_actual = URI.parse(cas_login_url)
-      service_url_param = CGI.parse(cas_login_uri_actual.query)['service'].first
-      URI.parse(service_url_param).tap do |uri|
-        params = CGI.parse(uri.query).merge(ticket: ticket)
-        uri.query = params.to_query
-      end.to_s
+    def callback_url_from_cas_redirect(loc)
+      CasContexts.callback_url_from_cas_redirect(loc, ticket)
     end
 
     describe 'login' do
@@ -108,6 +104,31 @@ RSpec.describe 'Sessions', type: :request do
 
         user = session[User::SESSION_KEY]
         expect(user).to be_nil
+      end
+    end
+
+    describe 'logout' do
+      before(:each) do
+        post login_path, params: { origin: origin_url }
+        get callback_url_from_cas_redirect(response.headers['Location'])
+      end
+
+      it 'clears the user from the session' do
+        user = session[User::SESSION_KEY]
+        expect(user).not_to be_nil
+
+        get logout_path
+
+        user = session[User::SESSION_KEY]
+        expect(user).to be_nil
+      end
+
+      it 'redirects to the CAS logout URL' do
+        cas_base_uri = URI.parse("https://#{Rails.application.config.cas_host}")
+        cas_logout_url = BerkeleyLibrary::Util::URIs.append(cas_base_uri, '/cas/logout').to_s
+
+        get logout_path
+        expect(response).to redirect_to(cas_logout_url)
       end
     end
   end

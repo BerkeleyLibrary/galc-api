@@ -4,6 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '3.0.3'
 
 gem 'berkeley_library-logging', '~> 0.2', '>= 0.2.6'
+gem 'berkeley_library-util', '~> 0.1.1'
 gem 'jsonapi.rb', '~> 1.7'
 gem 'jsonapi-serializer', '~> 2.2'
 gem 'omniauth-cas', '~> 2.0'

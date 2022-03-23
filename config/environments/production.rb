@@ -70,5 +70,6 @@ Rails.application.configure do
   if ENV['CI'].blank? # TODO: what if it's not?
     Rails.application.config.hosts << '.ucblib.org'
     Rails.application.config.hosts << '.lib.berkeley.edu'
+    Rails.application.config.hosts << config.cas_host
   end
 end

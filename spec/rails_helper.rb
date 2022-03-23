@@ -37,3 +37,8 @@ require 'support/matchers'
 RSpec.configure do |config|
   config.include BerkeleyLibrary::Matchers
 end
+
+# ------------------------------------------------------------
+# CAS shared context
+
+require 'support/cas_contexts'
