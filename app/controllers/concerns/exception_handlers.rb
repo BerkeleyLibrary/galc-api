@@ -48,8 +48,10 @@ module ExceptionHandlers
 
     # @see JSONAPI::Errors.render_jsonapi_internal_server_error
     def render_jsonapi_internal_server_error(exception)
+      # :nocov:
       logger.error(exception)
       super
+      # :nocov:
     end
 
     # @see JSONAPI::Errors.render_jsonapi_not_found
