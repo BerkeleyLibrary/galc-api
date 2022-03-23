@@ -76,6 +76,7 @@ USER root
 # Install system packages needed to build gems with C extensions.
 RUN apt-get install -y --no-install-recommends \
     gcc \
+    g++ \
     make
 
 # ------------------------------------------------------------
