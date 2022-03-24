@@ -11,27 +11,36 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: root
         ports:
-          # TODO: just build an app container & connect it to the service network
+          # TODO: run job in a container so we don't need to expose ports
           - 5432:5432
 
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: setup
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      # TODO: build and push image first, then pull it to run this whole job in a container
+      #       (simplifies Docker networking & host naming)
+
+      - name: build
+        run: docker build . -t galc-api:ci
 
       - name: test
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: 'postgres://root:root@localhost:5432/galc-test?pool=5'
-        run: bundle exec rake -t
+        run: |
+          docker run \
+                     --network host \
+                     -u root \
+                     -v artifacts:/opt/app/artifacts \
+                     -e RAILS_ENV=test \
+                     -e DATABASE_URL='postgres://root:root@127.0.0.1:5432/galc-test?pool=5' \
+                     galc-api:ci \
+                     bundle exec rake -t
 
       - name: rubocop
-        if: ${{ always() }}
-        run: bundle exec rubocop
+        run: |
+          docker run -u root \
+                     -v artifacts:/opt/app/artifacts \
+                     galc-api:ci \
+                     bundle exec rubocop
 
       - name: upload artifacts
         if: ${{ always() }}
