@@ -3,27 +3,35 @@ on: [ push, pull_request, workflow_dispatch ]
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+        ports:
+          # TODO: just build an app container & connect it to the service network
+          - 5432:5432
+
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: build
-        run: docker-compose build --pull
-
-      - name: up
-        run: docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+      - name: setup
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
       - name: test
-        # disable TTY: workaround for https://github.com/actions/runner/issues/241
-        run: docker-compose exec -T -e RAILS_ENV=test app rake -t
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: 'postgres://root:root@localhost:5432/galc-test?pool=5'
+        run: bundle exec rake -t
 
-      - name: collect Docker logs
+      - name: rubocop
         if: ${{ always() }}
-        run: docker-compose logs | tee artifacts/docker-compose.log
-
-      - name: copy artifacts from container
-        if: ${{ always() }}
-        run: docker cp galc-api-app-1:/opt/app/artifacts/. artifacts
+        run: bundle exec rubocop
 
       - name: upload artifacts
         if: ${{ always() }}
@@ -32,13 +40,12 @@ jobs:
           name: artifacts
           path: artifacts/**
 
-      - name: down
-        if: ${{ always() }}
-        run: docker-compose down --remove-orphans
+      - name: build
+        run: docker build .
+
   publish:
     runs-on: ubuntu-latest
     needs: build
-#    if: github.ref_name == 'release'
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
