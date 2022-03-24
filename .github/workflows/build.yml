@@ -2,11 +2,7 @@ name: Build
 on: [ push, pull_request, workflow_dispatch ]
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -27,7 +23,7 @@ jobs:
 
       - name: copy artifacts from container
         if: ${{ always() }}
-        run: docker-compose cp app:/opt/app/artifacts/. artifacts
+        run: docker cp galc-api-app-1:/opt/app/artifacts/. artifacts
 
       - name: upload artifacts
         if: ${{ always() }}

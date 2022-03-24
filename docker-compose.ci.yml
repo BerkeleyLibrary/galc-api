@@ -2,6 +2,7 @@
 # - see https://docs.docker.com/compose/extends/
 services:
   app:
+    container_name: galc-api-app-1
     networks:
       default:
         aliases:
