@@ -1,0 +1,50 @@
+# ----------------------------------------
+# Ignore Docker-related files
+
+Dockerfile
+docker-compose*
+
+# ----------------------------------------
+# Ignore git config
+
+.git
+.gitignore
+
+# Ignore secrets
+.env
+secrets/*
+/config/master.key
+
+# ----------------------------------------
+# Ignore Markdown docs
+
+*.md
+
+# ----------------------------------------
+# Ignore tempfiles, build artifacts, logs, etc.
+
+#*#
+*.log
+*~
+.#*
+.bash_history
+.bundle/*
+.cache/*
+artifacts/*
+log/*
+node_modules/*
+public/assets
+public/packs
+public/packs-test
+tmp/*
+
+# ----------------------------------------
+# Ignore editor / IDE / CI config
+
+*.sublime*
+.github/*
+.idea/*
+
+# ----------------------------------------
+# Add back any .keep files
+!.keep
