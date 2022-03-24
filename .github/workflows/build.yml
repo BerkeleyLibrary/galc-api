@@ -26,11 +26,11 @@ jobs:
         run: docker-compose logs | tee artifacts/docker-compose.log
 
       - name: upload artifacts
-        if: hashFiles('artifacts/**') != ''
+        if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
-          path: artifacts/*
+          path: artifacts/**
 
       - name: down
         if: ${{ always() }}
