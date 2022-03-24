@@ -23,6 +23,9 @@ secrets/*
 # ----------------------------------------
 # Ignore tempfiles, build artifacts, logs, etc.
 
+# NOTE: Some of these will only ever show up in dev, but we
+#       don't want them there, either.
+
 #*#
 *.log
 *~
@@ -30,6 +33,7 @@ secrets/*
 .bash_history
 .bundle/*
 .cache/*
+.irb_history
 artifacts/*
 log/*
 node_modules/*
