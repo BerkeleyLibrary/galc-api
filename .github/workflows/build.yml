@@ -15,15 +15,19 @@ jobs:
         run: docker-compose build --pull
 
       - name: up
-        run: docker-compose up -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
 
       - name: test
         # disable TTY: workaround for https://github.com/actions/runner/issues/241
-        run: docker-compose exec -T app rake RAILS_ENV=test
+        run: docker-compose exec -T -e RAILS_ENV=test app rake -t
 
-      - name: logs
+      - name: collect Docker logs
         if: ${{ always() }}
         run: docker-compose logs | tee artifacts/docker-compose.log
+
+      - name: copy artifacts from container
+        if: ${{ always() }}
+        run: docker-compose cp app:/opt/app/artifacts/. artifacts
 
       - name: upload artifacts
         if: ${{ always() }}

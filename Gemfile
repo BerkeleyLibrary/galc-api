@@ -21,9 +21,6 @@ end
 
 group :development do
   gem 'hashdiff', '~> 1.0.1'
-  gem 'rspec', '~> 3.10'
-  gem 'rspec_junit_formatter', '~> 0.5'
-  gem 'rspec-rails', '~> 5.0'
   gem 'rubocop', '~> 1.26.0'
   gem 'rubocop-rails', '~> 2.13.2', require: false
   gem 'rubocop-rspec', '~> 2.4.0', require: false
@@ -32,6 +29,9 @@ end
 group :test do
   gem 'database_cleaner-active_record', '~> 2.0'
   gem 'factory_bot_rails'
+  gem 'rspec', '~> 3.10'
+  gem 'rspec_junit_formatter', '~> 0.5'
+  gem 'rspec-rails', '~> 5.0'
   gem 'simplecov', '~> 0.21', require: false
   gem 'simplecov-rcov', '~> 0.2', require: false
   gem 'webmock', require: false
