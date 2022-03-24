@@ -4,7 +4,7 @@
             <cas:displayName>Rachel Roe</cas:displayName>
             <cas:uid>5551215</cas:uid>
             <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:official:all-accounts-people-ou,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
-            <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:org:libr:galc:LIBR-galc-admins,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
+            <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
             <cas:berkeleyEduAffiliations>EMPLOYEE-TYPE-STAFF</cas:berkeleyEduAffiliations>
             <cas:berkeleyEduOfficialEmail>rroe@berkeley.test</cas:berkeleyEduOfficialEmail>
         </cas:attributes>

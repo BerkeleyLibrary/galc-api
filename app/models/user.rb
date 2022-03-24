@@ -9,7 +9,7 @@ class User
   SERIALIZED_ATTRS = { uid: nil, display_name: nil, email: nil, galc_admin: false }.freeze
 
   # LDAP `berkeleyEduIsMemberOf` value for the GALC admin group.
-  GALC_ADMIN_GROUP = 'cn=edu:berkeley:org:libr:galc:LIBR-galc-admins,ou=campus groups,dc=berkeley,dc=edu'.freeze
+  GALC_ADMIN_GROUP = 'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'.freeze
 
   # Key to look up the current user in the session
   SESSION_KEY = :user

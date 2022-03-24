@@ -19,7 +19,7 @@ describe User do
           'displayName' => 'Rachel Roe',
           'berkeleyEduOfficialEmail' => 'rroe@berkeley.test',
           'berkeleyEduIsMemberOf' => [
-            'cn=edu:berkeley:org:libr:galc:LIBR-galc-admins,ou=campus groups,dc=berkeley,dc=edu'
+            'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'
           ]
         }
       }
