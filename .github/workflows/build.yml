@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
-          path: artifacts/**
+          path: /opt/app/artifacts/**
 
   push:
     needs: [ build, test ]
