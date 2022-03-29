@@ -1,58 +1,24 @@
 name: Build
 on: [ push, pull_request, workflow_dispatch ]
+env:
+  REGISTRY: ghcr.io
+  BUILD_TAG: sha-${{ github.sha }}
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres
-        env:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-        ports:
-          # TODO: just build an app container & connect it to the service network
-          - 5432:5432
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: setup
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-
-      - name: test
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: 'postgres://root:root@localhost:5432/galc-test?pool=5'
-        run: bundle exec rake -t
-
-      - name: rubocop
-        if: ${{ always() }}
-        run: bundle exec rubocop
-
-      - name: upload artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifacts
-          path: artifacts/**
-
-      - name: build
-        run: docker build .
-
-  publish:
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
     permissions:
-      contents: read
       packages: write
+
     steps:
+      # See https://github.com/docker/build-push-action/blob/v2.10.0/TROUBLESHOOTING.md#repository-name-must-be-lowercase
+      - name: Sanitize repo slug
+        uses: actions/github-script@v6
+        id: slug
+        with:
+          result-encoding: string
+          script: return '${{ github.repository }}'.toLowerCase()
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -63,16 +29,80 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ steps.slug.outputs.result }}:${{ env.BUILD_TAG }}
+
+    outputs:
+      # TODO: Figure out how to DRY this
+      image_path: ${{ env.REGISTRY }}/${{ steps.slug.outputs.result }}
+      tagged_image: ${{ env.REGISTRY }}/${{ steps.slug.outputs.result }}:${{ env.BUILD_TAG }}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    container:
+      image: ${{ needs.build.outputs.tagged_image }}
+
+    defaults:
+      run:
+        working-directory: /opt/app
+
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+
+    steps:
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+        run: bundle exec rake check -t
+
+      - name: Run style checks
+        run: bundle exec rubocop
+
+      - name: Upload artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: /opt/app/artifacts/**
+
+  push:
+    needs: [ build, test ]
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+
+    env:
+      IMAGE_PATH: ${{ needs.build.outputs.image_path }}
+      TAGGED_IMAGE: ${{ needs.build.outputs.tagged_image }}
+
+    steps:
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.IMAGE_PATH }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and push image
+        uses: akhilerm/tag-push-action@v2.0.0
+        with:
+          src: ${{ env.TAGGED_IMAGE }}
+          dst: |
+            ${{ steps.meta.outputs.tags }}
