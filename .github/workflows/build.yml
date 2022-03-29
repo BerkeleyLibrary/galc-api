@@ -63,7 +63,7 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-        run: bundle exec rake -t
+        run: bundle exec rake check -t
 
       - name: Run style checks
         run: bundle exec rubocop
