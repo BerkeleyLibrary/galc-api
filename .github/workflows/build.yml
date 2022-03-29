@@ -63,7 +63,6 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: 'postgres://root:root@127.0.0.1:5432/galc-test?pool=5'
         run: bundle exec rake -t
 
       - name: Run style checks
