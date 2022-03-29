@@ -48,6 +48,10 @@ jobs:
     container:
       image: ${{ needs.build.outputs.tagged_image }}
 
+    defaults:
+      run:
+        working-directory: /opt/app
+
     services:
       db:
         image: postgres
