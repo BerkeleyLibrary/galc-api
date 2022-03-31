@@ -9,7 +9,7 @@ gem 'jsonapi.rb', '~> 1.7'
 gem 'jsonapi-serializer', '~> 2.2'
 gem 'omniauth-cas', '~> 2.0'
 gem 'pg', '~> 1.2'
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 5.0', '>= 5.0.4'
 gem 'rack-cors'
 gem 'rails', '~> 7.0.2', '>= 7.0.2.3'
 
