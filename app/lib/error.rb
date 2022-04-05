@@ -10,6 +10,9 @@ module Error
   # @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
   class UnauthorizedError < ApplicationError; end
 
-  # Raised when an authenticated user attempts an unauthorized actions
+  # Raised when an authenticated user attempts an unauthorized action
   class ForbiddenError < ApplicationError; end
+
+  # Raised when a user requests a nonexistent resource
+  class NotFoundError < ApplicationError; end
 end

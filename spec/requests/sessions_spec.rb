@@ -39,6 +39,13 @@ RSpec.describe 'Sessions', type: :request do
   # ------------------------------------------------------------
   # Tests
 
+  describe 'GET /' do
+    it 'returns 404 Not Found' do
+      get root_path
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe 'GET /auth/calnet' do
     # See https://github.com/omniauth/omniauth/wiki/Resolving-CVE-2015-9284
     it 'is disallowed' do

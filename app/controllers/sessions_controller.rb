@@ -3,6 +3,10 @@ require 'berkeley_library/util/uris'
 class SessionsController < ApplicationController
   ERR_TICKET_MISMATCH = 'Ticket from callback URL parameter does not match credential from OmniAuth hash'.freeze
 
+  def index
+    raise Error::NotFoundError
+  end
+
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash })
 
