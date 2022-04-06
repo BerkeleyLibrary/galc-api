@@ -5,5 +5,12 @@ Rails.application.routes.draw do
   get '/logout', to: 'sessions#logout', as: :logout
   get '/auth/:provider/callback', to: 'sessions#callback', as: :omniauth_callback
 
-  resources :items, defaults: { format: :jsonapi }, constraints: ->(req) { req.format == :jsonapi }
+  defaults format: :jsonapi do
+    constraints(->(req) { req.format == :jsonapi }) do
+      resources :items
+      resources :terms
+      resources :facets
+    end
+  end
+
 end
