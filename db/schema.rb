@@ -10,9 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_04_06_203912) do
+ActiveRecord::Schema[7.0].define(version: 2022_04_06_213252) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "facets", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_facets_on_name", unique: true
+  end
 
   create_table "items", force: :cascade do |t|
     t.string "image"
@@ -41,4 +48,17 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_06_203912) do
     t.index ["mms_id"], name: "index_items_on_mms_id", unique: true
   end
 
+  create_table "terms", force: :cascade do |t|
+    t.string "value", null: false
+    t.bigint "facet_id", null: false
+    t.bigint "parent_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["facet_id"], name: "index_terms_on_facet_id"
+    t.index ["parent_id"], name: "index_terms_on_parent_id"
+    t.index ["value"], name: "index_terms_on_value", unique: true
+  end
+
+  add_foreign_key "terms", "facets"
+  add_foreign_key "terms", "terms", column: "parent_id"
 end
