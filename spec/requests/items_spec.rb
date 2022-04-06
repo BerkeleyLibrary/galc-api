@@ -48,7 +48,6 @@ RSpec.describe 'Items', type: :request do
     let(:valid_attributes) do
       {
         image: 'viera da silva (composition).jpg',
-        image_base: 'viera da silva (composition)',
         title: 'Composition (Le Gardin)',
         artist: 'Vieira da Silva, Maria Elena',
         artist_url: 'https://en.wikipedia.org/wiki/Maria_Helena_Vieira_da_Silva',
@@ -61,7 +60,6 @@ RSpec.describe 'Items', type: :request do
         dimensions: '19 x 15"',
         size: 'Small',
         series: 'Artist\'s Proof',
-        bib_number: 'b16398237',
         mms_id: '991051333089706532',
         barcode: 'c093329284',
         circulation: 'NON-CIRC',

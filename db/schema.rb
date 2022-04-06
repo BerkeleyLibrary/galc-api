@@ -10,13 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_03_11_190417) do
+ActiveRecord::Schema[7.0].define(version: 2022_04_06_203912) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "items", force: :cascade do |t|
     t.string "image"
-    t.string "image_base" # TODO: drop this, it's just `image` without the file extension
     t.string "title"
     t.string "artist"
     t.string "artist_url"
@@ -29,7 +28,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_11_190417) do
     t.string "dimensions"
     t.string "size"
     t.string "series"
-    t.string "bib_number" # TODO: drop this, it's all MMS IDs now
     t.string "mms_id"
     t.string "barcode"
     t.string "circulation"
@@ -40,7 +38,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_03_11_190417) do
     t.date "reserve_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["bib_number"], name: "index_items_on_bib_number", unique: true
     t.index ["mms_id"], name: "index_items_on_mms_id", unique: true
   end
 
