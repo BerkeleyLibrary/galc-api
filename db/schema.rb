@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_04_14_191138) do
+ActiveRecord::Schema[7.0].define(version: 2022_04_14_225809) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_14_191138) do
     t.index ["mms_id"], name: "index_items_on_mms_id", unique: true
   end
 
+  create_table "items_terms", id: false, force: :cascade do |t|
+    t.bigint "item_id", null: false
+    t.bigint "term_id", null: false
+    t.index ["item_id", "term_id"], name: "index_items_terms_on_item_id_and_term_id", unique: true
+    t.index ["term_id", "item_id"], name: "index_items_terms_on_term_id_and_item_id", unique: true
+  end
+
   create_table "terms", force: :cascade do |t|
     t.string "value", null: false
     t.bigint "facet_id", null: false
@@ -59,6 +66,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_14_191138) do
     t.index ["value"], name: "index_terms_on_value", unique: true
   end
 
+  add_foreign_key "items_terms", "items"
+  add_foreign_key "items_terms", "terms"
   add_foreign_key "terms", "facets"
   add_foreign_key "terms", "terms", column: "parent_id"
 end
