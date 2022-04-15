@@ -38,8 +38,29 @@ RSpec.describe 'Items', type: :request do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to be_a(Hash)
 
-        result = parsed_response['data']
-        expect(result).to contain_jsonapi_for(item)
+        data = parsed_response['data']
+        expect(data).to contain_jsonapi_for(item)
+      end
+
+      it 'includes the terms' do
+        item = Item.take
+
+        get item_url(item)
+        parsed_response = JSON.parse(response.body)
+        data = parsed_response['data']
+
+        relationships = data['relationships']
+        terms_relationship = relationships['terms']
+        terms_data = terms_relationship['data']
+
+        expected_count = item.terms.count
+        expect(expected_count).to be > 0 # just to be sure
+
+        expect(terms_data).to be_a(Array)
+        expect(terms_data.size).to eq(expected_count)
+
+        expected_terms_data = item.terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
+        expect(terms_data).to contain_exactly(*expected_terms_data)
       end
     end
   end
@@ -104,6 +125,29 @@ RSpec.describe 'Items', type: :request do
             expect(response.headers['Location']).to eq(item_url(item))
           end
 
+          it 'sets the terms' do
+            expected_terms = Facet.all.map { |f| f.terms.take }
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes,
+                relationships: {
+                  terms: {
+                    data: expected_terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
+                  }
+                }
+              }
+            }
+            expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+
+            expect(response).to have_http_status(:created)
+            parsed_response = JSON.parse(response.body)
+            response_data = parsed_response['data']
+
+            item = Item.find(response_data['id'].to_i)
+            expect(item.terms).to contain_exactly(*expected_terms)
+          end
+
           it 'accepts a nil MMS ID' do
             attributes = valid_attributes.except(:mms_id)
 
@@ -159,6 +203,31 @@ RSpec.describe 'Items', type: :request do
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
             expect(actual_errors).to contain_exactly(*expected_json)
+          end
+
+          it 'fails with 404 Not Found for an invalid term' do
+            invalid_id = Term.maximum(:id) + 999
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes,
+                relationships: {
+                  terms: {
+                    data: [{ 'type' => 'term', 'id' => invalid_id.to_s }]
+                  }
+                }
+              }
+            }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordNotFound))
+
+            expect(response).to have_http_status(:not_found)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            expect(actual_errors.size).to eq(1)
           end
 
           xit 'returns 403 forbidden for a client-generated ID'

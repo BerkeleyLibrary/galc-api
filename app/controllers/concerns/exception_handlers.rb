@@ -55,10 +55,11 @@ module ExceptionHandlers
       # :nocov:
     end
 
-    # @see JSONAPI::Errors.render_jsonapi_not_found
+    # Overrides JSONAPI::Errors.render_jsonapi_not_found to include error detail
     def render_jsonapi_not_found(exception)
       logger.error(exception)
-      super
+
+      render_jsonapi_error(:not_found, detail: exception.message)
     end
 
     # -----------------------------
@@ -70,12 +71,13 @@ module ExceptionHandlers
       return errors if errors.is_a?(Enumerable)
     end
 
-    def render_jsonapi_error(status)
+    def render_jsonapi_error(status, detail: nil)
       status_code = status_code(status)
       error = {
         status: status_code.to_s,
         title: Rack::Utils::HTTP_STATUS_CODES[status_code]
       }
+      error[:detail] = detail unless detail.nil?
       render(jsonapi_errors: [error], status: status_code)
     end
 
