@@ -1,7 +1,7 @@
-class ItemSerializer
+class FacetSerializer
   include JSONAPI::Serializer
 
-  attributes(*Item::DATA_ATTRS)
+  attributes(:name)
 
   has_many :terms
 end

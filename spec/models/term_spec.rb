@@ -24,7 +24,6 @@ describe Term do
   end
 
   describe :parent do
-
     it 'need not have a parent' do
       term = create(:term)
       expect(term.parent).to be_nil
@@ -44,6 +43,32 @@ describe Term do
       term.parent = other_term
       expect(term).not_to be_valid
     end
+  end
 
+  describe :children do
+    before do
+      FactoryBot.factories.select { |f| f.build_class == Term }.each { |f| create(f.name) }
+    end
+
+    it 'can have children' do
+      facet_medium = Facet.find_by!(name: 'Medium')
+      term_intaglio = Term.find_by(value: 'Intaglio', facet: facet_medium)
+
+      children = term_intaglio.children
+      expected_values = [
+        'Aquatint',
+        'Drypoint',
+        'Engraving',
+        'Etching',
+        'Mezzotint',
+        'Photoprint',
+        'Relief Etching'
+      ]
+      expect(children.pluck(:value)).to contain_exactly(*expected_values)
+      children.each do |child|
+        expect(child.parent).to eq(term_intaglio)
+        expect(child.facet).to eq(facet_medium)
+      end
+    end
   end
 end

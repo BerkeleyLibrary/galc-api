@@ -15,11 +15,12 @@ module BerkeleyLibrary
 
       attr_reader :expected, :strict, :actual
 
-      def initialize(expected, strict: true)
+      def initialize(expected, strict: true, ignore_relations: true)
         raise ArgumentError, "Not a hash: #{expected}" unless hash_like?(expected)
 
         @expected = expected
         @strict = strict
+        @ignore_relations = ignore_relations
       end
 
       def matches?(actual)
@@ -31,6 +32,10 @@ module BerkeleyLibrary
         return if matches?(actual)
 
         failure_message_base + failure_message_details
+      end
+
+      def ignore_relations?
+        @ignore_relations
       end
 
       # def description
@@ -63,8 +68,11 @@ module BerkeleyLibrary
       end
 
       def diffs
-        @diffs ||= Hashdiff.diff(expected, actual).tap do |dd|
-          dd.reject! { |diff| diff[0] == '+' } unless strict
+        @diffs ||= begin
+          actual_actual = ignore_relations? ? actual.except('relationships') : actual
+          Hashdiff.diff(expected, actual_actual).tap do |dd|
+            dd.reject! { |diff| diff[0] == '+' } unless strict
+          end
         end
       end
 
