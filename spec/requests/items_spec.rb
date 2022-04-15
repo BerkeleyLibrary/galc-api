@@ -4,7 +4,7 @@ RSpec.describe 'Items', type: :request do
   before do
     # misusing an internal API, but what can you do?
     # https://github.com/thoughtbot/factory_bot/issues/1534
-    FactoryBot.factories.each { |f| create(f.name) if f.build_class == Item }
+    FactoryBot.factories.select { |f| f.build_class == Item }.each { |f| create(f.name) }
   end
 
   describe 'reading' do
@@ -52,13 +52,13 @@ RSpec.describe 'Items', type: :request do
         artist: 'Vieira da Silva, Maria Elena',
         artist_url: 'https://en.wikipedia.org/wiki/Maria_Helena_Vieira_da_Silva',
         date: '1959',
-        decade: '1950-1959',
+        # decade: '1950-1959',
         description: 'Annotated "Epreuve d\'artiste."',
-        medium: 'Serigraph',
-        colors: 'Color',
-        genre: 'Still Life',
+        # medium: 'Serigraph',
+        # colors: 'Color',
+        # genre: 'Still Life',
         dimensions: '19 x 15"',
-        size: 'Small',
+        # size: 'Small',
         series: 'Artist\'s Proof',
         mms_id: '991051333089706532',
         barcode: 'c093329284',
