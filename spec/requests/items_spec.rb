@@ -49,16 +49,12 @@ RSpec.describe 'Items', type: :request do
         parsed_response = JSON.parse(response.body)
         data = parsed_response['data']
 
-        relationships = data['relationships']
-        terms_relationship = relationships['terms']
-        terms_data = terms_relationship['data']
+        terms_data = data['relationships']['terms']['data']
 
         expected_count = item.terms.count
         expect(expected_count).to be > 0 # just to be sure
 
         expect(terms_data).to be_a(Array)
-        expect(terms_data.size).to eq(expected_count)
-
         expected_terms_data = item.terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
         expect(terms_data).to contain_exactly(*expected_terms_data)
       end
