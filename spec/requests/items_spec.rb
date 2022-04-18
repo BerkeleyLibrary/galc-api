@@ -18,8 +18,17 @@ RSpec.describe 'Items', type: :request do
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to be_a(Hash)
         expect(parsed_response).to contain_jsonapi_for(Item.all)
+      end
+
+      it 'accepts JSONAPI include parameters' do
+        get items_url, params: { include: 'terms, terms.facet ' }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to contain_jsonapi_for(Item.all, { include: %i[terms terms.facet] })
       end
     end
 

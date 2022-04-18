@@ -15,6 +15,16 @@ RSpec.describe 'Facets', type: :request do
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to contain_jsonapi_for(Facet.all)
+      end
+
+      it 'accepts JSONAPI include parameters' do
+        get facets_url, params: { include: 'terms' }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
         expect(parsed_response).to contain_jsonapi_for(Facet.all, { include: [:terms] })
       end
     end

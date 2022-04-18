@@ -1,6 +1,8 @@
 class FacetsController < ApplicationController
+  include JSONAPI::Fetching
+
   def index
     @facets = Facet.all
-    render jsonapi: @facets, include: [:terms]
+    render jsonapi: @facets
   end
 end
