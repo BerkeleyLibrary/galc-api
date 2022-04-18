@@ -16,10 +16,9 @@ class Item < ApplicationRecord
   # Validations
 
   validates :mms_id, uniqueness: { allow_nil: true }
-  validates :title, presence: true
+  validates :title, presence: true # TODO: enforce this in the schema
 
   # TODO: figure out when we can enforce this
   # validates :image, presence: true
   # validates :artist, presence: true
-  # validates :decade, presence: true
 end
