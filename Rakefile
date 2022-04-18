@@ -15,7 +15,8 @@ task setup: %w[db:await db:setup]
 
 desc 'Set up, check test coverage'
 task :check do
-  ENV['RAILS_ENV'] = 'test'
+  raise "Can't run specs; expected RAILS_ENV=\"test\", was #{Rails.env.inspect}" unless Rails.env.test?
+
   Rake::Task[:setup].invoke
   Rake::Task[:coverage].invoke
 end
