@@ -70,7 +70,7 @@
     <orderEntry type="library" scope="PROVIDED" name="http-cookie (v1.0.4, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="i18n (v1.10.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="jsonapi-serializer (v2.2.0, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="jsonapi.rb (v1.7.0, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="jsonapi.rb (v2.0.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="lograge (v0.12.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="loofah (v2.16.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mail (v2.7.1, RVM: ruby-3.0.3) [gem]" level="application" />
@@ -105,7 +105,6 @@
     <orderEntry type="library" scope="PROVIDED" name="railties (v7.0.2.3, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rainbow (v3.1.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rake (v13.0.6, RVM: ruby-3.0.3) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ransack (v3.0.0, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="regexp_parser (v2.2.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="request_store (v1.5.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rest-client (v2.1.0, RVM: ruby-3.0.3) [gem]" level="application" />
