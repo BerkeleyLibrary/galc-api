@@ -8,8 +8,8 @@ Rails.application.routes.draw do
   defaults format: :jsonapi do
     constraints(->(req) { req.format == :jsonapi }) do
       resources :items
-      resources :terms
-      resources :facets
+      resources :terms, only: :index
+      resources :facets, only: :index
     end
   end
 
