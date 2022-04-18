@@ -4,8 +4,12 @@ module BerkeleyLibrary
 
   module Matchers
 
-    def include_nested_hashes(expected)
+    def deep_include_hashes(expected)
       HashDiffMatcher.new(expected, strict: false)
+    end
+
+    def deep_eq_hash(expected)
+      HashDiffMatcher.new(expected)
     end
 
     class HashDiffMatcher
@@ -15,12 +19,11 @@ module BerkeleyLibrary
 
       attr_reader :expected, :strict, :actual
 
-      def initialize(expected, strict: true, ignore_relations: true)
+      def initialize(expected, strict: true)
         raise ArgumentError, "Not a hash: #{expected}" unless hash_like?(expected)
 
         @expected = expected
         @strict = strict
-        @ignore_relations = ignore_relations
       end
 
       def matches?(actual)
@@ -34,10 +37,6 @@ module BerkeleyLibrary
         failure_message_base + failure_message_details
       end
 
-      def ignore_relations?
-        @ignore_relations
-      end
-
       # def description
       #   (instance_variable_defined?(:@actual) && failure_message) || inspect
       # end
@@ -49,12 +48,12 @@ module BerkeleyLibrary
       protected
 
       def failure_message_base
-        [].tap do |msg|
-          msg << 'Expected'
-          msg << 'hash including' unless strict
-          msg << expected
-          msg << ", got #{actual.inspect}: "
-        end.join(' ')
+        <<~MSG
+          Expected#{' hash including' unless strict}:
+            #{expected.inspect}
+          Got:
+            #{actual.inspect}
+        MSG
       end
 
       def hash_like?(v)
@@ -68,11 +67,8 @@ module BerkeleyLibrary
       end
 
       def diffs
-        @diffs ||= begin
-          actual_actual = ignore_relations? ? actual.except('relationships') : actual
-          Hashdiff.diff(expected, actual_actual).tap do |dd|
-            dd.reject! { |diff| diff[0] == '+' } unless strict
-          end
+        @diffs ||= Hashdiff.diff(expected, actual).tap do |dd|
+          dd.reject! { |diff| diff[0] == '+' } unless strict
         end
       end
 

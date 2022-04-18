@@ -19,11 +19,7 @@ RSpec.describe 'Items', type: :request do
 
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to be_a(Hash)
-
-        data = parsed_response['data']
-
-        expected_json = Item.all.map { |i| jsonapi_for(i) }
-        expect(data).to match_array(expected_json)
+        expect(parsed_response).to contain_jsonapi_for(Item.all)
       end
     end
 
@@ -38,8 +34,7 @@ RSpec.describe 'Items', type: :request do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to be_a(Hash)
 
-        data = parsed_response['data']
-        expect(data).to contain_jsonapi_for(item)
+        expect(parsed_response).to contain_jsonapi_for(item)
       end
 
       it 'includes the terms' do
@@ -111,13 +106,13 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             parsed_response = JSON.parse(response.body)
-            response_data = parsed_response['data']
+            item_id = parsed_response['data']['id'].to_i
 
-            item = Item.find(response_data['id'].to_i)
+            item = Item.find(item_id)
             expect(item).not_to be_nil
             valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-            expect(response_data).to contain_jsonapi_for(item)
+            expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
           end
 
@@ -138,9 +133,8 @@ RSpec.describe 'Items', type: :request do
 
             expect(response).to have_http_status(:created)
             parsed_response = JSON.parse(response.body)
-            response_data = parsed_response['data']
 
-            item = Item.find(response_data['id'].to_i)
+            item = Item.find(parsed_response['data']['id'].to_i)
             expect(item.terms).to contain_exactly(*expected_terms)
           end
 
@@ -154,13 +148,13 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             parsed_response = JSON.parse(response.body)
-            response_data = parsed_response['data']
+            item_id = parsed_response['data']['id'].to_i
 
-            item = Item.find(response_data['id'].to_i)
+            item = Item.find(item_id)
             expect(item).not_to be_nil
             attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-            expect(response_data).to contain_jsonapi_for(item)
+            expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
           end
         end
@@ -247,8 +241,8 @@ RSpec.describe 'Items', type: :request do
             item.reload
             old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
-            response_data = JSON.parse(response.body)['data']
-            expect(response_data).to contain_jsonapi_for(item)
+            parsed_response = JSON.parse(response.body)
+            expect(parsed_response).to contain_jsonapi_for(item)
           end
         end
 
