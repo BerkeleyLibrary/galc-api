@@ -12,6 +12,7 @@ gem 'pg', '~> 1.2'
 gem 'puma', '~> 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 7.0.2', '>= 7.0.2.3'
+gem 'ransack', '~> 2.6'
 
 group :development, :test do
   gem 'brakeman'
