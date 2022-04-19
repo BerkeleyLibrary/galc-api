@@ -1,6 +1,7 @@
 class ItemsController < ApplicationController
   include JSONAPI::Deserialization
   include JSONAPI::Fetching
+  include JSONAPI::Pagination
 
   before_action :set_item, only: %i[show update destroy]
   before_action :require_galc_admin!, only: %i[create update destroy]
@@ -9,7 +10,9 @@ class ItemsController < ApplicationController
   def index
     @items = Item.includes(:terms).all
 
-    render jsonapi: @items
+    jsonapi_paginate(@items) do |paginated|
+      render jsonapi: paginated
+    end
   end
 
   # GET /items/1

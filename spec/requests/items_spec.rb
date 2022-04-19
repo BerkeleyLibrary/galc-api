@@ -18,17 +18,31 @@ RSpec.describe 'Items', type: :request do
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to contain_jsonapi_for(Item.all)
+
+        links = parsed_response.delete('links')
+
+        # TODO: test pagination properly
+        expect(links['self']).to eq(items_url)
+        expect(links['current']).to eq("#{items_url}?page[number]=1")
+
+        expected_data = Item.includes(:terms).all
+        expect(parsed_response).to contain_jsonapi_for(expected_data)
       end
 
       it 'accepts JSONAPI include parameters' do
-        get items_url, params: { include: 'terms, terms.facet ' }
+        get items_url, params: { include: 'terms,terms.facet' }
 
         expect(response).to be_successful
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to contain_jsonapi_for(Item.all, { include: %i[terms terms.facet] })
+
+        links = parsed_response.delete('links')
+        expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
+        expect(links['current']).to eq("#{links['self']}&page[number]=1")
+
+        expected_data = Item.includes(:terms).all
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet] })
       end
     end
 
@@ -41,7 +55,8 @@ RSpec.describe 'Items', type: :request do
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to be_a(Hash)
+        links = parsed_response.delete('links')
+        expect(links['self']).to eq(item_url(item))
 
         expect(parsed_response).to contain_jsonapi_for(item)
       end
@@ -121,6 +136,9 @@ RSpec.describe 'Items', type: :request do
             expect(item).not_to be_nil
             valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(items_url)
+
             expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
           end
@@ -162,6 +180,9 @@ RSpec.describe 'Items', type: :request do
             item = Item.find(item_id)
             expect(item).not_to be_nil
             attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(items_url)
 
             expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
@@ -251,6 +272,10 @@ RSpec.describe 'Items', type: :request do
             old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
             parsed_response = JSON.parse(response.body)
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(item_url(item))
+
             expect(parsed_response).to contain_jsonapi_for(item)
           end
         end
