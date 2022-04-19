@@ -7,7 +7,7 @@ class ItemsController < ApplicationController
 
   # GET /items
   def index
-    @items = Item.all
+    @items = Item.includes(:terms).all
 
     render jsonapi: @items
   end

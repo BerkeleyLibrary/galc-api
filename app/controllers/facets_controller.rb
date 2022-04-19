@@ -2,7 +2,8 @@ class FacetsController < ApplicationController
   include JSONAPI::Fetching
 
   def index
-    @facets = Facet.all
+    # TODO: Is there a way to do this with fewer SQL queries?
+    @facets = Facet.includes(terms: [:parent, :children]).all
     render jsonapi: @facets
   end
 end
