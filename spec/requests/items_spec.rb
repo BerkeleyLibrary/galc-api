@@ -46,8 +46,10 @@ RSpec.describe 'Items', type: :request do
       end
 
       it 'supports searches by facet' do
+        # NOTE: The query string format here follows JSONAPI recommendations, not Rails nested
+        #       parameter conventions. See https://jsonapi.org/recommendations/#filtering
         facet_values = { 'Medium' => %w[Etching Lithograph], 'Genre' => %w[Landscape Figurative] }
-        get items_url, params: { filter: facet_values }
+        get items_url, params: facet_values.map { |f, vv| "filter[#{f}]=#{vv.join(',')}" }.join('&')
 
         expect(response).to be_successful
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)

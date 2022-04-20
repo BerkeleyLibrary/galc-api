@@ -25,6 +25,7 @@ class Item < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
+  # Returns items matching the specified facet values.
   scope :with_facet_values, ->(facet_values) do
     return Item.all if facet_values.empty?
 

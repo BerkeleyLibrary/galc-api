@@ -7,8 +7,9 @@ class ItemsController < ApplicationController
   before_action :require_galc_admin!, only: %i[create update destroy]
 
   # GET /items
+  # GET /items?filter[<facet1>]=<term1>,<term2>…&filter[<facet2>]=…
   def index
-    jsonapi_paginate(items) do |paginated|
+    jsonapi_paginate(filtered_items) do |paginated|
       render jsonapi: paginated
     end
   end
@@ -37,9 +38,6 @@ class ItemsController < ApplicationController
 
   private
 
-  TRUSTED_PARAMS = Item::EDIT_ATTRS
-  private_constant :TRUSTED_PARAMS
-
   # Use callbacks to share common setup or constraints between actions.
   def set_item
     @item = Item.find(params[:id])
@@ -47,19 +45,23 @@ class ItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def item_params
-    jsonapi_deserialize(params, only: TRUSTED_PARAMS)
+    @item_params ||= jsonapi_deserialize(params, only: Item::EDIT_ATTRS)
   end
 
+  # @return ActionController::Parameters the filter parameters, if present
   def filter_params
-    @filter_params ||= params.permit(filter: {})
+    @filter_params ||= params.fetch(:filter, {}).permit!
   end
 
-  def items
-    items = Item.includes(:terms)
-    logger.info("filter_params: #{filter_params}")
-    facet_values = filter_params[:filter].to_h
-    return items if facet_values.blank?
+  # @return Hash<String, Array<String>> the facet filter values, if present
+  def facet_values
+    @facet_values ||= filter_params.to_h.transform_values { |terms| terms.split(',') }
+  end
 
-    items.with_facet_values(facet_values)
+  def filtered_items
+    @filtered_items ||= begin
+      items = Item.includes(:terms)
+      facet_values.blank? ? items : items.with_facet_values(facet_values)
+    end
   end
 end
