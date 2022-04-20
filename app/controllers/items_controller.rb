@@ -8,9 +8,7 @@ class ItemsController < ApplicationController
 
   # GET /items
   def index
-    @items = Item.includes(:terms).all
-
-    jsonapi_paginate(@items) do |paginated|
+    jsonapi_paginate(items) do |paginated|
       render jsonapi: paginated
     end
   end
@@ -50,5 +48,18 @@ class ItemsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def item_params
     jsonapi_deserialize(params, only: TRUSTED_PARAMS)
+  end
+
+  def filter_params
+    @filter_params ||= params.permit(filter: {})
+  end
+
+  def items
+    items = Item.includes(:terms)
+    logger.info("filter_params: #{filter_params}")
+    facet_values = filter_params[:filter].to_h
+    return items if facet_values.blank?
+
+    items.with_facet_values(facet_values)
   end
 end

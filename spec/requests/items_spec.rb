@@ -39,10 +39,27 @@ RSpec.describe 'Items', type: :request do
 
         links = parsed_response.delete('links')
         expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
-        expect(links['current']).to eq("#{links['self']}&page[number]=1")
+        expect(links['current']).to eq("#{items_url}?include=terms,terms.facet&page[number]=1")
 
         expected_data = Item.includes(:terms).all
         expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet] })
+      end
+
+      it 'supports searches by facet' do
+        facet_values = { 'Medium' => %w[Etching Lithograph], 'Genre' => %w[Landscape Figurative] }
+        get items_url, params: { filter: facet_values }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+
+        _links = parsed_response.delete('links')
+        # expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
+        # expect(links['current']).to eq("#{links['self']}&page[number]=1")
+
+        expected_data = Item.with_facet_values(facet_values)
+        expect(parsed_response).to contain_jsonapi_for(expected_data)
       end
     end
 

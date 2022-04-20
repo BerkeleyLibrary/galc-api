@@ -67,9 +67,26 @@ module BerkeleyLibrary
       end
 
       def diffs
-        @diffs ||= Hashdiff.diff(expected, actual).tap do |dd|
+        @diffs ||= Hashdiff.diff(deep_sort(expected), deep_sort(actual)).tap do |dd|
           dd.reject! { |diff| diff[0] == '+' } unless strict
         end
+      end
+
+      def deep_sort(x)
+        return deep_sort_array(x) if x.is_a?(Array)
+        return deep_sort_hash(x) if x.is_a?(Hash)
+
+        x
+      end
+
+      def deep_sort_hash(h)
+        h.keys.sort_by(&:to_s).to_h do |k|
+          [k, deep_sort(h[k])]
+        end
+      end
+
+      def deep_sort_array(a)
+        a.map { |v| deep_sort(v) }.sort_by(&:to_s)
       end
 
       def formatted_diffs

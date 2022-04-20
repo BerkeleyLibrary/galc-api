@@ -21,4 +21,34 @@ class Item < ApplicationRecord
   # TODO: figure out when we can enforce this
   # validates :image, presence: true
   # validates :artist, presence: true
+
+  # ------------------------------------------------------------
+  # Scopes
+
+  scope :with_facet_values, ->(facet_values) do
+    return Item.all if facet_values.empty?
+
+    facet_value_conditions = facet_values.each_with_object([]) do |(facet, terms), conds|
+      next if (tt = Array(terms)).empty?
+
+      conds << sanitize_sql(['(facets.name = ? AND terms.value IN (?))', facet, tt])
+    end
+
+    item_ids_stmt = <<~SQL.squish
+      SELECT items_terms.item_id
+        FROM items_terms
+       WHERE items_terms.term_id IN
+             (
+              SELECT terms.id
+                FROM terms,
+                     facets
+               WHERE terms.facet_id = facets.id
+                 AND #{facet_value_conditions.join(' OR ')}
+             )
+       GROUP by item_id
+      HAVING COUNT(items_terms.term_id) = #{facet_values.size}
+    SQL
+
+    where("id IN (#{item_ids_stmt})")
+  end
 end
