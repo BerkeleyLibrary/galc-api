@@ -52,5 +52,18 @@ describe Item do
       expect(results).to contain_exactly(*expected_items)
     end
 
+    xit 'handles completely bananas queries' do
+      facet_values = {
+        'Medium' => %w[Etching Lithograph Intaglio],
+        'Genre' => %w[Landscape Figurative],
+        'Decade' => ['1990-1999', 'After 1999', '1960-1969', '1950-1959'],
+        'Size' => %w[Small Medium]
+      }
+      results = Item.with_facet_values(facet_values)
+      puts(results.to_sql)
+      # TODO: test this
+    end
+
+    # TODO: support nested materials
   end
 end
