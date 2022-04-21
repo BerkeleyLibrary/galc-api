@@ -25,6 +25,8 @@ class Item < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
+  default_scope { order(:artist, :title) }
+
   # Returns items matching the specified facet values.
   scope :with_facet_values, ->(facet_values) do
     return Item.all if facet_values.empty?
@@ -32,20 +34,15 @@ class Item < ApplicationRecord
     facet_value_conditions = facet_values.each_with_object([]) do |(facet, terms), conds|
       next if (tt = Array(terms)).empty?
 
-      conds << sanitize_sql(['(facets.name = ? AND terms.value IN (?))', facet, tt])
+      conds << sanitize_sql(['(facet_name = ? AND term_value IN (?))', facet, tt])
     end
 
-    # TODO: create a materialized view or something
     item_ids_stmt = <<~SQL.squish
-      SELECT items_terms.item_id
-        FROM items_terms,
-             terms,
-             facets
-       WHERE items_terms.term_id = terms.id
-         AND terms.facet_id = facets.id
-         AND (#{facet_value_conditions.join(' OR ')})
-       GROUP BY items_terms.item_id
-      HAVING COUNT(DISTINCT facets.id) = #{facet_values.size}
+      SELECT DISTINCT item_id
+        FROM facet_lookup
+       WHERE (#{facet_value_conditions.join(' OR ')})
+       GROUP BY item_id
+      HAVING COUNT(DISTINCT facet_name) = #{facet_values.size}
     SQL
 
     where("id IN (#{item_ids_stmt})")

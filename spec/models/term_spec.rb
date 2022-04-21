@@ -52,7 +52,7 @@ describe Term do
 
     it 'can have children' do
       facet_medium = Facet.find_by!(name: 'Medium')
-      term_intaglio = Term.find_by(value: 'Intaglio', facet: facet_medium)
+      term_intaglio = Term.find_by!(value: 'Intaglio', facet: facet_medium)
 
       children = term_intaglio.children
       expected_values = [
