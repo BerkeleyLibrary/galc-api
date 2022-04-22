@@ -2,6 +2,8 @@ require 'rails_helper'
 
 describe Item do
   before do
+    # TODO: centralize these calls
+    # TODO: find a way to do this with bulk inserts/updates
     FactoryBot.factories.select { |f| f.build_class == Item }.each { |f| create(f.name) }
   end
 
