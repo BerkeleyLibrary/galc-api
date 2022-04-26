@@ -2,9 +2,7 @@ require 'rails_helper'
 
 describe Item do
   before do
-    # TODO: centralize these calls
-    # TODO: find a way to do this with bulk inserts/updates
-    FactoryBot.factories.select { |f| f.build_class == Item }.each { |f| create(f.name) }
+    create_all(Item)
   end
 
   describe :with_facet_values do
@@ -56,7 +54,7 @@ describe Item do
 
     it 'handles completely bananas queries' do
       # Make sure we have all the terms
-      FactoryBot.factories.select { |f| f.build_class == Term }.each { |f| create(f.name) }
+      create_all(Term)
 
       facet_values = {
         'Medium' => %w[Etching Lithograph Intaglio],

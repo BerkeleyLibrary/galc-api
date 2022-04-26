@@ -2,9 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Items', type: :request do
   before do
-    # misusing an internal API, but what can you do?
-    # https://github.com/thoughtbot/factory_bot/issues/1534
-    FactoryBot.factories.select { |f| f.build_class == Item }.each { |f| create(f.name) }
+    create_all(Item)
   end
 
   describe 'reading' do

@@ -47,7 +47,7 @@ describe Term do
 
   describe :children do
     before do
-      FactoryBot.factories.select { |f| f.build_class == Term }.each { |f| create(f.name) }
+      create_all(Term)
     end
 
     it 'can have children' do

@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe 'Facets', type: :request do
   before do
     # creating the terms creates the facets by side effect
-    FactoryBot.factories.select { |f| f.build_class == Term }.each { |f| create(f.name) }
+    create_all(Term)
   end
 
   describe 'reading' do

@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe TermSerializer do
   before do
-    FactoryBot.factories.select { |f| f.build_class == Term }.each { |f| create(f.name) }
+    create_all(Term)
   end
 
   it 'serializes a term' do
