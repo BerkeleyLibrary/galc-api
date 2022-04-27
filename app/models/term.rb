@@ -17,6 +17,41 @@ class Term < ApplicationRecord
   validate :parent_is_same_facet
 
   # ------------------------------------------------------------
+  # Scopes
+
+  scope :find_by_self_or_parent, ->(**conditions) {
+    direct = Term.where(**conditions)
+    direct.or(Term.where(parent: direct))
+  }
+
+  class << self
+    # Given a hash from facet names to desired values for that facet,
+    # returns an array of ActiveRecord queries corresponding to the
+    # provided facet name / term value combinations.
+    #
+    # Note that term values are compared against the parent as well
+    # as the term itself.
+    #
+    # @param values_by_facet Hash<String, Array<String>> a hash from
+    #   facet names to the desired values for that facet
+    # @return Array<ActiveRecord::Relation> the query for each facet
+    # and corresponding values
+    def grouped_by_facet(values_by_facet)
+      return [] if values_by_facet.empty?
+
+      all_facet_names = values_by_facet.keys
+      all_facets = Facet.where(name: all_facet_names)
+      facets_by_name = all_facets.index_by(&:name)
+
+      values_by_facet.filter_map do |f_name, values|
+        next unless (facet = facets_by_name[f_name])
+
+        Term.find_by_self_or_parent(facet: facet, value: values)
+      end
+    end
+  end
+
+  # ------------------------------------------------------------
   # Private methods
 
   private

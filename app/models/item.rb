@@ -25,26 +25,20 @@ class Item < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
-  default_scope { order(:artist, :title) }
+  scope :for_terms, ->(terms) do
+    item_ids = ItemsTerm.for_terms(terms).select(:item_id)
+    Item.where(id: item_ids)
+  end
 
   # Returns items matching the specified facet values.
-  scope :with_facet_values, ->(facet_values) do
-    return Item.all if facet_values.empty?
+  scope :with_facet_values, ->(values_by_facet) do
+    return Item.all if values_by_facet.empty?
 
-    facet_value_conditions = facet_values.each_with_object([]) do |(facet, terms), conds|
-      next if (tt = Array(terms)).empty?
+    items_for_facets = Term
+      .grouped_by_facet(values_by_facet)
+      .map { |terms| Item.for_terms(terms) }
 
-      conds << sanitize_sql(['(facet_name = ? AND term_value IN (?))', facet, tt])
-    end
-
-    item_ids_stmt = <<~SQL.squish
-      SELECT DISTINCT item_id
-        FROM facet_lookup
-       WHERE (#{facet_value_conditions.join(' OR ')})
-       GROUP BY item_id
-      HAVING COUNT(DISTINCT facet_name) = #{facet_values.size}
-    SQL
-
-    where("id IN (#{item_ids_stmt})")
+    items_for_facets
+      .inject { |facet_items, all_items| all_items.and(facet_items) }
   end
 end

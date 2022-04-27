@@ -90,7 +90,5 @@ describe Item do
       results = Item.with_facet_values(facet_values)
       expect(results).to contain_exactly(*expected_items)
     end
-
-    # TODO: support nested materials
   end
 end
