@@ -20,8 +20,13 @@ class Term < ApplicationRecord
   # Scopes
 
   scope :find_by_self_or_parent, ->(**conditions) {
-    direct = Term.where(**conditions)
-    direct.or(Term.where(parent: direct))
+    sql = <<~SQL.squish
+      INNER JOIN (#{Term.where(**conditions).to_sql})#{' '}
+              AS direct
+              ON (terms.id = direct.id OR terms.parent_id = direct.id)
+    SQL
+
+    Term.joins(sql)
   }
 
   class << self
