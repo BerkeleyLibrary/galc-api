@@ -39,6 +39,8 @@ module GalcApi
     # - NOTE: overridden in production.rb
     config.cas_host = ENV.fetch('CAS_HOST') { 'auth-test.berkeley.edu' }
 
+    BerkeleyLibrary::Alma::Config.default!
+
     config.after_initialize do
       BuildInfo.log!
     end
