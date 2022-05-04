@@ -59,9 +59,6 @@ class ItemsController < ApplicationController
   end
 
   def filtered_items
-    @filtered_items ||= begin
-      items = Item.includes(:terms)
-      facet_values.blank? ? items : items.with_facet_values(facet_values)
-    end
+    @filtered_items ||= Item.with_facet_values(facet_values).includes(:terms)
   end
 end

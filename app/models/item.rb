@@ -25,6 +25,10 @@ class Item < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
+  # TODO: add sorting to API
+  # TODO: allow sorting by facet values
+  default_scope { order(:artist, :title, :date) }
+
   scope :for_terms, ->(terms) do
     item_ids = ItemsTerm.for_terms(terms).select(:item_id)
     Item.where(id: item_ids)
