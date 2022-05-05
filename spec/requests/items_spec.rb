@@ -6,6 +6,15 @@ RSpec.describe 'Items', type: :request do
   end
 
   describe 'reading' do
+    before do
+      allow(AvailabilityService).to receive(:availability_for) do |mms_ids|
+        mms_ids.compact.to_h do |mms_id|
+          available = mms_id[mms_id.length / 2].to_i.odd?
+          [mms_id, available]
+        end
+      end
+    end
+
     describe :index do
       it 'returns the items' do
         expect(Item).to exist # just to be sure
@@ -23,8 +32,13 @@ RSpec.describe 'Items', type: :request do
         expect(links['self']).to eq(items_url)
         expect(links['current']).to eq("#{items_url}?page[number]=1")
 
-        expected_data = Item.includes(:terms).all
-        expect(parsed_response).to contain_jsonapi_for(expected_data)
+        expected_data = Item.includes(:terms)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
+        expected_meta = { availability: expected_availability }
+        jsonapi_options = { meta: expected_meta }
+
+        expect(parsed_response).to contain_jsonapi_for(expected_data, jsonapi_options)
       end
 
       it 'accepts JSONAPI include parameters' do
@@ -39,8 +53,13 @@ RSpec.describe 'Items', type: :request do
         expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
         expect(links['current']).to eq("#{items_url}?include=terms,terms.facet&page[number]=1")
 
-        expected_data = Item.includes(:terms).all
-        expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet] })
+        expected_data = Item.includes(:terms)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
+        expected_meta = { availability: expected_availability }
+        jsonapi_options = { include: %i[terms terms.facet], meta: expected_meta }
+
+        expect(parsed_response).to contain_jsonapi_for(expected_data, jsonapi_options)
       end
 
       it 'supports searches by facet' do
@@ -59,7 +78,10 @@ RSpec.describe 'Items', type: :request do
         # expect(links['current']).to eq("#{links['self']}&page[number]=1")
 
         expected_data = Item.with_facet_values(facet_values)
-        expect(parsed_response).to contain_jsonapi_for(expected_data)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
+        expected_meta = { availability: expected_availability }
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
     end
 

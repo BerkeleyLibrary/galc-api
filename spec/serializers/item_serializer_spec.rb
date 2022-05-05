@@ -7,7 +7,7 @@ describe ItemSerializer do
       data: {
         id: item.id.to_s,
         type: :item,
-        attributes: Item::DATA_ATTRS.to_h { |attr| [attr, item.send(attr)] },
+        attributes: Item::JSONAPI_ATTRS.to_h { |attr| [attr, item.send(attr)] },
         relationships: {
           terms: {
             data: item.terms.map { |t| { id: t.id.to_s, type: :term } }

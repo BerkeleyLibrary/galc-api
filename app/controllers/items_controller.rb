@@ -38,6 +38,15 @@ class ItemsController < ApplicationController
 
   private
 
+  def jsonapi_meta(items)
+    return unless items.respond_to?(:reorder)
+
+    # DISTINCT doesn't play well with the Item.default_scope sort order
+    mms_ids = items.reorder(nil).pluck('DISTINCT(mms_id)')
+    availability = AvailabilityService.availability_for(mms_ids)
+    { availability: availability }
+  end
+
   # Use callbacks to share common setup or constraints between actions.
   def set_item
     @item = Item.find(params[:id])

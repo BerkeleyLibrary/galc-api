@@ -1,3 +1,5 @@
+require 'berkeley_library/alma'
+
 class Item < ApplicationRecord
 
   # ------------------------------------------------------------
@@ -6,6 +8,8 @@ class Item < ApplicationRecord
   ALL_ATTRS = Item.column_names.map(&:to_sym).freeze
   DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
   EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at] + [:terms]).freeze
+  SYNTH_ATTRS = [:permalink_uri].freeze
+  JSONAPI_ATTRS = (DATA_ATTRS + SYNTH_ATTRS).freeze
 
   # ------------------------------------------------------------
   # Relations
@@ -44,5 +48,16 @@ class Item < ApplicationRecord
 
     items_for_facets
       .inject { |facet_items, all_items| all_items.and(facet_items) }
+  end
+
+  # ------------------------------------------------------------
+  # Synthetic attributes
+
+  def record_id
+    mms_id && BerkeleyLibrary::Alma::RecordId.parse(mms_id)
+  end
+
+  def permalink_uri
+    record_id.respond_to?(:permalink_uri) && record_id.permalink_uri
   end
 end
