@@ -1,3 +1,5 @@
+require 'jsonapi_extensions'
+
 module ExceptionHandlers
   extend ActiveSupport::Concern
 
@@ -49,10 +51,13 @@ module ExceptionHandlers
 
     # @see JSONAPI::Errors.render_jsonapi_internal_server_error
     def render_jsonapi_internal_server_error(exception)
-      # :nocov:
       logger.error(exception)
-      super
-      # :nocov:
+
+      render_jsonapi_error(
+        :internal_server_error,
+        detail: exception.message,
+        meta: { backtrace: exception.backtrace }
+      )
     end
 
     # Overrides JSONAPI::Errors.render_jsonapi_not_found to include error detail
@@ -71,13 +76,14 @@ module ExceptionHandlers
       return errors if errors.is_a?(Enumerable)
     end
 
-    def render_jsonapi_error(status, detail: nil)
+    def render_jsonapi_error(status, detail: nil, meta: nil)
       status_code = status_code(status)
       error = {
         status: status_code.to_s,
         title: Rack::Utils::HTTP_STATUS_CODES[status_code]
       }
       error[:detail] = detail unless detail.nil?
+      error[:meta] = meta unless meta.nil?
       render(jsonapi_errors: [error], status: status_code)
     end
 
