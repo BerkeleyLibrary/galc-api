@@ -60,8 +60,8 @@ describe AvailabilityService do
 
     let(:sru_query_value) do
       mms_ids.map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
-             .map(&:sru_query_value)
-             .join(' or ')
+        .map(&:sru_query_value)
+        .join(' or ')
     end
 
     let(:query_uri_page_1) { BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value) }
