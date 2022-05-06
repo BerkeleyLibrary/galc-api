@@ -37,6 +37,49 @@ describe AvailabilityService do
     end
   end
 
+  describe 'with pagination' do
+    let(:mms_ids) do
+      %w[
+        991005668209706532
+        991005668359706532
+        991005930379706532
+        991005931249706532
+        991007853589706532
+        991007902439706532
+        991007903029706532
+        991008363529706532
+        991008364649706532
+        991008401919706532
+        991008402049706532
+        991008718379706532
+        991008719659706532
+        991008719819706532
+        991009071149706532
+      ]
+    end
+
+    let(:sru_query_value) do
+      mms_ids.map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
+             .map(&:sru_query_value)
+             .join(' or ')
+    end
+
+    let(:query_uri_page_1) { BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value) }
+
+    let(:query_uri_page_2) { BerkeleyLibrary::Util::URIs.append(query_uri_page_1, '&startRecord=11') }
+
+    before do
+      stub_request(:get, query_uri_page_1).to_return(body: File.read('spec/data/alma/availability-sru-page-1.xml'))
+      stub_request(:get, query_uri_page_2).to_return(body: File.read('spec/data/alma/availability-sru-page-2.xml'))
+    end
+
+    it 'retrieves availability for all IDs' do
+      availability = AvailabilityService.availability_for(mms_ids)
+      expect(availability.size).to eq(mms_ids.size)
+      expect(availability.keys).to contain_exactly(*mms_ids)
+    end
+  end
+
   describe 'single ID' do
     let(:mms_id) { '991005668359706532' }
 
