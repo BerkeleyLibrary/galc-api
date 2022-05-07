@@ -8,6 +8,8 @@ module AvailabilityService
     include AvailabilityService
   end
 
+  attr_accessor :max_records
+
   # Gets the availability for the specified records.
   #
   # @param mms_ids Array<String> a list of MMS IDs
@@ -36,7 +38,7 @@ module AvailabilityService
 
     logger.info("Retrieving availability for #{ids.size} IDs: #{ids.join(', ')}")
 
-    get_marc_records(*ids)
+    get_marc_records(*ids, max_records: max_records || ids.size)
   end
 
   def ensure_ids(mms_ids)

@@ -9,8 +9,10 @@ describe AvailabilityService do
         .map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
         .map(&:sru_query_value)
         .join(' or ')
-      sru_query_uri = BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value)
+      sru_query_uri = BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value, max_records: mms_ids.size)
       stub_request(:get, sru_query_uri).to_return(body: File.read('spec/data/alma/availability-sru.xml'))
+
+      expect(Rails.logger).not_to receive(:warn)
     end
 
     it 'gets the availability' do
@@ -74,6 +76,7 @@ describe AvailabilityService do
     end
 
     it 'retrieves availability for all IDs' do
+      AvailabilityService.max_records = 10
       availability = AvailabilityService.availability_for(mms_ids)
       expect(availability.size).to eq(mms_ids.size)
       expect(availability.keys).to contain_exactly(*mms_ids)
