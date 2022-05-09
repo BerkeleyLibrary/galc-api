@@ -3,14 +3,24 @@ require 'rails_helper'
 describe AvailabilityService do
   let(:mms_ids) { %w[991005668359706532 991005668209706532] }
 
+  def query_value_for(ids)
+    ids
+      .sort
+      .map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
+      .map(&:sru_query_value)
+      .join(' or ')
+  end
+
+  after do
+    AvailabilityService.max_records = nil
+    AvailabilityService.send(:clear_cache!)
+  end
+
   describe 'multiple IDs' do
     before do
-      sru_query_value = mms_ids
-        .map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
-        .map(&:sru_query_value)
-        .join(' or ')
+      sru_query_value = query_value_for(mms_ids)
       sru_query_uri = BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value, max_records: mms_ids.size)
-      stub_request(:get, sru_query_uri).to_return(body: File.read('spec/data/alma/availability-sru.xml'))
+      @stub = stub_request(:get, sru_query_uri).to_return(body: File.read('spec/data/alma/availability-sru.xml'))
 
       expect(Rails.logger).not_to receive(:warn)
     end
@@ -37,6 +47,27 @@ describe AvailabilityService do
       expect(availability[mms_ids.first]).to eq(false)
       expect(availability[mms_ids.last]).to eq(true)
     end
+
+    describe 'caching' do
+      it 'caches results' do
+        availability1 = AvailabilityService.availability_for(mms_ids)
+        availability2 = AvailabilityService.availability_for(mms_ids)
+        expect(availability2).to eq(availability1)
+        expect(@stub).to have_been_requested.times(1)
+      end
+
+      it 'caches partial results' do
+        availability1 = AvailabilityService.availability_for(mms_ids)
+
+        addl_ids = %w[991007853589706532 991008364649706532]
+        expected_query_uri = BerkeleyLibrary::Alma::SRU.sru_query_uri(query_value_for(addl_ids), max_records: addl_ids.size)
+        stub_request(:get, expected_query_uri).to_return(body: File.read('spec/data/alma/availability-sru-addl.xml'))
+
+        availability2 = AvailabilityService.availability_for(mms_ids + addl_ids)
+        expect(availability2).to include(availability1)
+        expect(availability2).to include(addl_ids.to_h { |id| [id, true] })
+      end
+    end
   end
 
   describe 'with pagination' do
@@ -60,11 +91,7 @@ describe AvailabilityService do
       ]
     end
 
-    let(:sru_query_value) do
-      mms_ids.map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
-        .map(&:sru_query_value)
-        .join(' or ')
-    end
+    let(:sru_query_value) { query_value_for(mms_ids) }
 
     let(:query_uri_page_1) { BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value) }
 
@@ -122,11 +149,8 @@ describe AvailabilityService do
 
   describe 'error handling' do
     let(:sru_query_uri) do
-      sru_query_value = mms_ids
-        .map { |id| BerkeleyLibrary::Alma::RecordId.parse(id) }
-        .map(&:sru_query_value)
-        .join(' or ')
-      BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value)
+      sru_query_value = query_value_for(mms_ids)
+      BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value, max_records: mms_ids.size)
     end
 
     it 'handles HTTP errors' do
@@ -147,5 +171,4 @@ describe AvailabilityService do
       expect(availability).to eq({})
     end
   end
-
 end
