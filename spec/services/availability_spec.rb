@@ -153,6 +153,22 @@ describe AvailabilityService do
       BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value, max_records: mms_ids.size)
     end
 
+    it 'logs a warning if availability info is missing' do
+      mms_id = '991005668209706532'
+      response_body = File
+        .read('spec/data/alma/availability-sru.xml')
+        .sub(%r{tag="AVA">(\s *<subfield code="0">#{mms_id}</subfield>)}m, 'tag="999">\1')
+      stub_request(:get, sru_query_uri).to_return(body: response_body)
+
+      expected_msg = "MARC record with 001 #{mms_id.inspect} does not have an AVA$e"
+      expected_record = MARC::XMLReader.read(StringIO.new(response_body)).to_a.last
+
+      expect(Rails.logger).to receive(:warn).with(expected_msg, record: expected_record.to_hash)
+
+      availability = AvailabilityService.availability_for(mms_ids)
+      expect(availability).to eq(mms_ids.to_h { |id| [id, false] })
+    end
+
     it 'handles HTTP errors' do
       stub_request(:get, sru_query_uri).to_return(status: 404)
 

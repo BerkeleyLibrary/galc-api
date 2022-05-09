@@ -89,13 +89,22 @@ module AvailabilityService
     records.each_with_object({}) do |marc_record, availability|
       next unless (record_id = marc_record.record_id)
 
-      ava_sf_e_values = marc_record.spec('AVA$e/#-#')
-      logger.warn('MARC record does not have an AVA$e', MARC::XMLWriter.encode(marc_record)) if ava_sf_e_values.empty?
+      ava_sf_e_values = ava_sf_e_values_for(marc_record)
       availability[record_id] = ava_sf_e_values.include?('available')
     end
   rescue StandardError => e
     logger.warn(e)
     {}
+  end
+
+  def ava_sf_e_values_for(marc_record)
+    ava_sf_e_values = marc_record.spec('AVA$e/#-#')
+    ava_sf_e_values.tap do |v|
+      if v.empty?
+        msg = "MARC record with 001 #{marc_record.record_id.inspect} does not have an AVA$e"
+        logger.warn(msg, record: marc_record.to_hash)
+      end
+    end
   end
 
   # @param mms_ids Array<String> a list of MMS IDs
