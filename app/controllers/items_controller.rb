@@ -42,9 +42,16 @@ class ItemsController < ApplicationController
     return unless items.respond_to?(:reorder)
 
     # DISTINCT doesn't play well with the Item.default_scope sort order
+    # TODO: figure out why it wasn't distinct to begin with
     mms_ids = items.reorder(nil).pluck('DISTINCT(mms_id)')
-    availability = AvailabilityService.availability_for(mms_ids)
-    { availability: availability }
+
+    {}.tap do |meta|
+      meta[:availability] = AvailabilityService.availability_for(mms_ids)
+
+      # TODO: send page size
+      pagination = jsonapi_pagination_meta(items)
+      meta[:pagination] = pagination if pagination.present?
+    end
   end
 
   # Use callbacks to share common setup or constraints between actions.
