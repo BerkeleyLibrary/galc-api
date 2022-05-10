@@ -1,6 +1,7 @@
 require 'berkeley_library/alma'
 
 class Item < ApplicationRecord
+  include PgSearch::Model
 
   # ------------------------------------------------------------
   # Constants
@@ -32,6 +33,15 @@ class Item < ApplicationRecord
   # TODO: add sorting to API
   # TODO: allow sorting by facet values
   default_scope { order(:artist, :title, :date) }
+
+  pg_search_scope(
+    :with_all_keywords,
+    against: { title: 'A', artist: 'B', description: 'C', date: 'D' },
+    associated_against: { terms: :value },
+    using: {
+      tsearch: { prefix: true }
+    }
+  )
 
   scope :for_terms, ->(terms) do
     item_ids = ItemsTerm.for_terms(terms).select(:item_id)

@@ -83,6 +83,24 @@ RSpec.describe 'Items', type: :request do
         expected_meta = { availability: expected_availability }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
+
+      it 'supports keyword searches' do
+        keywords = 'color medium numbered'
+        get items_url, params: { 'filter[keywords]' => keywords }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+
+        _links = parsed_response.delete('links')
+
+        expected_data = Item.with_all_keywords(keywords)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
+        expected_meta = { availability: expected_availability }
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+      end
     end
 
     describe :show do

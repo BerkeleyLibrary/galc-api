@@ -62,12 +62,23 @@ class ItemsController < ApplicationController
     @filter_params ||= params.fetch(:filter, {}).permit!
   end
 
+  def keywords
+    @keywords ||= filter_params[:keywords]
+  end
+
   # @return Hash<String, Array<String>> the facet filter values, if present
   def facet_values
-    @facet_values ||= filter_params.to_h.transform_values { |terms| terms.split(',') }
+    @facet_values ||= filter_params
+      .to_h
+      .except(:keywords)
+      .transform_values { |terms| terms.split(',') }
   end
 
   def filtered_items
-    @filtered_items ||= Item.with_facet_values(facet_values).includes(:terms)
+    @filtered_items ||= begin
+      items = Item.with_facet_values(facet_values)
+      items = items.with_all_keywords(keywords) if keywords
+      items.includes(:terms)
+    end
   end
 end

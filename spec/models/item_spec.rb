@@ -91,4 +91,47 @@ describe Item do
       expect(results).to contain_exactly(*expected_items)
     end
   end
+
+  describe :with_all_keywords do
+    it 'finds items by title' do
+      items = Item.with_all_keywords('arbre')
+      expect(items).to exist
+      items.each { |i| expect(i.title.downcase).to include('arbre') }
+    end
+
+    it 'finds items by artist' do
+      items = Item.with_all_keywords('keiko')
+      expect(items).to exist
+      items.each { |i| expect(i.artist.downcase).to include('keiko') }
+    end
+
+    it 'finds items by description' do
+      items = Item.with_all_keywords('severe')
+      expect(items).to exist
+      items.each { |i| expect(i.description.downcase).to include('severe') }
+    end
+
+    it 'finds items by date' do
+      items = Item.with_all_keywords('1957')
+      expect(items).to exist
+      items.each { |i| expect(i.date).to include('1957') }
+    end
+
+    it 'finds items by term values' do
+      items = Item.with_all_keywords('medium')
+      expect(items).to exist
+      items.each do |item|
+        term_values = item.terms.pluck(:value)
+        expect(term_values.map(&:downcase)).to include('medium')
+      end
+    end
+
+    it 'finds items by combinations of fields and term values' do
+      expected_item = Item.find_by(artist: 'Minami, Keiko')
+
+      items = Item.with_all_keywords('color medium numbered minami')
+      expect(items).to exist
+      expect(items).to contain_exactly(expected_item)
+    end
+  end
 end
