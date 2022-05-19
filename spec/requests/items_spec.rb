@@ -34,11 +34,11 @@ RSpec.describe 'Items', type: :request do
 
         expected_data = Item.includes(:terms)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
-        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
-        expected_meta = { availability: expected_availability }
-        jsonapi_options = { meta: expected_meta }
-
-        expect(parsed_response).to contain_jsonapi_for(expected_data, jsonapi_options)
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count }
+        }
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
 
       it 'accepts JSONAPI include parameters' do
@@ -55,11 +55,11 @@ RSpec.describe 'Items', type: :request do
 
         expected_data = Item.includes(:terms)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
-        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
-        expected_meta = { availability: expected_availability }
-        jsonapi_options = { include: %i[terms terms.facet], meta: expected_meta }
-
-        expect(parsed_response).to contain_jsonapi_for(expected_data, jsonapi_options)
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count }
+        }
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet], meta: expected_meta })
       end
 
       it 'supports searches by facet' do
@@ -79,8 +79,10 @@ RSpec.describe 'Items', type: :request do
 
         expected_data = Item.with_facet_values(facet_values)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
-        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
-        expected_meta = { availability: expected_availability }
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count }
+        }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
 
@@ -97,8 +99,10 @@ RSpec.describe 'Items', type: :request do
 
         expected_data = Item.with_all_keywords(keywords)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
-        expected_availability = AvailabilityService.availability_for(expected_mms_ids)
-        expected_meta = { availability: expected_availability }
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count }
+        }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
     end
