@@ -54,6 +54,15 @@ class ItemsController < ApplicationController
     end
   end
 
+  # @see JSONAPI::Pagination#jsonapi_pagination_meta
+  def jsonapi_pagination_meta(resources)
+    super.tap do |pagination|
+      offset, limit, = jsonapi_pagination_params
+      pagination[:offset] = offset
+      pagination[:limit] = limit
+    end
+  end
+
   # Use callbacks to share common setup or constraints between actions.
   def set_item
     @item = Item.find(params[:id])

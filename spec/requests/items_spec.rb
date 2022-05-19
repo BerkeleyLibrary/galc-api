@@ -36,7 +36,7 @@ RSpec.describe 'Items', type: :request do
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
-          pagination: { current: 1, records: expected_mms_ids.count }
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
         }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
@@ -57,7 +57,7 @@ RSpec.describe 'Items', type: :request do
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
-          pagination: { current: 1, records: expected_mms_ids.count }
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
         }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet], meta: expected_meta })
       end
@@ -81,7 +81,7 @@ RSpec.describe 'Items', type: :request do
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
-          pagination: { current: 1, records: expected_mms_ids.count }
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
         }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
@@ -101,7 +101,7 @@ RSpec.describe 'Items', type: :request do
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
-          pagination: { current: 1, records: expected_mms_ids.count }
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
         }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
