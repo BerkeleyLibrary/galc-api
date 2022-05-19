@@ -47,7 +47,7 @@ module AvailabilityService
 
   private
 
-  # @return  Rails.cache
+  # @return [ActiveSupport::Cache::MemoryStore]
   def cache
     @cache ||= ActiveSupport::Cache::MemoryStore.new(expires_in: CACHE_EXPIRY)
   end
