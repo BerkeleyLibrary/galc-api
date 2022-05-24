@@ -76,4 +76,16 @@ describe User do
       end
     end
   end
+
+  describe :serializable_hash do
+    it 'serializes the user' do
+      attrs = { uid: '5551213', display_name: 'Natalie Noe', email: 'nnoe@berkeley.test', galc_admin: true }
+
+      user = User.new(**attrs)
+      expected_hash = attrs.transform_keys(&:to_s)
+
+      expect(user.serializable_hash).to eq(expected_hash)
+    end
+  end
+
 end

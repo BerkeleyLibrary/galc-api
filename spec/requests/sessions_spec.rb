@@ -79,24 +79,26 @@ RSpec.describe 'Sessions', type: :request do
       it 'initializes a user from the auth response and stores it in the session' do
         post login_path, params: { origin: origin_url }
 
-        user = session[User::SESSION_KEY]
-        expect(user).to be_nil # just to be sure
+        user_attrs = session[User::SESSION_KEY]
+        expect(user_attrs).to be_nil # just to be sure
 
         # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
         #       thinks all requests are local; so we just pretend we hit the
         #       CAS login URL and it redirected the browser back here.
         get callback_url_from_cas_redirect(response.headers['Location'])
 
-        user = session[User::SESSION_KEY]
-        expect(user).to be_a(User)
-        {
+        expected_attrs = {
           uid: '5551215',
           display_name: 'Rachel Roe',
           email: 'rroe@berkeley.test',
           galc_admin: true
-        }.each do |attr, v_expected|
+        }.with_indifferent_access
+
+        user = User.from_session(session)
+
+        expected_attrs.each do |attr, v_expected|
           v_actual = user.send(attr)
-          expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected}, was #{v_actual}"
+          expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
         end
 
         expect(response).to redirect_to(origin_url)

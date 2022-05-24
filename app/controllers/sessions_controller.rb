@@ -10,7 +10,8 @@ class SessionsController < ApplicationController
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash })
 
-    session[User::SESSION_KEY] = User.from_omniauth(auth_hash)
+    user = User.from_omniauth(auth_hash)
+    session[User::SESSION_KEY] = user.serializable_hash
     redirect_to(omniauth_origin, allow_other_host: true)
   end
 

@@ -1,4 +1,6 @@
 class User
+  include ActiveModel::Model
+  include ActiveModel::Attributes
   include ActiveModel::Serialization
   include BerkeleyLibrary::Logging
 
@@ -18,16 +20,16 @@ class User
   # Accessors
 
   # @return [String]
-  attr_reader :uid
+  attribute :uid, :string
 
   # @return [String]
-  attr_reader :display_name
+  attribute :display_name, :string
 
   # @return [String] The user's email address.
-  attr_reader :email
+  attribute :email, :string
 
   # @return [Boolean] True if the user is a GALC administrator, false otherwise.
-  attr_reader :galc_admin
+  attribute :galc_admin, :boolean
 
   alias galc_admin? galc_admin
 
@@ -35,10 +37,7 @@ class User
   # Initializer
 
   def initialize(uid: nil, display_name: nil, email: nil, galc_admin: false)
-    @uid = uid
-    @display_name = display_name
-    @email = email
-    @galc_admin = galc_admin
+    super
   end
 
   # ------------------------------------------------------------
@@ -67,11 +66,6 @@ class User
     def galc_admin?(cal_groups)
       cal_groups && cal_groups.include?(GALC_ADMIN_GROUP)
     end
-
-    def attribute_names
-      # Hack to leverage ActiveModel::Serialization#attribute_names
-      @attribute_names ||= User.new.attribute_names
-    end
   end
 
   # ------------------------------------------------------------
@@ -80,16 +74,5 @@ class User
   # @return [Boolean] True if the current user is authenticated, false otherwise
   def authenticated?
     !uid.nil?
-  end
-
-  # ------------------------------
-  # ActiveModel::Serialization
-
-  # Default attribute hash. Used by ActiveModel::Serialization to
-  # implement `#attribute_names` and `#serializable_hash`.
-  #
-  # @return [Hash<String, Object>] a hash of default attribute values
-  def attributes
-    SERIALIZED_ATTRS.stringify_keys
   end
 end
