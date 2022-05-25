@@ -47,12 +47,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get build start time
+        run: |
+          echo BUILD_TIMESTAMP="$(date --utc --iso-8601=seconds)" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ env.BUILD_IMAGE }}
+          build-args: |
+            BUILD_TIMESTAMP=${{ env.BUILD_TIMESTAMP }}
+            BUILD_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            DOCKER_TAG=${{ env.BUILD_IMAGE }}
+            GIT_BRANCH=${{ github.ref_name }}
+            GIT_COMMIT=${{ github.sha }}
+            GIT_URL=${{ github.repositoryUrl }}
 
     outputs:
       build_image: ${{ env.BUILD_IMAGE }}

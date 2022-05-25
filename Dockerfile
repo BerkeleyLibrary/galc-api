@@ -127,7 +127,7 @@ RUN bundle install --local
 # ------------------------------------------------------------
 # Preserve build arguments
 
-# passed in by Jenkins
+# passed in by CI
 ARG BUILD_TIMESTAMP
 ARG BUILD_URL
 ARG DOCKER_TAG
