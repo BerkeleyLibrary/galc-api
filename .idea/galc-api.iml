@@ -145,6 +145,8 @@
     <orderEntry type="library" scope="PROVIDED" name="websocket-driver (v0.7.5, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="websocket-extensions (v0.1.5, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="zeitwerk (v2.5.4, RVM: ruby-3.0.3) [gem]" level="application" />
+    <orderEntry type="library" name="browse" level="application" />
+    <orderEntry type="library" name="@berkeleylibrary/galc-ui" level="application" />
   </component>
   <component name="RModuleSettingsStorage">
     <LOAD_PATH number="0" />
