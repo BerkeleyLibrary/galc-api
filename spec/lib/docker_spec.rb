@@ -23,17 +23,23 @@ module Docker
     end
 
     describe :setup_environment! do
+      attr_reader :secret_names
+      attr_reader :secret_paths
       attr_reader :expected_secrets
 
       before do
         prefix = Time.now.to_i.to_s
         random = Random.new
+        @secret_names = []
+        @secret_paths = {}
         @expected_secrets = {}
         (0..8).each do |i|
-          secret_name = "secret_#{prefix}_#{i}"
-          secret = Base64.strict_encode64(random.bytes(128))
-          expected_secrets[secret_name] = secret
-          tmpdir_path.join(secret_name).binwrite(secret)
+          secret_names << (secret_name = "secret_#{prefix}_#{i}")
+          secret_paths[secret_name] = (secret_path = tmpdir_path.join(secret_name))
+          Base64.strict_encode64(random.bytes(128)).tap do |secret|
+            expected_secrets[secret_name] = secret
+            secret_path.binwrite(secret)
+          end
         end
       end
 
@@ -42,11 +48,17 @@ module Docker
       end
 
       it 'injects secrets into the environment' do
-        fileglob = "#{tmpdir_path}/*"
-        Docker::Secret.setup_environment!(fileglob)
+        Docker::Secret.setup_environment!("#{tmpdir_path}/*")
         expected_secrets.each do |secret_name, secret_value|
           expect(ENV[secret_name]).to eq(secret_value)
         end
+      end
+
+      it 'skips empty secrets' do
+        n = secret_names.first
+        secret_paths[n].binwrite('')
+        Docker::Secret.setup_environment!("#{tmpdir_path}/*")
+        expect(ENV[n]).to be_nil
       end
     end
   end
