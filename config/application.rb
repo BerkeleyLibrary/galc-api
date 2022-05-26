@@ -36,8 +36,16 @@ module GalcApi
     config.middleware.use config.session_store, config.session_options
 
     # CAS configuration
-    # - NOTE: overridden in production.rb
-    config.cas_host = ENV.fetch('CAS_HOST') { 'auth-test.berkeley.edu' }
+    config.cas_host = ENV.fetch('CAS_HOST') do
+      "#{Rails.env.production? ? 'auth' : 'auth-test'}.berkeley.edu"
+    end
+
+    Rails.application.config.hosts.append(
+      '.ucblib.org',
+      '.lib.berkeley.edu',
+      '.pantheon.berkeley.edu',
+      config.cas_host
+    )
 
     BerkeleyLibrary::Alma::Config.default!
 

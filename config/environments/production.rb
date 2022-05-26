@@ -63,14 +63,4 @@ Rails.application.configure do
   #   logger.formatter = config.log_formatter
   #   config.logger    = ActiveSupport::TaggedLogging.new(logger)
   # end
-
-  # CAS configuration
-  # - NOTE: overrides application.rb
-  config.cas_host = ENV.fetch('CAS_HOST') { 'auth.berkeley.edu' }
-
-  if ENV['CI'].blank? # TODO: what if it's not?
-    Rails.application.config.hosts << '.ucblib.org'
-    Rails.application.config.hosts << '.lib.berkeley.edu'
-    Rails.application.config.hosts << config.cas_host
-  end
 end
