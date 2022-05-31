@@ -31,7 +31,7 @@ describe Item do
       expected_items = term_color.items & term_landscape.items
       expect(expected_items).not_to be_empty # just to be sure
 
-      results = Item.with_facet_values({ 'Colors' => 'Color', 'Genre' => 'Landscape' })
+      results = Item.with_facet_values({ 'Appearance' => 'Color', 'Genre' => 'Landscape' })
       expect(results).to contain_exactly(*expected_items)
     end
 

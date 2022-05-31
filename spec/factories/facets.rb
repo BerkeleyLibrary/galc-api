@@ -7,7 +7,7 @@ FactoryBot.define do
       instance.reload
     end
 
-    %w[Colors Size Decade Genre Medium].each do |facet_name|
+    %w[Appearance Size Decade Genre Medium].each do |facet_name|
       factory_name = "facet_#{facet_name.downcase}".to_sym
       factory(factory_name) do
         name { facet_name }

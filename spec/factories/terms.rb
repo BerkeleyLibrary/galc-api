@@ -15,12 +15,12 @@ FactoryBot.define do
 
     factory(:term_color) do
       value { 'Color' }
-      facet { association :facet_colors }
+      facet { association :facet_appearance }
     end
 
     factory(:term_black_and_white) do
       value { 'Black and White' }
-      facet { association :facet_colors }
+      facet { association :facet_appearance }
     end
 
     factory(:term_small) do
