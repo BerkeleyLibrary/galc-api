@@ -68,6 +68,22 @@ describe AvailabilityService do
         expect(availability2).to include(addl_ids.to_h { |id| [id, true] })
       end
     end
+
+    describe :available? do
+      it 'returns the availability for an item' do
+        # Prepopulate the cache w/o having to stub separate requests
+        AvailabilityService.availability_for(mms_ids)
+
+        items = mms_ids.map do |mms_id|
+          instance_double(Item).tap do |item|
+            allow(item).to receive(:mms_id).and_return(mms_id)
+          end
+        end
+
+        expect(AvailabilityService.available?(items.first)).to eq(false)
+        expect(AvailabilityService.available?(items.last)).to eq(true)
+      end
+    end
   end
 
   describe 'with pagination' do

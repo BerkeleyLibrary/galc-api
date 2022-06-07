@@ -42,6 +42,13 @@ module AvailabilityService
     end
   end
 
+  def available?(item)
+    return unless item && (mms_id = item.mms_id)
+
+    availability = availability_for([mms_id])
+    availability[mms_id]
+  end
+
   # ------------------------------------------------------------
   # Private methods
 

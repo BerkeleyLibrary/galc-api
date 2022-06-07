@@ -36,6 +36,8 @@ RSpec.shared_context('authenticated request', shared_context: :metadata) do
   # assume let(:uid) from outer spec
   let(:cas_raw_xml) { File.read("spec/data/cas/#{uid}.xml") }
 
+  attr_reader :current_user
+
   before do
     allow(Rails.application.config).to receive(:hosts).and_return([cas_host, origin_uri.host])
     stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: cas_raw_xml)

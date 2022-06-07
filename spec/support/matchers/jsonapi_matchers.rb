@@ -43,14 +43,33 @@ module BerkeleyLibrary
       def expected_hash_for(expected_error, _options = {})
         raise ArgumentError, "Not an #{ActiveModel::Error}: #{expected_error.inspect}" unless validation_error_like?(expected_error)
 
+        field_type = field_type(expected_error)
+
         {
-          'code' => expected_error.type.to_s,
-          'source' => { 'pointer' => "/data/attributes/#{expected_error.attribute}" }
+          'code' => normalized_code(expected_error),
+          'source' => { 'pointer' => "/data/#{field_type}s/#{expected_error.attribute}" }
         }
       end
 
       def validation_error_like?(expected_error)
-        %i[type attribute].all? { |attr| expected_error.respond_to?(attr) }
+        %i[base type attribute].all? { |attr| expected_error.respond_to?(attr) }
+      end
+
+      private
+
+      def normalized_code(expected_error)
+        expected_error.type.to_s.delete("''").parameterize.tr('-', '_')
+      end
+
+      def field_type(expected_error)
+        key = expected_error.attribute
+        model_serializer = JSONAPI::Rails.serializer_class(expected_error.base, false)
+
+        attrs = model_serializer.attributes_to_serialize
+        return 'attribute' if attrs&.key?(key)
+
+        rels = model_serializer.relationships_to_serialize
+        return 'relationship' if rels&.key?(key)
       end
     end
 
@@ -59,9 +78,13 @@ module BerkeleyLibrary
     def matcher_class_for(expected_obj)
       test_val = expected_obj.respond_to?(:first) ? expected_obj.first : expected_obj
       return JsonApiErrorMatcher if test_val.is_a?(ActiveModel::Error)
-      return JsonApiModelMatcher if test_val.is_a?(ActiveRecord::Base)
+      return JsonApiModelMatcher if model_like?(test_val)
 
       raise ArgumentError, "Don't know how to match JSONAPI for #{expected_obj}"
+    end
+
+    def model_like?(test_val)
+      [ActiveModel::API, ActiveRecord::Base].any? { |t| test_val.is_a?(t) }
     end
 
   end

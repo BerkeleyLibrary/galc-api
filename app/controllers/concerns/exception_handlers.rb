@@ -20,6 +20,7 @@ module ExceptionHandlers
     rescue_from Error::UnauthorizedError, with: :render_jsonapi_unauthorized_error
     rescue_from Error::ForbiddenError, with: :render_jsonapi_forbidden_error
     rescue_from ActiveRecord::RecordInvalid, with: :render_validation_errors_as_unprocessable_entity
+    rescue_from ActiveModel::ValidationError, with: :render_validation_errors_as_unprocessable_entity
 
     # ------------------------------------------------------------
     # Error handlers
@@ -71,7 +72,7 @@ module ExceptionHandlers
     # Misc. utility methods
 
     def validation_errors_from(exception)
-      return unless exception.respond_to?(:record) && (record = exception.record)
+      return unless (record = record_from(exception))
       return unless record.respond_to?(:errors) && (errors = record.errors)
       return errors if errors.is_a?(Enumerable)
     end
@@ -107,4 +108,12 @@ module ExceptionHandlers
     end
   end
   # rubocop:enable Metrics/BlockLength
+
+  def record_from(exception)
+    %i[record model].each do |attr|
+      return exception.send(attr) if exception.respond_to?(attr)
+    end
+
+    nil
+  end
 end

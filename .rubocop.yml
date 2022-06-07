@@ -246,6 +246,10 @@ Rails/ApplicationRecord:
   Enabled: false
 
 # explicit >>> implicit
+Rails/Delegate:
+  Enabled: false
+
+# explicit >>> implicit
 Rails/DurationArithmetic: # new in 2.13
   Enabled: false
 

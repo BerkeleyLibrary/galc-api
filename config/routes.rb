@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       resources :items
       resources :terms, only: :index
       resources :facets, only: :index
+      resources :reservations, only: :create
     end
   end
 
