@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   root to: 'sessions#index'
 
-  direct(:login) { '/auth/calnet' } # convenience URL helper to provide login_path and login_url
+  direct(:login) { '/auth/calnet' } # convenience to provide login_url helper
   get '/logout', to: 'sessions#logout', as: :logout
   get '/auth/:provider/callback', to: 'sessions#callback', as: :omniauth_callback
 
@@ -11,9 +11,10 @@ Rails.application.routes.draw do
       resources :terms, only: :index
       resources :facets, only: :index
       resources :reservations, only: :create
-
-      get '/users/current', to: 'users#current', as: :user
+      resources :users, only: :show
     end
   end
+
+  direct(:current_user) { '/users/current' } # convenience to provide current_user_url helper
 
 end
