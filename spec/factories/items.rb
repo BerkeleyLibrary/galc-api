@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :item, aliases: [:item_minami] do
     image { 'Minami(Tree).jpg' }
+    thumbnail { 'Minami(Tree)_360px.jpg' }
     title { 'Arbre (Tree)' }
     artist { 'Minami, Keiko' }
     artist_url { 'https://en.wikipedia.org/wiki/Keiko_Minami' }
@@ -35,6 +36,7 @@ FactoryBot.define do
 
     factory :item_reyes, aliases: %i[nil_circulation nil_location nil_notes] do
       image { 'Reyes (Eastern Sierras Color).jpg' }
+      thumbnail { 'Reyes (Eastern Sierras Color)_360px.jpg' }
       title { 'Eastern Sierras (Color)' }
       artist { 'Reyes, Fernando' }
       artist_url { 'http://www.freyesart.com/about/' }
@@ -69,6 +71,7 @@ FactoryBot.define do
 
     factory :item_moore, aliases: %i[nil_mms_id nil_reserve_date] do
       image { 'Moore(SeatedFigures).jpg' }
+      thumbnail { 'Moore(SeatedFigures)_360px.jpg' }
       title { 'Figures on a Green Background (Personnages sur fond vert)' }
       artist { 'Moore, Henry' }
       artist_url { 'https://en.wikipedia.org/wiki/Henry_Moore' }
