@@ -11,6 +11,8 @@ Rails.application.routes.draw do
       resources :terms, only: :index
       resources :facets, only: :index
       resources :reservations, only: :create
+
+      get '/users/current', to: 'users#current', as: :user
     end
   end
 
