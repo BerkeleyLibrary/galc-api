@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  include JWTSupport
   include ExceptionHandlers
 
   # ------------------------------------------------------------
@@ -32,7 +33,7 @@ class ApplicationController < ActionController::API
   #
   # @return [User] the user
   def current_user
-    @current_user ||= User.from_session(session)
+    @current_user ||= (user_from_token || session_user)
   end
 
   # Require an authenticated user with admin privileges
@@ -45,6 +46,19 @@ class ApplicationController < ActionController::API
     return if galc_admin?
 
     raise Error::ForbiddenError, 'This endpoint is restricted to administrators.'
+  end
+
+  private
+
+  def user_from_token
+    return unless (payload = bearer_token_payload)
+
+    User.from_jwt_payload(payload)
+  end
+
+  # TODO: Do we still need sessions at all? Or just a default empty user?
+  def session_user
+    User.from_session(session)
   end
 
 end

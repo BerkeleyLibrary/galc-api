@@ -55,6 +55,15 @@ class User
       )
     end
 
+    def from_jwt_payload(payload)
+      new(
+        uid: payload.sub,
+        display_name: payload.name,
+        email: payload.email,
+        galc_admin: galc_admin?(payload.groups)
+      )
+    end
+
     def from_session(session)
       session_attributes = (session && session[SESSION_KEY]) || {}
       allowed_attributes = session_attributes.slice(*attribute_names)
@@ -63,8 +72,8 @@ class User
 
     private
 
-    def galc_admin?(cal_groups)
-      cal_groups && cal_groups.include?(GALC_ADMIN_GROUP)
+    def galc_admin?(groups)
+      groups && groups.include?(GALC_ADMIN_GROUP)
     end
   end
 
@@ -74,5 +83,11 @@ class User
   # @return [Boolean] True if the current user is authenticated, false otherwise
   def authenticated?
     !uid.nil?
+  end
+
+  def to_jwt_payload
+    payload = { sub: uid, name: display_name, email: email }
+    payload['groups'] = [GALC_ADMIN_GROUP] if galc_admin?
+    payload.with_indifferent_access
   end
 end

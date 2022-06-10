@@ -130,6 +130,7 @@ GEM
     jsonapi.rb (2.0.0)
       jsonapi-serializer
       rack
+    jwt (2.4.1)
     lograge (0.12.0)
       actionpack (>= 4)
       activesupport (>= 4)
@@ -332,6 +333,7 @@ DEPENDENCIES
   hashdiff (~> 1.0.1)
   jsonapi-serializer (~> 2.2)
   jsonapi.rb (~> 2.0)
+  jwt (~> 2.4)
   omniauth-cas (~> 2.0)
   pg (~> 1.2)
   pg_search (~> 2.3)

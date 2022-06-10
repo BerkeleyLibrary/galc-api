@@ -34,6 +34,10 @@ RSpec.describe 'Sessions', type: :request do
   before do
     allow(Rails.application.config).to receive(:hosts).and_return([cas_host, origin_uri.host])
     stub_request(:get, %r{https://#{cas_host}/cas/p3/serviceValidate}).to_return(status: 200, body: File.read('spec/data/cas/5551215.xml'))
+
+    # Ensure consistent token timestamps even if tests cross second boundaries
+    timestamp = JWTSupport::TOKEN_LIFETIME.from_now.to_i
+    allow_any_instance_of(JWTSupport).to receive(:exp_timestamp).and_return(timestamp)
   end
 
   # ------------------------------------------------------------
@@ -92,7 +96,7 @@ RSpec.describe 'Sessions', type: :request do
           display_name: 'Rachel Roe',
           email: 'rroe@berkeley.test',
           galc_admin: true
-        }.with_indifferent_access
+        }
 
         user = User.from_session(session)
 
@@ -101,7 +105,8 @@ RSpec.describe 'Sessions', type: :request do
           expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
         end
 
-        expect(response).to redirect_to(origin_url)
+        redirect_url = JWTSupport.append_token(origin_url, User.new(**expected_attrs).to_jwt_payload)
+        expect(response).to redirect_to(redirect_url)
       end
 
       it 'rejects an invalid origin' do
