@@ -394,7 +394,7 @@ RSpec.describe 'Items', type: :request do
         describe 'success' do
           it 'deletes an item' do
             item = Item.take
-            expect { delete item_url(item), as: :json }.to change(Item, :count).by(-1)
+            expect { delete item_url(item), as: :jsonapi }.to change(Item, :count).by(-1)
 
             expect(response).to have_http_status(:no_content)
             expect(response.body).to be_empty
@@ -409,7 +409,7 @@ RSpec.describe 'Items', type: :request do
             item.destroy!
 
             allow(Rails.logger).to receive(:error)
-            expect { delete item_url(item), as: :json }.not_to change(Item, :count)
+            expect { delete item_url(item), as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordNotFound))
 
             expect(response).to have_http_status(:not_found)
@@ -451,7 +451,7 @@ RSpec.describe 'Items', type: :request do
       describe :destroy do
         it 'returns 403 Forbidden' do
           item = Item.take
-          delete item_url(item), as: :json
+          delete item_url(item), as: :jsonapi
 
           expect(response).to have_http_status(:forbidden)
           expect(Item.find(item.id)).to eq(item)
@@ -490,7 +490,7 @@ RSpec.describe 'Items', type: :request do
       describe :destroy do
         it 'returns 401 Unauthorized' do
           item = Item.take
-          delete item_url(item), as: :json
+          delete item_url(item), as: :jsonapi
 
           expect(response).to have_http_status(:unauthorized)
           expect(Item.find(item.id)).to eq(item)

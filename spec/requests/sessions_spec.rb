@@ -60,7 +60,7 @@ RSpec.describe 'Sessions', type: :request do
     end
   end
 
-  # NOTE: In effect we're just testing omniauth-can here, but with
+  # NOTE: In effect we're just testing omniauth-cas here, but with
   #       app-specific configuration and CalNet-specific data, to
   #       be completely sure we know what we're doing
   describe 'authentication flow' do
@@ -105,7 +105,8 @@ RSpec.describe 'Sessions', type: :request do
           expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
         end
 
-        redirect_url = JWTSupport.append_token(origin_url, User.new(**expected_attrs).to_jwt_payload)
+        expected_token = User.new(**expected_attrs).to_jwt_payload
+        redirect_url = JWTSupport.append_token(origin_url, expected_token)
         expect(response).to redirect_to(redirect_url)
       end
 

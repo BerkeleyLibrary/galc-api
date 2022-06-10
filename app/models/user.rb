@@ -57,10 +57,10 @@ class User
 
     def from_jwt_payload(payload)
       new(
-        uid: payload.sub,
-        display_name: payload.name,
-        email: payload.email,
-        galc_admin: galc_admin?(payload.groups)
+        uid: payload['sub'],
+        display_name: payload['name'],
+        email: payload['email'],
+        galc_admin: galc_admin?(payload['groups'])
       )
     end
 
