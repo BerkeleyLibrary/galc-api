@@ -7,14 +7,8 @@ class User
   # ------------------------------------------------------------
   # Constants
 
-  # Attributes that will be serialized in the session, and their default values.
-  SERIALIZED_ATTRS = { uid: nil, display_name: nil, email: nil, galc_admin: false }.freeze
-
   # LDAP `berkeleyEduIsMemberOf` value for the GALC admin group.
   GALC_ADMIN_GROUP = 'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'.freeze
-
-  # Key to look up the current user in the session
-  SESSION_KEY = :user
 
   # ------------------------------------------------------------
   # Accessors
@@ -62,12 +56,6 @@ class User
         email: payload['email'],
         galc_admin: galc_admin?(payload['groups'])
       )
-    end
-
-    def from_session(session)
-      session_attributes = (session && session[SESSION_KEY]) || {}
-      allowed_attributes = session_attributes.slice(*attribute_names)
-      new(**allowed_attributes.symbolize_keys)
     end
 
     private

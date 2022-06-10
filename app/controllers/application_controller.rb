@@ -33,7 +33,7 @@ class ApplicationController < ActionController::API
   #
   # @return [User] the user
   def current_user
-    @current_user ||= (user_from_token || session_user)
+    @current_user ||= (user_from_token || default_user)
   end
 
   # Require an authenticated user with admin privileges
@@ -56,9 +56,8 @@ class ApplicationController < ActionController::API
     User.from_jwt_payload(payload)
   end
 
-  # TODO: Do we still need sessions at all? Or just a default empty user?
-  def session_user
-    User.from_session(session)
+  def default_user
+    User.new
   end
 
 end

@@ -39,7 +39,7 @@ RSpec.describe 'Reservations', type: :request do
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
         parsed_response = JSON.parse(response.body)
 
-        expected_rsvn = Reservation.new(user: User.from_session(session), item: item)
+        expected_rsvn = Reservation.new(user: current_user, item: item)
 
         expect(parsed_response).to contain_jsonapi_for(expected_rsvn)
       end
@@ -57,7 +57,7 @@ RSpec.describe 'Reservations', type: :request do
         post(reservations_url, params: payload, as: :jsonapi)
         expect(response).to have_http_status(:unprocessable_entity)
 
-        invalid_rsvn = Reservation.new(user: User.from_session(session), item: item).tap(&:validate)
+        invalid_rsvn = Reservation.new(user: current_user, item: item).tap(&:validate)
         expected_errors = invalid_rsvn.errors
 
         actual_errors = JSON.parse(response.body)['errors']

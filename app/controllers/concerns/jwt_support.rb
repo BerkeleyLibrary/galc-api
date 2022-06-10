@@ -13,7 +13,11 @@ module JWTSupport
   end
 
   def bearer_token_payload
-    return unless (header = request.headers['Authorization'])
+    payload_from(request.headers['Authorization'])
+  end
+
+  def payload_from(header)
+    return unless header
     return unless (md = BEARER_TOKEN_RE.match(header))
 
     jwt_decode(md[:token])

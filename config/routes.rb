@@ -1,9 +1,9 @@
 Rails.application.routes.draw do
-  root to: 'sessions#index'
+  root to: 'auth#index'
 
   direct(:login) { '/auth/calnet' } # convenience to provide login_url helper
-  get '/logout', to: 'sessions#logout', as: :logout
-  get '/auth/:provider/callback', to: 'sessions#callback', as: :omniauth_callback
+  get '/logout', to: 'auth#logout', as: :logout
+  get '/auth/:provider/callback', to: 'auth#callback', as: :omniauth_callback
 
   defaults format: :jsonapi do
     constraints(->(req) { req.format == :jsonapi }) do

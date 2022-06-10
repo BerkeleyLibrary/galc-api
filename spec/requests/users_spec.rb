@@ -11,15 +11,13 @@ RSpec.describe 'Users', type: :request do
       include_context 'patron request'
 
       it 'returns the user' do
-        user = User.from_session(session)
-
         get(current_user_url)
 
         expect(response).to be_successful
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to contain_jsonapi_for(user)
+        expect(parsed_response).to contain_jsonapi_for(current_user)
       end
     end
   end
@@ -34,20 +32,17 @@ RSpec.describe 'Users', type: :request do
       include_context 'patron request'
 
       it 'returns the user' do
-        user = User.from_session(session)
-
-        get user_url(id: user.uid)
+        get user_url(id: current_user.uid)
 
         expect(response).to be_successful
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to contain_jsonapi_for(user)
+        expect(parsed_response).to contain_jsonapi_for(current_user)
       end
 
       it 'rejects a mismatched id' do
-        user = User.from_session(session)
-        get user_url(id: "not#{user.uid}")
+        get user_url(id: "not#{current_user.uid}")
 
         expect(response).to have_http_status(:forbidden)
       end

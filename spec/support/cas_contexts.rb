@@ -44,25 +44,24 @@ RSpec.shared_context('authenticated request', shared_context: :metadata) do
 
     # Set OmniAuth session variables
     post login_path, params: { origin: origin_url }
-    redirect_url = response.headers['Location']
+    get CasContexts.callback_url_from_cas_redirect(response.headers['Location'], ticket)
 
-    get CasContexts.callback_url_from_cas_redirect(redirect_url, ticket)
-
+    # Simulate client extracting auth token from redirect URL and sending it as auth header in subsequent requests
     # TODO: find less hacky way to extract/inject auth token
-    redirect_uri = URI.parse(response.headers['Location'])
-    redirect_params = CGI.parse(redirect_uri.query)
+    redirect_params = CGI.parse(URI.parse(response.headers['Location']).query)
     auth_header = "Bearer #{redirect_params[JWTSupport::TOKEN_PARAM].first}"
 
     allow_any_instance_of(Rack::Test::Session).to receive(:request).and_wrap_original do |m, uri, env, &block|
       env['HTTP_AUTHORIZATION'] ||= auth_header
       m.call(uri, env, &block)
     end
+
+    @current_user = User.from_jwt_payload(JWTSupport.payload_from(auth_header))
   end
 
   after do
     stub_request(:get, cas_logout_url).to_return(status: 200)
     get logout_path
-    expect(session[User::SESSION_KEY]).to be_nil # just to be sure
   end
 end
 

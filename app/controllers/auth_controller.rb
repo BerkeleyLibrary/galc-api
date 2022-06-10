@@ -1,7 +1,6 @@
 require 'berkeley_library/util/uris'
-# TODO: Rename to AuthController?
-# TODO: Do we still need sessions at all?
-class SessionsController < ApplicationController
+
+class AuthController < ApplicationController
   ERR_TICKET_MISMATCH = 'Ticket from callback URL parameter does not match credential from OmniAuth hash'.freeze
 
   def index
@@ -12,14 +11,12 @@ class SessionsController < ApplicationController
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash })
 
     user = User.from_omniauth(auth_hash)
-    session[User::SESSION_KEY] = user.serializable_hash
 
     redirect_url = append_token(omniauth_origin, user.to_jwt_payload)
     redirect_to(redirect_url, allow_other_host: true)
   end
 
   def logout
-    reset_session
     redirect_to(cas_logout_url, allow_other_host: true)
   end
 

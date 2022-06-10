@@ -57,35 +57,4 @@ describe User do
     end
   end
 
-  describe :from_session do
-    it 'reads a user from the session' do
-      session_hash = {
-        'uid' => '5551213',
-        'display_name' => 'Natalie Noe',
-        'email' => 'nnoe@berkeley.test',
-        'galc_admin' => true
-      }
-
-      session = instance_double(ActionDispatch::Request::Session)
-      allow(session).to receive(:[]).with(User::SESSION_KEY).and_return(session_hash)
-
-      user = User.from_session(session)
-      session_hash.each do |attr, v_expected|
-        v_actual = user.send(attr)
-        expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
-      end
-    end
-  end
-
-  describe :serializable_hash do
-    it 'serializes the user' do
-      attrs = { uid: '5551213', display_name: 'Natalie Noe', email: 'nnoe@berkeley.test', galc_admin: true }
-
-      user = User.new(**attrs)
-      expected_hash = attrs.transform_keys(&:to_s)
-
-      expect(user.serializable_hash).to eq(expected_hash)
-    end
-  end
-
 end
