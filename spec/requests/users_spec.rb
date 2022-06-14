@@ -18,6 +18,24 @@ RSpec.describe 'Users', type: :request do
 
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to contain_jsonapi_for(current_user)
+
+        expect(parsed_response['data']['attributes']['galc_admin']).to be_falsey
+      end
+    end
+
+    context 'as admin' do
+      include_context 'admin request'
+
+      it 'returns the user' do
+        get(current_user_url)
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response).to contain_jsonapi_for(current_user)
+
+        expect(parsed_response['data']['attributes']['galc_admin']).to eq(true)
       end
     end
   end
