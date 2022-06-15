@@ -28,12 +28,13 @@ RSpec.describe 'Facets', type: :request do
         expect(parsed_response).to contain_jsonapi_for(Facet.all, { include: [:terms] })
       end
 
-      it 'returns a Access-Control-Allow-Origin header in response to an Origin header' do
+      it 'returns appropriate CORS headers in response to an Origin header' do
         origin = 'www.lib.berkeley.edu'
         get facets_url, params: { include: 'terms' }, headers: { 'Origin' => origin }
 
         expect(response).to be_successful
         expect(response.headers['Access-Control-Allow-Origin']).to eq(origin)
+        expect(response.headers['Access-Control-Allow-Credentials']).to eq('true')
       end
     end
   end

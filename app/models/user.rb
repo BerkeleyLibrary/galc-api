@@ -10,6 +10,9 @@ class User
   # LDAP `berkeleyEduIsMemberOf` value for the GALC admin group.
   GALC_ADMIN_GROUP = 'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'.freeze
 
+  # Key to look up the current user in the session
+  SESSION_KEY = :user
+
   # ------------------------------------------------------------
   # Accessors
 
@@ -25,12 +28,15 @@ class User
   # @return [Boolean] True if the user is a GALC administrator, false otherwise.
   attribute :galc_admin, :boolean
 
+  # @return [String] Debug information
+  attribute :debug, :string
+
   alias galc_admin? galc_admin
 
   # ------------------------------------------------------------
   # Initializer
 
-  def initialize(uid: nil, display_name: nil, email: nil, galc_admin: false)
+  def initialize(uid: nil, display_name: nil, email: nil, galc_admin: false, debug: nil)
     super
   end
 
@@ -42,6 +48,7 @@ class User
       auth_extra = auth['extra']
 
       new(
+        debug: 'omniauth',
         uid: auth_extra['uid'],
         display_name: auth_extra['displayName'],
         email: auth_extra['berkeleyEduOfficialEmail'],
@@ -49,13 +56,13 @@ class User
       )
     end
 
-    def from_jwt_payload(payload)
-      new(
-        uid: payload['sub'],
-        display_name: payload['name'],
-        email: payload['email'],
-        galc_admin: galc_admin?(payload['groups'])
-      )
+    def from_session(session)
+      session_attributes = (session && session[SESSION_KEY]) || {}
+      allowed_attributes = session_attributes.slice(*attribute_names)
+      attributes = allowed_attributes.symbolize_keys
+      attributes[:debug] = 'session'
+
+      new(**attributes)
     end
 
     private
@@ -71,11 +78,5 @@ class User
   # @return [Boolean] True if the current user is authenticated, false otherwise
   def authenticated?
     !uid.nil?
-  end
-
-  def to_jwt_payload
-    payload = { sub: uid, name: display_name, email: email }
-    payload['groups'] = [GALC_ADMIN_GROUP] if galc_admin?
-    payload.with_indifferent_access
   end
 end
