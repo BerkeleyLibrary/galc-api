@@ -97,8 +97,7 @@ RSpec.describe 'Sessions', type: :request do
           expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
         end
 
-        redirect_url = "#{origin_url}&login=true"
-        expect(response).to redirect_to(redirect_url)
+        expect(response).to redirect_to(origin_url)
       end
 
       it 'rejects an invalid origin' do
