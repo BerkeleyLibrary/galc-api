@@ -40,16 +40,17 @@ module GalcApi
       "#{Rails.env.production? ? 'auth' : 'auth-test'}.berkeley.edu"
     end
 
-    addl_hosts = [
+    # CORS configuration -- see app/lib/cors_helper.rb
+    cors_hosts = [
       '.ucblib.org',
       '.lib.berkeley.edu',
       '.pantheon.berkeley.edu',
       config.cas_host
     ]
     # Allow connections from VPN (for testing)
-    addl_hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
+    cors_hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
 
-    Rails.application.config.hosts.append(*addl_hosts)
+    config.cors_hosts = cors_hosts
 
     BerkeleyLibrary::Alma::Config.default!
 

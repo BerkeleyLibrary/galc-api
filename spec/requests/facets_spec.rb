@@ -29,11 +29,11 @@ RSpec.describe 'Facets', type: :request do
       end
 
       it 'returns appropriate CORS headers in response to an Origin header' do
-        origin = 'www.lib.berkeley.edu'
-        get facets_url, params: { include: 'terms' }, headers: { 'Origin' => origin }
+        http_origin = 'http://www.lib.berkeley.edu'
+        get facets_url, params: { include: 'terms' }, headers: { 'Origin' => http_origin }
 
         expect(response).to be_successful
-        expect(response.headers['Access-Control-Allow-Origin']).to eq(origin)
+        expect(response.headers['Access-Control-Allow-Origin']).to eq(http_origin)
         expect(response.headers['Access-Control-Allow-Credentials']).to eq('true')
       end
     end

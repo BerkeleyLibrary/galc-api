@@ -17,7 +17,9 @@
 
 Rails.application.config.middleware.insert_before(0, Rack::Cors, debug: true, logger: -> { Rails.logger }) do
   allow do
-    origins { |source, env| CorsHelper.allow?(source, env) }
+    origins do |source, env|
+      CorsHelper.allow?(source, env)
+    end
     resource(
       '*',
       headers: :any,
