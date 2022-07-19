@@ -35,7 +35,7 @@ class SessionController < ApplicationController
   def ensure_valid_origin(origin)
     return origin if CorsHelper.allow?(origin)
 
-    raise ActionController::Redirecting::UnsafeRedirectError, "Provided origin URL #{origin} is not on the allow list"
+    raise ActionController::Redirecting::UnsafeRedirectError, "Provided origin URL #{origin.inspect} is not on the allow list"
   end
 
   def cas_base_uri

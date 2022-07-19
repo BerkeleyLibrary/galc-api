@@ -22,6 +22,8 @@ require 'berkeley_library/logging/railtie'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require 'same_site_middleware'
+
 module GalcApi
   class Application < Rails::Application
     config.load_defaults 7.0
@@ -34,6 +36,10 @@ module GalcApi
     config.session_store :cookie_store, key: '_interslice_session'
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
+
+    # NOTE: We can't just use config.action_dispatch.cookies_same_site_protection because
+    #       it doesn't set Secure properly
+    config.middleware.use SameSiteMiddleware
 
     # CAS configuration
     config.cas_host = ENV.fetch('CAS_HOST') do

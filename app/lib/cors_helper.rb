@@ -33,6 +33,7 @@ class CorsHelper < ActionDispatch::HostAuthorization::Permissions
 
   private
 
+  # TODO: share code w/SameSiteHelper
   def safe_parse_uri(url)
     URI.parse(url)
   rescue URI::InvalidURIError => e
