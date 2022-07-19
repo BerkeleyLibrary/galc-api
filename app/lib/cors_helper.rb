@@ -13,9 +13,18 @@ class CorsHelper < ActionDispatch::HostAuthorization::Permissions
   end
 
   def allow?(source, _env)
+    return true if empty?
     return false unless (source_uri = safe_parse_uri(source))
 
-    empty? || allows?(source_uri.host)
+    allows?(source_uri.host).tap do |allowed|
+      message = [].tap do |msg|
+        msg << (allowed ? 'Allowing' : 'Disallowing')
+        msg << "cross-origin request from #{source_uri.host}"
+        msg << "(source URI: #{source_uri})"
+      end.join(' ')
+
+      logger.info(message)
+    end
   end
 
   private

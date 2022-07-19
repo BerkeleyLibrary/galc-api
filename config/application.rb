@@ -40,12 +40,16 @@ module GalcApi
       "#{Rails.env.production? ? 'auth' : 'auth-test'}.berkeley.edu"
     end
 
-    Rails.application.config.hosts.append(
+    addl_hosts = [
       '.ucblib.org',
       '.lib.berkeley.edu',
       '.pantheon.berkeley.edu',
       config.cas_host
-    )
+    ]
+    # Allow connections from VPN (for testing)
+    addl_hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
+
+    Rails.application.config.hosts.append(*addl_hosts)
 
     BerkeleyLibrary::Alma::Config.default!
 
