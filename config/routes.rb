@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       resources :facets, only: :index
       resources :reservations, only: :create
       resources :users, only: :show
+      resources :build_info, only: :index
     end
   end
 
