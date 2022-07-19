@@ -1,19 +1,24 @@
 class CorsHelper < ActionDispatch::HostAuthorization::Permissions
   include BerkeleyLibrary::Logging
-
-  def initialize
-    hosts = Rails.application.config.hosts
-    super hosts
-  end
+  include BerkeleyLibrary::Util::URIs
 
   class << self
     def allow?(source, env = Rails.env)
-      CorsHelper.new.allow?(source, env)
+      helper = CorsHelper.new(allowed_hosts)
+      helper.allow?(source, env)
+    end
+
+    private
+
+    def allowed_hosts
+      config = Rails.application.config
+      cors_hosts = (config.cors_hosts || [])
+      cors_hosts + config.hosts # TODO: should we only do this in dev?
     end
   end
 
   def allow?(source, _env)
-    return true if empty?
+    return true if empty? # TODO: Is this appropriate?
     return false unless (source_uri = safe_parse_uri(source))
 
     allows?(source_uri.host).tap do |allowed|
@@ -25,14 +30,5 @@ class CorsHelper < ActionDispatch::HostAuthorization::Permissions
 
       logger.info(message)
     end
-  end
-
-  private
-
-  def safe_parse_uri(url)
-    URI.parse(url)
-  rescue URI::InvalidURIError => e
-    logger.error("Error parsing source URL #{url.inspect}", e)
-    nil
   end
 end
