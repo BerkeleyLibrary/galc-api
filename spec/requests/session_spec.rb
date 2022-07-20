@@ -82,7 +82,9 @@ RSpec.describe 'Sessions', type: :request do
         # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
         #       thinks all requests are local; so we just pretend we hit the
         #       CAS login URL and it redirected the browser back here.
-        get callback_url_from_cas_redirect(response.headers['Location'])
+        redirect_location = response.headers['Location']
+        callback_url = callback_url_from_cas_redirect(redirect_location)
+        get callback_url
 
         expected_attrs = {
           uid: '5551215',
@@ -98,6 +100,25 @@ RSpec.describe 'Sessions', type: :request do
         end
 
         expect(response).to redirect_to(origin_url)
+      end
+
+      it 'sets a secure cookie' do
+        headers = { 'Origin' => origin_url }
+        post login_url, params: { origin: origin_url }, headers: headers
+
+        # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
+        #       thinks all requests are local; so we just pretend we hit the
+        #       CAS login URL and it redirected the browser back here.
+        redirect_location = response.headers['Location']
+        callback_url = callback_url_from_cas_redirect(redirect_location)
+        get callback_url, headers: headers
+
+        expect(response).to redirect_to(origin_url)
+
+        cookie_headers = response.headers['Set-Cookie']
+        attributes = cookie_headers.split(';').map(&:strip)
+        expect(attributes).to include('secure')
+        expect(attributes).to include('SameSite=None')
       end
 
       it 'rejects an invalid origin' do

@@ -17,6 +17,11 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:truncation)
   end
 
+  config.before(:example, type: :request) do
+    # Simulate HTTPS to support secure cookies
+    integration_session.https!
+  end
+
   config.around do |example|
     DatabaseCleaner.cleaning do
       example.run

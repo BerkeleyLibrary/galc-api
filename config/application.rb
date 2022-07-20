@@ -31,9 +31,15 @@ module GalcApi
     # but we need it for OmniAuth
     # - see https://guides.rubyonrails.org/api_app.html#using-session-middlewares
     # - see https://github.com/omniauth/omniauth#integrating-omniauth-into-your-rails-api
-    config.session_store :cookie_store, key: '_interslice_session'
+
+    # Disable CSSP in development to avoid requiring HTTPS (setting 'SameSite=None'
+    # requires setting 'Secure', and 'Secure' cookies are only sent over HTTPS)
+    secure, same_site = Rails.env.development? ? [false, :lax] : [true, :none]
+
+    config.session_store :cookie_store, key: '_interslice_session', secure: secure
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
+    config.action_dispatch.cookies_same_site_protection = same_site
 
     # CAS configuration
     config.cas_host = ENV.fetch('CAS_HOST') do
