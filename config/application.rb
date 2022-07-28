@@ -27,6 +27,9 @@ module GalcApi
     config.load_defaults 7.0
     config.api_only = true
 
+    # ------------------------------------------------------------
+    # Session configuration
+    #
     # Session management is disabled by default in API-only Rails apps,
     # but we need it for OmniAuth
     # - see https://guides.rubyonrails.org/api_app.html#using-session-middlewares
@@ -41,12 +44,16 @@ module GalcApi
     config.middleware.use config.session_store, config.session_options
     config.action_dispatch.cookies_same_site_protection = same_site
 
+    # ------------------------------------------------------------
     # CAS configuration
+
     config.cas_host = ENV.fetch('CAS_HOST') do
       "#{Rails.env.production? ? 'auth' : 'auth-test'}.berkeley.edu"
     end
 
+    # ------------------------------------------------------------
     # CORS configuration -- see app/lib/cors_helper.rb
+
     cors_hosts = [
       '.ucblib.org',
       '.lib.berkeley.edu',
@@ -58,10 +65,22 @@ module GalcApi
 
     config.cors_hosts = cors_hosts
 
+    # ------------------------------------------------------------
+    # Mailer configuration
+
+    config.mail_smtp_username = ENV['MAIL_USERNAME'] || 'lib-noreply@berkeley.edu'
+    config.mail_smtp_password = ENV['MAIL_PASSWORD']
+    config.reserve_email_to = ENV['RESERVE_EMAIL_TO'] || 'galcmgr@berkeley.edu'
+    config.reserve_email_bcc = ENV['RESERVE_EMAIL_BCC']
+
+    # ------------------------------------------------------------
+    # Alma API client configuration
+
     BerkeleyLibrary::Alma::Config.default!
 
-    config.after_initialize do
-      BuildInfo.log!
-    end
+    # ------------------------------------------------------------
+    # Build info
+
+    config.after_initialize { BuildInfo.log! }
   end
 end
