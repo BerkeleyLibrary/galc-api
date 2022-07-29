@@ -134,4 +134,39 @@ describe Item do
       expect(items).to contain_exactly(expected_item)
     end
   end
+
+  describe 'synthetic accessors' do
+    describe :record_id do
+      it 'returns a RecordId if MMS ID is present' do
+        mms_id = '991078545009706532'
+        expected_id = BerkeleyLibrary::Alma::RecordId.parse(mms_id)
+
+        item = Item.find_by!(mms_id: mms_id)
+        expect(item.record_id).to eq(expected_id)
+      end
+
+      it 'returns nil if MMS ID is not present' do
+        item = create(:nil_mms_id)
+        expect(item.record_id).to be_nil
+      end
+    end
+
+    describe :permalink_uri do
+      it 'returns the permalink URI' do
+        mms_id = '991078545009706532'
+        expected_uri = BerkeleyLibrary::Alma::RecordId.parse(mms_id).permalink_uri
+
+        item = Item.find_by!(mms_id: mms_id)
+        expect(item.permalink_uri).to eq(expected_uri)
+      end
+    end
+
+    describe :size do
+      it 'returns the size value' do
+        item = Item.find_by!(mms_id: '991078545009706532')
+        expect(item.size).to eq('Small')
+      end
+    end
+  end
+
 end

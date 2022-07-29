@@ -48,6 +48,10 @@ Rails.application.configure do
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
+  # Fake sending of emails
+  config.action_mailer.delivery_method = :test
+  config.action_mailer.perform_caching = false
+
   Rails.application.config.hosts.append(
     ActionDispatch::Integration::Session::DEFAULT_HOST,
     ActionController::Renderer::DEFAULTS['http_host']

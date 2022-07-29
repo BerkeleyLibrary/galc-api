@@ -13,6 +13,7 @@ require 'rails'
 require 'active_model/railtie'
 require 'active_record/railtie'
 require 'action_controller/railtie'
+require 'action_mailer/railtie'
 require 'action_view/railtie'
 
 # TODO: figure out why Bundler.require() doesn't pick this up
@@ -68,8 +69,6 @@ module GalcApi
     # ------------------------------------------------------------
     # Mailer configuration
 
-    config.mail_smtp_username = ENV['MAIL_USERNAME'] || 'lib-noreply@berkeley.edu'
-    config.mail_smtp_password = ENV['MAIL_PASSWORD']
     config.reserve_email_to = ENV['RESERVE_EMAIL_TO'] || 'galcmgr@berkeley.edu'
     config.reserve_email_bcc = ENV['RESERVE_EMAIL_BCC']
 

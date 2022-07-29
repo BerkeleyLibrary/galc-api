@@ -70,4 +70,11 @@ class Item < ApplicationRecord
   def permalink_uri
     record_id.respond_to?(:permalink_uri) && record_id.permalink_uri
   end
+
+  def size
+    return unless (size_facet = Facet.find_by(name: 'Size'))
+    return unless (size_term = terms.find_by(facet: size_facet))
+
+    size_term.value
+  end
 end

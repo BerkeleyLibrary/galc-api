@@ -1,3 +1,5 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: 'lib-noreply@berkeley.edu'
+  ADDR_LIB_NOREPLY = 'lib-noreply@berkeley.edu'.freeze
+
+  default from: ADDR_LIB_NOREPLY
 end

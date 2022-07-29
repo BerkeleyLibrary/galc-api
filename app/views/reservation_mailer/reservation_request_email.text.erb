@@ -1,0 +1,14 @@
+<%
+  user = @reservation.user
+  item = @reservation.item
+%>
+GALC reservation request:
+
+  Name:       <%= user.display_name %>
+  Email:      <%= user.email %>
+  CalNet ID:  <%= user.uid %>
+
+  Artist:     <%= item.artist %>
+  Title:      <%= item.title %>
+  MMS ID:     <%= item.mms_id %>
+  Size:       <%= item.size %>
