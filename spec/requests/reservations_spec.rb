@@ -44,6 +44,46 @@ RSpec.describe 'Reservations', type: :request do
         expect(parsed_response).to contain_jsonapi_for(expected_rsvn)
       end
 
+      # rubocop:disable RSpec/ExampleLength
+      it 'sends a request email' do
+        expected_bcc = %w[test@example.org test@example.edu]
+        bcc_str = expected_bcc.join(', ')
+
+        allow(Rails.application.config).to receive(:reserve_email_bcc).and_return(bcc_str)
+        allow(AvailabilityService).to receive(:available?).with(item).and_return(true)
+
+        expect { post(reservations_url, params: payload, as: :jsonapi) }
+          .to(change { ActionMailer::Base.deliveries.count }.by(1))
+
+        message = ActionMailer::Base.deliveries.last
+        expect(message).not_to be_nil
+
+        aggregate_failures do
+          expect(message.subject).to eq(ReservationMailer::RSVN_REQ_SUBJECT)
+          expect(message.from).to include(ApplicationMailer::ADDR_LIB_NOREPLY)
+          expect(message.to).to include('galcmgr@berkeley.edu')
+          expect(message.cc).to include(current_user.email)
+
+          expected_bcc.each do |attr|
+            expect(message.bcc).to include(attr)
+          end
+
+          [
+            current_user.display_name,
+            current_user.email,
+            current_user.uid,
+            item.artist,
+            item.title,
+            item.mms_id,
+            item.size
+          ].each do |attr|
+            expect(message.body).to include(attr)
+          end
+
+        end
+      end
+      # rubocop:enable RSpec/ExampleLength
+
       it 'rejects a nonexistent item' do
         Item.destroy_by(id: item.id)
 

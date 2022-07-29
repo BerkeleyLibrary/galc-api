@@ -63,4 +63,22 @@ Rails.application.configure do
   #   logger.formatter = config.log_formatter
   #   config.logger    = ActiveSupport::TaggedLogging.new(logger)
   # end
+
+  # ------------------------------------------------------------
+  # Mailer configuration
+
+  mail_smtp_username = ENV['MAIL_USERNAME'] || 'lib-noreply@berkeley.edu'
+  mail_smtp_password = ENV['MAIL_PASSWORD']
+
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_caching = false
+  config.action_mailer.smtp_settings = {
+    address: 'smtp.gmail.com',
+    port: '587',
+    domain: 'berkeley.edu',
+    user_name: mail_smtp_username,
+    password: mail_smtp_password,
+    authentication: 'plain',
+    enable_starttls_auto: true
+  }
 end
