@@ -253,9 +253,9 @@ Rails/Delegate:
 Rails/DurationArithmetic: # new in 2.13
   Enabled: false
 
-# if we're going to enforce a style, let's enforce the safe one
+# readable >>> consistent
 Rails/FilePath:
-  EnforcedStyle: arguments
+  Enabled: false
 
 # we meant to do that
 Rails/HasAndBelongsToMany:
