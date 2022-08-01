@@ -10,6 +10,7 @@ class ReservationsController < ApplicationController
 
     mailer = ReservationMailer.with(reservation: @reservation)
     reservation_request_email = mailer.reservation_request_email
+    logger.info('Sending reservation email', reservation_request_email.header)
     reservation_request_email.deliver_now
 
     render jsonapi: @reservation, status: :created, location: @reservation

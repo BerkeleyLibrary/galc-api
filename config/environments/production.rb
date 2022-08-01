@@ -72,7 +72,8 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.perform_caching = false
-  config.action_mailer.smtp_settings = {
+
+  smtp_settings = {
     address: 'smtp.gmail.com',
     port: '587',
     domain: 'berkeley.edu',
@@ -81,6 +82,8 @@ Rails.application.configure do
     authentication: 'plain',
     enable_starttls_auto: true
   }
+  config.action_mailer.smtp_settings = smtp_settings
+  logger.info('Configuring SMTP', smtp_settings.merge(password: mail_smtp_password.gsub(/./, '*')))
 
   if ENV['INTERCEPT_EMAILS'].present?
     # Route emails to a mailing list in staging
