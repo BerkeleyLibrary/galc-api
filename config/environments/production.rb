@@ -67,6 +67,8 @@ Rails.application.configure do
   # ------------------------------------------------------------
   # Mailer configuration
 
+  # TODO: figure out a way to test this
+
   mail_smtp_username = ENV['MAIL_USERNAME'] || 'lib-noreply@berkeley.edu'
   mail_smtp_password = ENV['MAIL_PASSWORD']
 
@@ -83,12 +85,16 @@ Rails.application.configure do
     enable_starttls_auto: true
   }
   config.action_mailer.smtp_settings = smtp_settings
-  logger.info('Configuring SMTP', smtp_settings.merge(password: mail_smtp_password.gsub(/./, '*')))
+  config.after_initialize do
+    Rails.logger.info('SMTP configured', smtp_settings.merge(password: mail_smtp_password.gsub(/./, '*')))
+  end
 
   if ENV['INTERCEPT_EMAILS'].present?
     # Route emails to a mailing list in staging
     interceptor = Interceptor::MailingListInterceptor.new
-    logger.info("Intercepting email and routing to #{interceptor.mailing_list.inspect}")
     ActionMailer::Base.register_interceptor(interceptor)
+    config.after_initialize do
+      Rails.logger.info("Intercepting email and routing to #{interceptor.mailing_list.inspect}")
+    end
   end
 end
