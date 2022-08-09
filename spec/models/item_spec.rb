@@ -146,7 +146,7 @@ describe Item do
       end
 
       it 'returns nil if MMS ID is not present' do
-        item = create(:nil_mms_id)
+        item = Item.find_by(mms_id: nil) || create(:nil_mms_id)
         expect(item.record_id).to be_nil
       end
     end
