@@ -1036,10 +1036,12 @@ class PopulateItemsTable < ActiveRecord::Migration[7.0]
 
   def up
     Item.insert_all!(DATA)
+    ActiveRecord::Base.connection.reset_pk_sequence!('items', :id, 'items_id_seq')
   end
 
   def down
     ids = DATA.map { |row| row[:id] }
     Item.where(id: ids).delete_all
+    ActiveRecord::Base.connection.reset_pk_sequence!('items', :id, 'items_id_seq')
   end
 end
