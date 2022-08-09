@@ -33,5 +33,6 @@
       <option name="processComments" value="true" />
     </inspection_tool>
     <inspection_tool class="SqlNoDataSourceInspection" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="SqlWithoutWhereInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
   </profile>
 </component>
