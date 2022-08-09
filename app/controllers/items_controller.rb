@@ -93,6 +93,7 @@ class ItemsController < ApplicationController
   def filtered_items
     @filtered_items ||= begin
       items = Item.with_facet_values(facet_values)
+      items = items.where(suppressed: false)
       items = items.with_all_keywords(keywords) if keywords
       items.includes(:terms)
     end

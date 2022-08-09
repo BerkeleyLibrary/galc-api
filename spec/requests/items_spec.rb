@@ -105,6 +105,31 @@ RSpec.describe 'Items', type: :request do
         }
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
+
+      it 'excludes suppressed items' do
+        keywords = 'color medium numbered'
+        all_items = Item.with_all_keywords(keywords)
+        all_items.take.tap { |it| it.update(suppressed: true) }
+
+        expected_data = all_items.where(suppressed: false)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
+        }
+
+        keywords = 'color medium numbered'
+        get items_url, params: { 'filter[keywords]' => keywords }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+
+        _links = parsed_response.delete('links')
+
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+      end
     end
 
     describe :show do
