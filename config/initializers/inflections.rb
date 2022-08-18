@@ -1,3 +1,3 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
-  inflect.acronym 'MMS'
+  %w[JWT MMS].each { |a| inflect.acronym(a) }
 end

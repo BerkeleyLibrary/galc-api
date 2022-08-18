@@ -76,7 +76,7 @@ RSpec.describe 'Sessions', type: :request do
         expect(response.headers['Location']).to start_with(cas_login_url)
       end
 
-      it 'initializes a user from the auth response and sets the login param in the redirect URL' do
+      it 'initializes a user from the auth response and sets a JWT token in the redirect URL' do
         post login_path, params: { origin: origin_url }
 
         # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
@@ -93,32 +93,10 @@ RSpec.describe 'Sessions', type: :request do
           galc_admin: true
         }
 
-        user = User.from_session(session)
-        expected_attrs.each do |attr, v_expected|
-          v_actual = user.send(attr)
-          expect(v_actual).to eq(v_expected), "Wrong value for #{attr}; expected #{v_expected.inspect}, was #{v_actual.inspect}"
-        end
+        expected_token = User.new(**expected_attrs).to_jwt_payload
+        redirect_url = JWTSupport.append_token(origin_url, expected_token)
 
-        expect(response).to redirect_to(origin_url)
-      end
-
-      it 'sets a secure cookie' do
-        headers = { 'Origin' => origin_url }
-        post login_url, params: { origin: origin_url }, headers: headers
-
-        # NOTE: We can't use follow_redirect! b/c the Rack::Test mock client
-        #       thinks all requests are local; so we just pretend we hit the
-        #       CAS login URL and it redirected the browser back here.
-        redirect_location = response.headers['Location']
-        callback_url = callback_url_from_cas_redirect(redirect_location)
-        get callback_url, headers: headers
-
-        expect(response).to redirect_to(origin_url)
-
-        cookie_headers = response.headers['Set-Cookie']
-        attributes = cookie_headers.split(';').map(&:strip)
-        expect(attributes).to include('secure')
-        expect(attributes).to include('SameSite=None')
+        expect(response).to redirect_to(redirect_url)
       end
 
       it 'rejects an invalid origin' do
@@ -134,16 +112,6 @@ RSpec.describe 'Sessions', type: :request do
       before do
         post login_path, params: { origin: origin_url }
         get callback_url_from_cas_redirect(response.headers['Location'])
-      end
-
-      it 'clears the user from the session' do
-        user = session[User::SESSION_KEY]
-        expect(user).not_to be_nil
-
-        get logout_path
-
-        user = session[User::SESSION_KEY]
-        expect(user).to be_nil
       end
 
       it 'redirects to the CAS logout URL' do
