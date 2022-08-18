@@ -10,9 +10,6 @@ class User
   # LDAP `berkeleyEduIsMemberOf` value for the GALC admin group.
   GALC_ADMIN_GROUP = 'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'.freeze
 
-  # Key to look up the current user in the session
-  SESSION_KEY = :user
-
   # ------------------------------------------------------------
   # Accessors
 
@@ -56,13 +53,14 @@ class User
       )
     end
 
-    def from_session(session)
-      session_attributes = (session && session[SESSION_KEY]) || {}
-      allowed_attributes = session_attributes.slice(*attribute_names)
-      attributes = allowed_attributes.symbolize_keys
-      attributes[:debug] = 'session'
-
-      new(**attributes)
+    def from_jwt_payload(payload)
+      new(
+        debug: 'jwt',
+        uid: payload['sub'],
+        display_name: payload['name'],
+        email: payload['email'],
+        galc_admin: galc_admin?(payload['groups'])
+      )
     end
 
     private
@@ -78,5 +76,11 @@ class User
   # @return [Boolean] True if the current user is authenticated, false otherwise
   def authenticated?
     !uid.nil?
+  end
+
+  def to_jwt_payload
+    payload = { sub: uid, name: display_name, email: email }
+    payload['groups'] = [GALC_ADMIN_GROUP] if galc_admin?
+    payload.with_indifferent_access
   end
 end

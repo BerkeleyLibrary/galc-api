@@ -34,7 +34,6 @@ RSpec.describe 'Facets', type: :request do
 
         expect(response).to be_successful
         expect(response.headers['Access-Control-Allow-Origin']).to eq(http_origin)
-        expect(response.headers['Access-Control-Allow-Credentials']).to eq('true')
       end
     end
   end

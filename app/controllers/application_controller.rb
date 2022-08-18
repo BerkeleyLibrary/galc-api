@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  include JWTSupport
   include ExceptionHandlers
 
   # ------------------------------------------------------------
@@ -32,7 +33,7 @@ class ApplicationController < ActionController::API
   #
   # @return [User] the user
   def current_user
-    @current_user ||= user_from_session
+    @current_user ||= (user_from_token || default_user)
   end
 
   # Require an authenticated user with admin privileges
@@ -49,8 +50,13 @@ class ApplicationController < ActionController::API
 
   private
 
-  def user_from_session
-    User.from_session(session)
+  def user_from_token
+    return unless (payload = bearer_token_payload)
+
+    User.from_jwt_payload(payload)
   end
 
+  def default_user
+    User.new
+  end
 end
