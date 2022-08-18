@@ -69,7 +69,7 @@ module GalcApi
     # ------------------------------------------------------------
     # Mailer configuration
 
-    config.reserve_email_to = ENV['RESERVE_EMAIL_TO'] || 'galcmgr@berkeley.edu'
+    config.reserve_email_to = ENV['RESERVE_EMAIL_TO'] || 'lib-testmail@lists.berkeley.edu'
     config.reserve_email_bcc = ENV['RESERVE_EMAIL_BCC']
 
     # ------------------------------------------------------------

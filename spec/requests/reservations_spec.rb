@@ -46,6 +46,9 @@ RSpec.describe 'Reservations', type: :request do
 
       # rubocop:disable RSpec/ExampleLength
       it 'sends a request email' do
+        expected_to = Rails.application.config.reserve_email_to
+        expect(expected_to).not_to be_blank # just to be sure
+
         expected_bcc = %w[test@example.org test@example.edu]
         bcc_str = expected_bcc.join(', ')
 
@@ -61,7 +64,7 @@ RSpec.describe 'Reservations', type: :request do
         aggregate_failures do
           expect(message.subject).to eq(ReservationMailer::RSVN_REQ_SUBJECT)
           expect(message.from).to include(ApplicationMailer::ADDR_LIB_NOREPLY)
-          expect(message.to).to include('galcmgr@berkeley.edu')
+          expect(message.to).to include(expected_to)
           expect(message.cc).to include(current_user.email)
 
           expected_bcc.each do |attr|
