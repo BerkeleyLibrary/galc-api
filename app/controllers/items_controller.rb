@@ -41,10 +41,7 @@ class ItemsController < ApplicationController
   def jsonapi_meta(items)
     return unless items.respond_to?(:reorder)
 
-    # DISTINCT doesn't play well with the Item.default_scope sort order
-    # TODO: figure out why it wasn't distinct to begin with
-    mms_ids = items.reorder(nil).pluck('DISTINCT(mms_id)')
-
+    mms_ids = items.pluck(:mms_id)
     {}.tap do |meta|
       meta[:availability] = AvailabilityService.availability_for(mms_ids)
 
