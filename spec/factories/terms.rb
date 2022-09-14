@@ -308,5 +308,10 @@ FactoryBot.define do
       facet { association :facet_medium }
       parent { association :term_stencil }
     end
+
+    factory(:term_risograph) do
+      value { 'Risograph' }
+      facet { association :facet_medium }
+    end
   end
 end
