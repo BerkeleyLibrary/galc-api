@@ -9,7 +9,7 @@ class Item < ApplicationRecord
   ALL_ATTRS = Item.column_names.map(&:to_sym).freeze
   DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
   EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at] + [:terms]).freeze
-  SYNTH_ATTRS = [:permalink_uri].freeze
+  SYNTH_ATTRS = %i[permalink_uri image_uri thumbnail_uri].freeze
   JSONAPI_ATTRS = (DATA_ATTRS + SYNTH_ATTRS).freeze
 
   # ------------------------------------------------------------
@@ -61,6 +61,15 @@ class Item < ApplicationRecord
   end
 
   # ------------------------------------------------------------
+  # Class methods
+
+  class << self
+    def image_base_uri
+      @image_base_uri ||= URI.parse(Rails.application.config.galc_image_base_url)
+    end
+  end
+
+  # ------------------------------------------------------------
   # Synthetic attributes
 
   def record_id
@@ -76,5 +85,20 @@ class Item < ApplicationRecord
     return unless (size_term = terms.find_by(facet: size_facet))
 
     size_term.value
+  end
+
+  def image_uri
+    prepend_image_base_uri(image)
+  end
+
+  def thumbnail_uri
+    prepend_image_base_uri(thumbnail)
+  end
+
+  private
+
+  def prepend_image_base_uri(basename)
+    escaped_basename = URI::Parser.new.escape(basename)
+    BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, escaped_basename)
   end
 end
