@@ -44,67 +44,110 @@ class Importer
   end
 
   def create_item!(csv_row)
-    attributes = attributes_from(csv_row)
+    ItemFactory.new(csv_row).create_item!
+  end
 
-    ActiveRecord::Base.transaction do
-      Item.create!(attributes).tap do |item|
-        item.terms = terms_from(csv_row)
+  class ItemFactory
+
+    HEADER_TO_ATTR = {
+      'Image' => :image,
+      'Title' => :title,
+      'Artist' => :artist,
+      'ArtistURL' => :artist_url,
+      'Date' => :date,
+      'Description' => :description,
+      'Dimensions' => :dimensions,
+      'Series' => :series,
+      'MMSID' => :mms_id,
+      'Barcode' => :barcode,
+      'Circulation' => :circulation,
+      'Location' => :location,
+      'Value' => :value,
+      'AppraisalDate' => :appraisal_date,
+      'Notes' => :notes,
+      'Suppress' => :suppressed
+    }.freeze
+
+    attr_reader :csv_row
+
+    def initialize(csv_row)
+      @csv_row = csv_row
+    end
+
+    def create_item!
+      csv_row.each { |header, raw_value| add_cell(header, raw_value) }
+
+      ActiveRecord::Base.transaction do
+        Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
+      end
+    end
+
+    private
+
+    def attributes
+      @attributes ||= {}
+    end
+
+    def facet_terms
+      @facet_terms ||= {}
+    end
+
+    def terms_for(facet)
+      facet_terms[facet] ||= []
+    end
+
+    def add_cell(header, raw_value)
+      return unless raw_value
+
+      if (attr = HEADER_TO_ATTR[header])
+        add_attr(attr, raw_value)
+      else
+        add_facet_value(header, raw_value)
+      end
+    end
+
+    def add_attr(attr, raw_value)
+      raise ArgumentError, "#{attr} already set: #{attributes[attr]}" if attributes.key?(attr)
+
+      attributes[attr] = clean_attr_value(attr, raw_value)
+    end
+
+    def add_facet_value(header, raw_value)
+      return unless (facet = facet_for(header))
+
+      terms_for(facet) << term_for(facet, raw_value)
+    end
+
+    def term_for(facet, raw_value)
+      value = clean_facet_value(facet, raw_value).downcase
+      facet.terms.find { |t| t.value.downcase == value }.tap do |term|
+        raise ArgumentError, "No matching terms found for #{raw_value.inspect}, facet: #{facet.name}" unless term
+      end
+    end
+
+    def facet_for(header)
+      ItemFactory.all_facets.find { |f| header.start_with?(f.name) }
+    end
+
+    def clean_attr_value(attr, v)
+      return (v == 'Yes') if attr == :suppressed
+      return if v.nil?
+
+      v.strip.presence
+    end
+
+    def clean_facet_value(facet, v)
+      # TODO: better way to identify facets with sub-terms
+      return v unless (facet.name == 'Medium') && (dash_index = v.rindex('-'))
+
+      v[(dash_index + 1)..]
+    end
+
+    class << self
+      def all_facets
+        @all_facets ||= Facet.includes(:terms).all
       end
     end
   end
 
-  def terms_from(csv_row)
-    term_values_from(csv_row).each_with_object([]) do |(facet_name, term_values), tt|
-      facet_terms = facet_terms_from(facet_name, term_values)
-      facet_terms.each { |term| tt << term }
-    end
-  end
-
-  def facet_terms_from(facet_name, term_values)
-    facet = Facet.find_by!(name: facet_name)
-    raw_terms = term_values.map { |term_value| find_term(facet, term_value) }
-    parent_terms = raw_terms.map(&:parent).compact.uniq
-    raw_terms - parent_terms
-  end
-
-  def term_values_from(csv_row)
-    Facet.pluck(:name).each_with_object({}) do |facet_name, ft_values|
-      next unless (raw_value = csv_row[facet_name])
-      next unless (term_values = extract_values(facet_name, raw_value)).any?
-
-      ft_values[facet_name] = term_values
-    end
-  end
-
-  def attributes_from(csv_row)
-    ATTR_TO_HEADER.each_with_object({}) do |(attr, header), attrs|
-      next unless (value = clean_value(attr, csv_row[header]))
-
-      attrs[attr] = value
-    end
-  end
-
-  def extract_values(facet_name, raw_value)
-    values = raw_value.split(',').map(&:strip)
-    return values unless facet_name == 'Medium'
-
-    # TODO: should we just strip parent values here?
-    values.flat_map { |v| v.split('-') }
-  end
-
-  def find_term(facet, term_value)
-    Term.find_by!('facet_id = ? AND LOWER(value) = ?', facet.id, term_value.downcase)
-  rescue ActiveRecord::RecordNotFound => e
-    e.message.sub!('$1', facet.id.inspect)
-    e.message.sub!('$2', term_value.inspect)
-
-    raise
-  end
-
-  def clean_value(attr, v)
-    return (v == 'Yes') if attr == :suppressed
-    return if v.nil?
-
-    v.strip.presence
-  end
 end
