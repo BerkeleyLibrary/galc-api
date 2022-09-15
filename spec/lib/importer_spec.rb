@@ -13,6 +13,8 @@ describe Importer do
   describe :items do
     before do
       @importer = Importer.new(data)
+
+      stub_request(:head, /^#{Regexp.quote(Item.image_base_uri.to_s)}.*\.jpg$/).to_return(200)
     end
 
     # TODO: check images & thumbnails exist
@@ -83,6 +85,39 @@ describe Importer do
       end
 
       expect(item.terms.to_a).to contain_exactly(*expected_terms)
+    end
+  end
+
+  describe 'validation' do
+    attr_reader :image_uri, :thumbnail_uri
+
+    before do
+      vdata = data.lines(chomp: true)[0, 2].join("\n")
+
+      image = vdata.scan(/(?<=,)[^,]+\.jpg(?=,)/)[0]
+      thumbnail = image.sub(/\.jpg$/, '_360px.jpg')
+
+      @image_uri, @thumbnail_uri = [image, thumbnail].map { |basename| BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, basename) }
+
+      @importer = Importer.new(vdata)
+    end
+
+    it 'fails if the image is not on the image server' do
+      stub_request(:head, image_uri).to_return(status: 404)
+      stub_request(:head, thumbnail_uri).to_return(status: 200)
+
+      count_before = Item.count
+      expect { importer.import_items! }.to raise_error(ArgumentError)
+      expect(Item.count).to eq(count_before)
+    end
+
+    it 'fails if the thumbnail is not on the image server' do
+      stub_request(:head, image_uri).to_return(status: 200)
+      stub_request(:head, thumbnail_uri).to_return(status: 404)
+
+      count_before = Item.count
+      expect { importer.import_items! }.to raise_error(ArgumentError)
+      expect(Item.count).to eq(count_before)
     end
   end
 end
