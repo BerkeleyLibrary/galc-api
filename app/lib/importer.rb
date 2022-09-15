@@ -27,20 +27,16 @@ class Importer
     @data = data
   end
 
-  def items
-    @items = create_items!
+  def import_items!
+    ActiveRecord::Base.transaction do
+      csv.map { |csv_row| create_item!(csv_row) }
+    end
   end
 
   private
 
   def csv
     @csv = CSV.parse(data, headers: true).tap(&:by_row!)
-  end
-
-  def create_items!
-    ActiveRecord::Base.transaction do
-      csv.map { |csv_row| create_item!(csv_row) }
-    end
   end
 
   def create_item!(csv_row)
