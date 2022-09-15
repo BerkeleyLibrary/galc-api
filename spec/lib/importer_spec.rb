@@ -15,6 +15,7 @@ describe Importer do
       @importer = Importer.new(data)
     end
 
+    # TODO: break this up, test facets etc.
     it 'returns the items' do
       mms_ids = data.scan(/9910\d{10}6532/)
 
