@@ -67,6 +67,13 @@ class Item < ApplicationRecord
     def image_base_uri
       @image_base_uri ||= URI.parse(Rails.application.config.galc_image_base_url)
     end
+
+    def image_uri_for(basename)
+      return unless basename
+
+      escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(basename)
+      BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, escaped_basename)
+    end
   end
 
   # ------------------------------------------------------------
@@ -98,7 +105,6 @@ class Item < ApplicationRecord
   private
 
   def prepend_image_base_uri(basename)
-    escaped_basename = URI::Parser.new.escape(basename)
-    BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, escaped_basename)
+    Item.image_uri_for(basename)
   end
 end

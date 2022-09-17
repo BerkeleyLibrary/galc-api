@@ -85,7 +85,7 @@ GEM
       marc (~> 1.0)
       parslet (~> 2.0)
       ruby-marc-spec (~> 0.1)
-    berkeley_library-util (0.1.4)
+    berkeley_library-util (0.1.5)
       berkeley_library-logging (~> 0.2)
       rest-client (~> 2.1)
       typesafe_enum (~> 0.3)
@@ -324,7 +324,7 @@ PLATFORMS
 DEPENDENCIES
   berkeley_library-alma (~> 0.0.7, >= 0.0.7.1)
   berkeley_library-logging (~> 0.2, >= 0.2.7)
-  berkeley_library-util (~> 0.1.4)
+  berkeley_library-util (~> 0.1.5)
   brakeman
   bundle-audit
   colorize

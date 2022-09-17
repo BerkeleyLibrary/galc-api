@@ -14,7 +14,8 @@ describe Importer do
     before do
       @importer = Importer.new(data)
 
-      stub_request(:head, /^#{Regexp.quote(Item.image_base_uri.to_s)}.*\.jpg$/).to_return(200)
+      img_re = /^#{Regexp.quote(Item.image_base_uri.to_s)}.*\.jpg$/
+      stub_request(:head, img_re).to_return(status: 200)
     end
 
     # TODO: check images & thumbnails exist
@@ -41,7 +42,7 @@ describe Importer do
         # check that terms are saved
         expect(it.terms).not_to be_empty
         it2 = Item.find(it.id)
-        expect(it2.terms).to eq(it.terms)
+        expect(it2.terms).to contain_exactly(*it.terms)
       end
     end
 
@@ -97,7 +98,7 @@ describe Importer do
       image = vdata.scan(/(?<=,)[^,]+\.jpg(?=,)/)[0]
       thumbnail = image.sub(/\.jpg$/, '_360px.jpg')
 
-      @image_uri, @thumbnail_uri = [image, thumbnail].map { |basename| BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, basename) }
+      @image_uri, @thumbnail_uri = [image, thumbnail].map { |basename| Item.image_uri_for(basename) }
 
       @importer = Importer.new(vdata)
     end

@@ -5,7 +5,7 @@ ruby '3.0.3'
 
 gem 'berkeley_library-alma', '~> 0.0.7', '>= 0.0.7.1'
 gem 'berkeley_library-logging', '~> 0.2', '>= 0.2.7'
-gem 'berkeley_library-util', '~> 0.1.4'
+gem 'berkeley_library-util', '~> 0.1.5'
 gem 'jsonapi.rb', '~> 2.0'
 gem 'jsonapi-serializer', '~> 2.2'
 gem 'jwt', '~> 2.4'
