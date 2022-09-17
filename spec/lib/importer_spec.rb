@@ -89,6 +89,7 @@ describe Importer do
     end
   end
 
+  # TODO: test that import batches are atomic
   describe 'validation' do
     attr_reader :image_uri, :thumbnail_uri
 
