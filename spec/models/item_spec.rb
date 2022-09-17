@@ -167,6 +167,40 @@ describe Item do
         expect(item.size).to eq('Small')
       end
     end
+
+    describe 'image URIs' do
+      let(:base_url) { Rails.application.config.galc_image_base_url }
+
+      describe :image_uri do
+        it 'returns the image URI' do
+          item = Item.find_by(artist: 'Minami, Keiko')
+          escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(item.image)
+          expected_uri = BerkeleyLibrary::Util::URIs.append(base_url, escaped_basename)
+          expect(item.image_uri).to eq(expected_uri)
+        end
+
+        it 'returns nil for a missing image' do
+          item = Item.find_by(artist: 'Minami, Keiko')
+          item.image = nil
+          expect(item.image_uri).to eq(nil)
+        end
+      end
+
+      describe :thumbnail_uri do
+        it 'returns the thumbnail URI' do
+          item = Item.find_by(artist: 'Minami, Keiko')
+          escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(item.thumbnail)
+          expected_uri = BerkeleyLibrary::Util::URIs.append(base_url, escaped_basename)
+          expect(item.thumbnail_uri).to eq(expected_uri)
+        end
+
+        it 'returns nil for a missing thumbnail' do
+          item = Item.find_by(artist: 'Minami, Keiko')
+          item.thumbnail = nil
+          expect(item.thumbnail_uri).to eq(nil)
+        end
+      end
+    end
   end
 
 end

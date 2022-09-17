@@ -47,6 +47,7 @@ class Importer
 
     HEADER_TO_ATTR = {
       'Image' => :image,
+      'Thumbnail' => :thumbnail,
       'Title' => :title,
       'Artist' => :artist,
       'ArtistURL' => :artist_url,
@@ -74,6 +75,7 @@ class Importer
       csv_row.each { |header, raw_value| add_cell(header, raw_value) }
 
       ActiveRecord::Base.transaction do
+        validate_images(attributes[:image], attributes[:thumbnail])
         Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
       end
     end
@@ -137,6 +139,20 @@ class Importer
       return v unless (facet.name == 'Medium') && (dash_index = v.rindex('-'))
 
       v[(dash_index + 1)..]
+    end
+
+    def validate_images(image_basename, thumbnail_basename)
+      # TODO: Don't hard-code thumbnail conversion
+      thumbnail_basename ||= image_basename.sub(/\.jpg$/, '_360px.jpg')
+      [image_basename, thumbnail_basename].each do |basename|
+        image_uri = Item.image_uri_for(basename)
+        validate_uri(image_uri)
+      end
+    end
+
+    def validate_uri(image_uri)
+      http_status = BerkeleyLibrary::Util::URIs.head(image_uri)
+      raise ArgumentError, "HEAD #{image_uri} returned #{http_status}" unless http_status == 200
     end
 
     class << self
