@@ -85,6 +85,12 @@ describe Importer do
 
       expect(item.terms.to_a).to contain_exactly(*expected_terms)
     end
+
+    it 'wraps errors' do
+      importer.import_items!
+      expected_error = /Validation failed: MMS has already been taken/
+      expect { importer.import_items! }.to raise_error(ArgumentError, expected_error)
+    end
   end
 
   # TODO: test that import batches are atomic
