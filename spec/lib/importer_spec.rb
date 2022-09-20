@@ -96,8 +96,8 @@ describe Importer do
     before do
       vdata = data.lines(chomp: true)[0, 2].join("\n")
 
-      image = vdata.scan(/(?<=,)[^,]+\.jpg(?=,)/)[0]
-      thumbnail = image.sub(/\.jpg$/, '_360px.jpg')
+      image = vdata.scan(/(?<=,)[^,]+(?<!_360px)\.jpg(?=,)/)[0]
+      thumbnail = vdata.scan(/(?<=,)[^,]+_360px\.jpg(?=,)/)[0]
 
       @image_uri, @thumbnail_uri = [image, thumbnail].map { |basename| Item.image_uri_for(basename) }
 
