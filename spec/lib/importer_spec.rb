@@ -128,6 +128,24 @@ describe Importer do
         expect { importer.import_items! }.to raise_error(ArgumentError)
         expect(Item.count).to eq(count_before)
       end
+
+      it 'fails if an item does not have an image attribute' do
+        importer.factories.first.attributes[:image] = nil
+        stub_request(:head, thumbnail_uri).to_return(status: 200)
+
+        count_before = Item.count
+        expect { importer.import_items! }.to raise_error(ArgumentError)
+        expect(Item.count).to eq(count_before)
+      end
+
+      it 'fails if an item does not have a thumbnail attribute' do
+        importer.factories.first.attributes[:thumbnail] = nil
+        stub_request(:head, image_uri).to_return(status: 200)
+
+        count_before = Item.count
+        expect { importer.import_items! }.to raise_error(ArgumentError)
+        expect(Item.count).to eq(count_before)
+      end
     end
 
     context 'without validation' do
