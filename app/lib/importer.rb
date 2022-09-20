@@ -31,7 +31,7 @@ class Importer
 
   def import_items!
     ActiveRecord::Base.transaction do
-      factories.map { |factory| factory.create_item! }
+      factories.map(&:create_item!)
     end
   end
 
@@ -40,7 +40,7 @@ class Importer
   end
 
   def image_errors
-    @image_errors ||= factories.flat_map { |f| f.image_errors }
+    @image_errors ||= factories.flat_map(&:image_errors)
   end
 
   private
@@ -57,6 +57,7 @@ class Importer
     @validate_images
   end
 
+  # rubocop:disable Metrics/ClassLength
   class ItemFactory
     include BerkeleyLibrary::Logging
 
@@ -170,7 +171,7 @@ class Importer
     end
 
     def validate_images!
-      raise ArgumentError(image_errors.join('; ')) unless image_errors.empty?
+      raise ArgumentError, image_errors.join('; ') unless image_errors.empty?
     end
 
     def validate_image(attr, errors)
@@ -189,5 +190,6 @@ class Importer
       end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 
 end

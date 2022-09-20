@@ -144,6 +144,14 @@ describe Importer do
         items = importer.import_items!
         expect(items.size).to eq(1)
       end
+
+      it 'can still detect image errors' do
+        stub_request(:head, image_uri).to_return(status: 404)
+        stub_request(:head, thumbnail_uri).to_return(status: 404)
+
+        errors = importer.image_errors
+        expect(errors.size).to eq(2)
+      end
     end
   end
 end
