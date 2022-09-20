@@ -23,8 +23,9 @@ class Importer
 
   attr_reader :data
 
-  def initialize(data)
+  def initialize(data, validate_images: true)
     @data = data
+    @validate_images = validate_images
   end
 
   def import_items!
@@ -40,7 +41,11 @@ class Importer
   end
 
   def create_item!(csv_row)
-    ItemFactory.new(csv_row).create_item!
+    ItemFactory.new(csv_row, validate_images?).create_item!
+  end
+
+  def validate_images?
+    @validate_images
   end
 
   class ItemFactory
@@ -67,20 +72,25 @@ class Importer
 
     attr_reader :csv_row
 
-    def initialize(csv_row)
+    def initialize(csv_row, validate_images)
       @csv_row = csv_row
+      @validate_images = validate_images
     end
 
     def create_item!
       csv_row.each { |header, raw_value| add_cell(header, raw_value) }
 
       ActiveRecord::Base.transaction do
-        validate_images(attributes)
+        validate_images!(attributes) if validate_images?
         Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
       end
     end
 
     private
+
+    def validate_images?
+      @validate_images
+    end
 
     def attributes
       @attributes ||= {}
@@ -141,7 +151,7 @@ class Importer
       v[(dash_index + 1)..]
     end
 
-    def validate_images(attributes)
+    def validate_images!(attributes)
       %i[image thumbnail].each do |attr|
         raise ArgumentError, "Missing #{attr} for #{attributes[:title]}" unless (basename = attributes[attr])
 
