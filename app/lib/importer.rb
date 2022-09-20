@@ -1,4 +1,5 @@
 require 'csv'
+require 'berkeley_library/logging'
 
 class Importer
 
@@ -30,8 +31,16 @@ class Importer
 
   def import_items!
     ActiveRecord::Base.transaction do
-      csv.map { |csv_row| create_item!(csv_row) }
+      factories.map { |factory| factory.create_item! }
     end
+  end
+
+  def factories
+    @factories ||= csv.map { |csv_row| factory_from(csv_row) }
+  end
+
+  def image_errors
+    @image_errors ||= factories.flat_map { |f| f.image_errors }
   end
 
   private
@@ -40,8 +49,8 @@ class Importer
     @csv = CSV.parse(data, headers: true).tap(&:by_row!)
   end
 
-  def create_item!(csv_row)
-    ItemFactory.new(csv_row, validate_images?).create_item!
+  def factory_from(csv_row)
+    ItemFactory.new(csv_row, validate_images?)
   end
 
   def validate_images?
@@ -49,6 +58,7 @@ class Importer
   end
 
   class ItemFactory
+    include BerkeleyLibrary::Logging
 
     HEADER_TO_ATTR = {
       'Image' => :image,
@@ -75,21 +85,8 @@ class Importer
     def initialize(csv_row, validate_images)
       @csv_row = csv_row
       @validate_images = validate_images
-    end
 
-    def create_item!
       csv_row.each { |header, raw_value| add_cell(header, raw_value) }
-
-      ActiveRecord::Base.transaction do
-        validate_images!(attributes) if validate_images?
-        Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
-      end
-    end
-
-    private
-
-    def validate_images?
-      @validate_images
     end
 
     def attributes
@@ -98,6 +95,27 @@ class Importer
 
     def facet_terms
       @facet_terms ||= {}
+    end
+
+    def create_item!
+      ActiveRecord::Base.transaction do
+        validate_images! if validate_images?
+        Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
+      end
+    rescue ActiveRecord::ActiveRecordError => e
+      raise ArgumentError, "Unable to create record from attributes #{attributes.inspect}: #{e}"
+    end
+
+    def image_errors
+      @image_errors ||= [].tap do |errors|
+        %i[image thumbnail].each { |attr| validate_image(attr, errors) }
+      end
+    end
+
+    private
+
+    def validate_images?
+      @validate_images
     end
 
     def terms_for(facet)
@@ -151,18 +169,18 @@ class Importer
       v[(dash_index + 1)..]
     end
 
-    def validate_images!(attributes)
-      %i[image thumbnail].each do |attr|
-        raise ArgumentError, "Missing #{attr} for #{attributes[:title]}" unless (basename = attributes[attr])
-
-        image_uri = Item.image_uri_for(basename)
-        validate_uri(image_uri)
-      end
+    def validate_images!
+      raise ArgumentError(image_errors.join('; ')) unless image_errors.empty?
     end
 
-    def validate_uri(image_uri)
-      http_status = BerkeleyLibrary::Util::URIs.head(image_uri)
-      raise ArgumentError, "HEAD #{image_uri} returned #{http_status}" unless http_status == 200
+    def validate_image(attr, errors)
+      if (basename = attributes[attr])
+        image_uri = Item.image_uri_for(basename)
+        http_status = BerkeleyLibrary::Util::URIs.head(image_uri)
+        errors << "HEAD #{image_uri} returned #{http_status}" unless http_status == 200
+      else
+        errors << "Missing #{attr} for #{attributes[:title]}"
+      end
     end
 
     class << self
