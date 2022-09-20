@@ -75,7 +75,7 @@ class Importer
       csv_row.each { |header, raw_value| add_cell(header, raw_value) }
 
       ActiveRecord::Base.transaction do
-        validate_images(attributes[:image], attributes[:thumbnail])
+        validate_images(attributes)
         Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
       end
     end
@@ -141,10 +141,10 @@ class Importer
       v[(dash_index + 1)..]
     end
 
-    def validate_images(image_basename, thumbnail_basename)
-      # TODO: Don't hard-code thumbnail conversion
-      thumbnail_basename ||= image_basename.sub(/\.jpg$/, '_360px.jpg')
-      [image_basename, thumbnail_basename].each do |basename|
+    def validate_images(attributes)
+      %i[image thumbnail].each do |attr|
+        raise ArgumentError, "Missing #{attr} for #{attributes[:title]}" unless (basename = attributes[attr])
+
         image_uri = Item.image_uri_for(basename)
         validate_uri(image_uri)
       end
