@@ -18,8 +18,6 @@ describe Importer do
       stub_request(:head, img_re).to_return(status: 200)
     end
 
-    # TODO: check images & thumbnails exist
-
     # TODO: break this up, test facets etc.
     it 'returns the items' do
       mms_ids = data.scan(/9910\d{10}6532/)
@@ -91,35 +89,61 @@ describe Importer do
 
   # TODO: test that import batches are atomic
   describe 'validation' do
-    attr_reader :image_uri, :thumbnail_uri
+    attr_reader :image_uri, :thumbnail_uri, :vdata
 
     before do
-      vdata = data.lines(chomp: true)[0, 2].join("\n")
+      @vdata = data.lines(chomp: true)[0, 2].join("\n")
 
       image = vdata.scan(/(?<=,)[^,]+(?<!_360px)\.jpg(?=,)/)[0]
       thumbnail = vdata.scan(/(?<=,)[^,]+_360px\.jpg(?=,)/)[0]
 
       @image_uri, @thumbnail_uri = [image, thumbnail].map { |basename| Item.image_uri_for(basename) }
-
-      @importer = Importer.new(vdata)
     end
 
-    it 'fails if the image is not on the image server' do
-      stub_request(:head, image_uri).to_return(status: 404)
-      stub_request(:head, thumbnail_uri).to_return(status: 200)
+    context 'with validation' do
+      before do
+        @importer = Importer.new(vdata)
+      end
 
-      count_before = Item.count
-      expect { importer.import_items! }.to raise_error(ArgumentError)
-      expect(Item.count).to eq(count_before)
+      it 'fails if the image is not on the image server' do
+        stub_request(:head, image_uri).to_return(status: 404)
+        stub_request(:head, thumbnail_uri).to_return(status: 200)
+
+        count_before = Item.count
+        expect { importer.import_items! }.to raise_error(ArgumentError)
+        expect(Item.count).to eq(count_before)
+      end
+
+      it 'fails if the thumbnail is not on the image server' do
+        stub_request(:head, image_uri).to_return(status: 200)
+        stub_request(:head, thumbnail_uri).to_return(status: 404)
+
+        count_before = Item.count
+        expect { importer.import_items! }.to raise_error(ArgumentError)
+        expect(Item.count).to eq(count_before)
+      end
     end
 
-    it 'fails if the thumbnail is not on the image server' do
-      stub_request(:head, image_uri).to_return(status: 200)
-      stub_request(:head, thumbnail_uri).to_return(status: 404)
+    context 'without validation' do
+      before do
+        @importer = Importer.new(vdata, validate_images: false)
+      end
 
-      count_before = Item.count
-      expect { importer.import_items! }.to raise_error(ArgumentError)
-      expect(Item.count).to eq(count_before)
+      it 'succeeds even if the image is not on the image server' do
+        stub_request(:head, image_uri).to_return(status: 404)
+        stub_request(:head, thumbnail_uri).to_return(status: 200)
+
+        items = importer.import_items!
+        expect(items.size).to eq(1)
+      end
+
+      it 'succeeds even if the thumbnail is not on the image server' do
+        stub_request(:head, image_uri).to_return(status: 200)
+        stub_request(:head, thumbnail_uri).to_return(status: 404)
+
+        items = importer.import_items!
+        expect(items.size).to eq(1)
+      end
     end
   end
 end
