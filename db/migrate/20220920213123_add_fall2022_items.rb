@@ -37,6 +37,7 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
 
   def up
     raise ArgumentError, "Missing images:\n\t#{image_errors.join("\n\t")}" if image_errors.any?
+    ActiveRecord::Base.connection.reset_pk_sequence!('items', :id, 'items_id_seq')
     importer.import_items!
   end
 
