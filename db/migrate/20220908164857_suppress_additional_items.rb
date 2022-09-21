@@ -9,6 +9,8 @@ class SuppressAdditionalItems < ActiveRecord::Migration[7.0]
   ]
 
   def up
+    return if Rails.env.test?
+
     ITEM_ATTRS.each do |attrs|
       item = Item.find_by!(suppressed: false, **attrs)
       item.suppressed = true
@@ -17,6 +19,8 @@ class SuppressAdditionalItems < ActiveRecord::Migration[7.0]
   end
 
   def down
+    return if Rails.env.test?
+
     ITEM_ATTRS.each do |attrs|
       item = Item.find_by!(suppressed: true, **attrs)
       item.suppressed = false

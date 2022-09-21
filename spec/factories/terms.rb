@@ -25,81 +25,97 @@ FactoryBot.define do
 
     factory(:term_small) do
       value { 'Small' }
+      ord { 0 }
       facet { association :facet_size }
     end
 
     factory(:term_medium) do
       value { 'Medium' }
+      ord { 1 }
       facet { association :facet_size }
     end
 
     factory(:term_large) do
       value { 'Large' }
+      ord { 2 }
       facet { association :facet_size }
     end
 
     factory(:term_oversized) do
       value { 'Oversized' }
+      ord { 3 }
       facet { association :facet_size }
     end
 
     factory(:term_before_1900) do
       value { 'Before 1900' }
+      ord { 0 }
       facet { association :facet_decade }
     end
 
     factory(:term_1900_1909) do
       value { '1900-1909' }
+      ord { 1 }
       facet { association :facet_decade }
     end
 
     factory(:term_1910_1919) do
       value { '1910-1919' }
+      ord { 2 }
       facet { association :facet_decade }
     end
 
     factory(:term_1920_1929) do
       value { '1920-1929' }
+      ord { 3 }
       facet { association :facet_decade }
     end
 
     factory(:term_1930_1939) do
       value { '1930-1939' }
+      ord { 4 }
       facet { association :facet_decade }
     end
 
     factory(:term_1940_1949) do
       value { '1940-1949' }
+      ord { 5 }
       facet { association :facet_decade }
     end
 
     factory(:term_1950_1959) do
       value { '1950-1959' }
+      ord { 6 }
       facet { association :facet_decade }
     end
 
     factory(:term_1960_1969) do
       value { '1960-1969' }
+      ord { 7 }
       facet { association :facet_decade }
     end
 
     factory(:term_1970_1979) do
       value { '1970-1979' }
+      ord { 8 }
       facet { association :facet_decade }
     end
 
     factory(:term_1980_1989) do
       value { '1980-1989' }
+      ord { 9 }
       facet { association :facet_decade }
     end
 
     factory(:term_1990_1999) do
       value { '1990-1999' }
+      ord { 10 }
       facet { association :facet_decade }
     end
 
     factory(:term_after_1999) do
       value { 'After 1999' }
+      ord { 11 }
       facet { association :facet_decade }
     end
 

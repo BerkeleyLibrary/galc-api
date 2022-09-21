@@ -11,7 +11,7 @@ describe TermSerializer do
       data: {
         id: term.id.to_s,
         type: :term,
-        attributes: { value: term.value },
+        attributes: { value: term.value, ord: term.ord },
         relationships: {
           facet: {
             data: { id: term.facet.id.to_s, type: :facet }

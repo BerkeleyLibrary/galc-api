@@ -24,14 +24,18 @@ class DropTestItem < ActiveRecord::Migration[7.0]
   }
 
   def up
+    return if Rails.env.test?
+
     item = Item.find_by!(ITEM_ATTRS)
     item.destroy!
   end
 
   def down
+    return if Rails.env.test?
+
     item = Item.create!(ITEM_ATTRS)
     item.terms = ITEM_TERMS.map do |fn, tv|
-      facet = Facet.find_by!(name: fn)
+      facet = Facet.find_by(name: fn)
       facet.terms.where(value: tv).first
     end
   end

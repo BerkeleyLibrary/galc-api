@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_20_213123) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_21_205344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_20_213123) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "ordered", default: false, null: false
     t.index ["name"], name: "index_facets_on_name", unique: true
   end
 
@@ -60,6 +61,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_20_213123) do
     t.bigint "parent_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "ord"
+    t.index ["facet_id", "ord"], name: "index_terms_on_facet_id_and_ord", unique: true
     t.index ["facet_id"], name: "index_terms_on_facet_id"
     t.index ["parent_id"], name: "index_terms_on_parent_id"
     t.index ["value"], name: "index_terms_on_value", unique: true

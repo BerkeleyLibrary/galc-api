@@ -38,11 +38,15 @@ class DropIncompleteItems < ActiveRecord::Migration[7.0]
   ]
 
   def up
+    return if Rails.env.test?
+
     DATA.each { |attrs| Item.find_by!(attrs).destroy! }
     ActiveRecord::Base.connection.reset_pk_sequence!('items', :id, 'items_id_seq')
   end
 
   def down
+    return if Rails.env.test?
+
     DATA.each { |attrs| Item.create!(attrs) }
   end
 end

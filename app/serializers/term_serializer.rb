@@ -1,7 +1,7 @@
 class TermSerializer
   include JSONAPI::Serializer
 
-  attributes(:value)
+  attributes(:value, :ord)
 
   belongs_to :facet
   belongs_to :parent, serializer: TermSerializer
