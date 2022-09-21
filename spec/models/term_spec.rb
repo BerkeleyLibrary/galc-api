@@ -38,7 +38,7 @@ describe Term do
 
     it 'cannot have a parent in a different facet' do
       term = create(:term)
-      other_facet = create(:facet, name: "Not #{term.facet.name}")
+      other_facet = create(:facet, name: "Not #{term.facet.name}", ord: -2)
       other_term = create(:term, value: "Not #{term.value}", facet: other_facet)
       term.parent = other_term
       expect(term).not_to be_valid

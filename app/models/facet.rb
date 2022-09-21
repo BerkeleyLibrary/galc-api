@@ -11,4 +11,9 @@ class Facet < ApplicationRecord
 
   validates :name, presence: true
   validates :name, uniqueness: true
+
+  # ------------------------------------------------------------
+  # Scopes
+
+  default_scope { order(:ord) }
 end
