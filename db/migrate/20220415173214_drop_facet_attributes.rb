@@ -9,6 +9,7 @@ class DropFacetAttributes < ActiveRecord::Migration[7.0]
     add_column :items, :decade, :string
     add_column :items, :genre, :string
     add_column :items, :medium, :string
+    Item.reset_column_information
 
     facets_by_id = Facet.eager_load(:terms).each_with_object({}) do |f, ff|
       ff[f.id] = f

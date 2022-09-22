@@ -86,8 +86,8 @@ Rails.application.configure do
   }
   config.action_mailer.smtp_settings = smtp_settings
   config.after_initialize do
-    settings_cleaned = smtp_settings.merge(password: mail_smtp_password.gsub(/./, '*'))
-    Rails.logger.info('SMTP configured', smtp_settings: settings_cleaned)
+    settings_cleaned = smtp_settings.merge(password: mail_smtp_password&.gsub(/./, '*'))
+    Rails.logger.info('SMTP configured', smtp_settings: settings_cleaned.inspect)
   end
 
   if ENV['INTERCEPT_EMAILS'].present?

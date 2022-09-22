@@ -1,6 +1,3 @@
-# Ensure migration can run without error even if we delete/rename the models
-(class Facet < ActiveRecord::Base; end) unless defined?(Facet)
-
 class RenameColorsFacet < ActiveRecord::Migration[7.0]
 
   FROM_NAME, TO_NAME = %w[Colors Appearance]

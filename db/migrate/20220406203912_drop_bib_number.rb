@@ -5,6 +5,7 @@ class DropBibNumber < ActiveRecord::Migration[7.0]
 
   def down
     add_column(:items, :bib_number, :string)
+    Item.reset_column_information
 
     stmt = <<~SQL.strip
       UPDATE items

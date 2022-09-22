@@ -19,8 +19,6 @@ class Term < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
-  default_scope { order(:facet_id, :parent_id, :ord, :value) }
-
   scope :find_by_self_or_parent, ->(**conditions) {
     sql = <<~SQL.squish
       INNER JOIN (#{Term.where(**conditions).to_sql})#{' '}

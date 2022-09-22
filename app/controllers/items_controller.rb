@@ -93,6 +93,9 @@ class ItemsController < ApplicationController
       items = items.where(suppressed: false)
       items = items.with_all_keywords(keywords) if keywords
       items.includes(:terms)
+      # TODO: add sorting to API
+      # TODO: allow sorting by facet values
+      items.order(:artist, :title, :date)
     end
   end
 end

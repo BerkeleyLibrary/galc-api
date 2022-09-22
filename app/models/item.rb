@@ -30,10 +30,6 @@ class Item < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
-  # TODO: add sorting to API
-  # TODO: allow sorting by facet values
-  default_scope { order(:artist, :title, :date) }
-
   pg_search_scope(
     :with_all_keywords,
     against: { title: 'A', artist: 'B', description: 'C', date: 'D' },

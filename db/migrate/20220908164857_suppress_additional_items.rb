@@ -1,6 +1,3 @@
-# Ensure migration can run without error even if we delete/rename the models
-(class Item < ActiveRecord::Base; end) unless defined?(Item)
-
 class SuppressAdditionalItems < ActiveRecord::Migration[7.0]
 
   ITEM_ATTRS = [

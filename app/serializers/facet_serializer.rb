@@ -3,5 +3,9 @@ class FacetSerializer
 
   attributes(:name)
 
-  has_many :terms
+  has_many :terms do |facet|
+    # NOTE: We don't do this with a default_scope on Term because that
+    #       will break migrations written before :ord was added
+    facet.terms.order(:ord, :value)
+  end
 end

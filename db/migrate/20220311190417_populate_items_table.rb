@@ -1,6 +1,3 @@
-# Ensure migration can run without error even if we delete/rename the models
-(class Item < ActiveRecord::Base; end) unless defined?(Item)
-
 class PopulateItemsTable < ActiveRecord::Migration[7.0]
   DATA = [
     { id: 1, image: 'anonymous (apples).jpg', image_base: 'anonymous (apples)', title: 'Apples', artist: 'Unknown', artist_url: nil, date: '1876-1885', decade: 'Before 1900', description: '(Plate xxix) Published by H. Bull & R. Hogg for the Herefordshire Pomona, London.', medium: 'Lithograph', colors: 'Color', genre: 'Still Life', dimensions: '16.5 x 20.5"', size: 'Small', series: nil, bib_number: 'b16390480', mms_id: '991051103819706532', barcode: 'C093330688', circulation: nil, location: nil, value: '100', appraisal_date: '2006', notes: nil, reserve_date: '2019-08-29' },

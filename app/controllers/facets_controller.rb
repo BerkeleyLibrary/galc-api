@@ -3,7 +3,7 @@ class FacetsController < ApplicationController
 
   def index
     # TODO: Is there a way to do this with fewer SQL queries?
-    @facets = Facet.includes(terms: %i[parent children]).all
+    @facets = Facet.order(:ord).includes(terms: %i[parent children]).all
     render jsonapi: @facets
   end
 end

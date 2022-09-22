@@ -24,27 +24,46 @@ class SupportOrderedTerms < ActiveRecord::Migration[7.0]
     ].freeze
   }.freeze
 
-  def change
+  def up
     add_column(:facets, :ordered, :boolean, default: false, null: false)
     add_column(:terms, :ord, :integer)
+    Facet.reset_column_information
+    Term.reset_column_information
 
     set_order!
 
     add_index(:terms, [:facet_id, :ord], unique: true)
   end
 
+  def down
+    remove_column(:terms, :ord)
+    remove_column(:facets, :ordered)
+  end
+
   private
 
   def set_order!
-    return if Rails.env.test?
+    sql = 'UPDATE facets SET ordered = true where facets.name IN (?)'
+    stmt = ActiveRecord::Base.sanitize_sql([sql, ORDERED_FACET_VALUES.keys])
+    exec_update(stmt)
 
     ORDERED_FACET_VALUES.each do |facet_name, values|
-      facet = Facet.find_by!(name: facet_name)
-      facet.update(ordered: true)
-
-      values.each_with_index do |value, i|
-        term = Term.find_by!(facet: facet, value: value)
-        term.update(ord: i)
+      values.each_with_index do |value, ord|
+        sql = <<~SQL
+          UPDATE terms
+             SET ord = :ord
+            FROM facets
+           WHERE facets.id = terms.facet_id
+             AND facets.name = :facet_name
+             AND terms.value = :value
+        SQL
+        stmt = ActiveRecord::Base.sanitize_sql(
+          [
+            sql,
+            { ord: ord, facet_name: facet_name, value: value}
+          ]
+        )
+        exec_update(stmt)
       end
     end
   end

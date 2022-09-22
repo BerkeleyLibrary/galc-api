@@ -1,7 +1,3 @@
-# Ensure migration can run without error even if we delete/rename the models
-(class Facet < ActiveRecord::Base; end) unless defined?(Facet)
-(class Term < ActiveRecord::Base; end) unless defined?(Term)
-
 class AddRisographToMedium < ActiveRecord::Migration[7.0]
   def up
     return if Rails.env.test?

@@ -1,6 +1,3 @@
-# Ensure migration can run without error even if we delete/rename the models
-(class Item < ActiveRecord::Base; end) unless defined?(Item)
-
 class FixIncorrectMMSId < ActiveRecord::Migration[7.0]
 
   OLD_ID = '991051112729706532'
