@@ -97,6 +97,12 @@ jobs:
       - name: Run style checks
         run: bundle exec rubocop
 
+      - name: Validate database migrations
+        env:
+          RAILS_ENV: production
+          DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+        run: rails --trace db:drop db:create db:migrate
+
       - name: Upload artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
