@@ -52,7 +52,7 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
   private
 
   def importer
-    @importer ||= Importer.new(DATA.join("\n"))
+    @importer ||= Importer.new(DATA.join("\n"), validate_images: false)
   end
 
   def image_errors
