@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_21_220637) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_26_171602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "closures", force: :cascade do |t|
+    t.date "start_date", null: false
+    t.date "end_date"
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["start_date", "end_date"], name: "index_closures_on_start_date_and_end_date", unique: true
+    t.check_constraint "end_date > start_date", name: "valid_date_range"
+  end
 
   create_table "facets", force: :cascade do |t|
     t.string "name", null: false

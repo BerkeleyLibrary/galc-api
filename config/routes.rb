@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :closures
   root to: 'auth#index'
 
   direct(:login) { '/auth/calnet' } # convenience to provide login_url helper

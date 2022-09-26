@@ -44,10 +44,11 @@ module BerkeleyLibrary
         raise ArgumentError, "Not an #{ActiveModel::Error}: #{expected_error.inspect}" unless validation_error_like?(expected_error)
 
         field_type = field_type(expected_error)
+        pointer = field_type ? "/data/#{field_type}s/#{expected_error.attribute}" : ''
 
         {
           'code' => normalized_code(expected_error),
-          'source' => { 'pointer' => "/data/#{field_type}s/#{expected_error.attribute}" }
+          'source' => { 'pointer' => pointer }
         }
       end
 

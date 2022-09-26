@@ -196,6 +196,7 @@ RSpec.describe 'Items', type: :request do
     context 'as admin' do
       include_context 'admin request'
 
+      # TODO: share code with closures_spec
       def expected_errors_for(invalid_attributes, item_to_update: nil)
         (item_to_update ? Item.find(item_to_update.id) : Item.new).tap do |item|
           item.assign_attributes(**invalid_attributes)
@@ -203,8 +204,6 @@ RSpec.describe 'Items', type: :request do
           expect(item).not_to be_valid # just to be sure
         end.errors
       end
-
-      # TODO: use UUIDs for top-level ID
 
       describe :create do
         describe 'success' do
@@ -347,6 +346,7 @@ RSpec.describe 'Items', type: :request do
 
             old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
             new_attributes = old_attributes.transform_values.with_index { |v, i| (i % 3 == 0) && v.is_a?(String) ? "#{v} (new)" : v }
+            expected_attributes = old_attributes.merge(new_attributes)
 
             payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes } }
             patch item_url(item), params: payload, as: :jsonapi
@@ -355,7 +355,7 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             item.reload
-            old_attributes.merge(new_attributes).each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
+            expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
             parsed_response = JSON.parse(response.body)
 
