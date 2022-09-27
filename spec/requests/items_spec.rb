@@ -41,6 +41,27 @@ RSpec.describe 'Items', type: :request do
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
 
+      it 'includes current closure information if there is one' do
+        closure = create(:closure, end_date: Date.current + 1)
+
+        get items_url
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+        parsed_response.delete('links') # simplify test
+
+        expected_data = Item.includes(:terms)
+        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+        expected_meta = {
+          availability: AvailabilityService.availability_for(expected_mms_ids),
+          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 },
+          closure: ClosureSerializer.new(closure).serializable_hash
+        }
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+      end
+
       it 'accepts JSONAPI include parameters' do
         get items_url, params: { include: 'terms,terms.facet' }
 

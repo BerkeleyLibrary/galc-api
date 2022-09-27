@@ -39,16 +39,23 @@ class ItemsController < ApplicationController
   private
 
   def jsonapi_meta(items)
-    return unless items.respond_to?(:reorder)
+    return unless items.respond_to?(:pluck)
 
     mms_ids = items.pluck(:mms_id)
     {}.tap do |meta|
       meta[:availability] = AvailabilityService.availability_for(mms_ids)
 
       # TODO: send page size
-      pagination = jsonapi_pagination_meta(items)
-      meta[:pagination] = pagination if pagination.present?
+      (pagination = jsonapi_pagination_meta(items)) && (meta[:pagination] = pagination)
+
+      (closure = closure_meta) && (meta[:closure] = closure)
     end
+  end
+
+  def closure_meta
+    return unless (ecc = Closure.effective_current_closure)
+
+    ClosureSerializer.new(ecc).serializable_hash
   end
 
   # @see JSONAPI::Pagination#jsonapi_pagination_meta

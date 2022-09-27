@@ -50,10 +50,14 @@ class Closure < ApplicationRecord
   # Class methods
 
   class << self
-    def reopen_date
-      return unless (controlling_closure = Closure.current.order(end_date: :desc).first)
+    def effective_current_closure
+      Closure.current.order(end_date: :desc).first
+    end
 
-      controlling_closure.end_date
+    def reopen_date
+      return unless (ecc = effective_current_closure)
+
+      ecc.end_date
     end
   end
 end
