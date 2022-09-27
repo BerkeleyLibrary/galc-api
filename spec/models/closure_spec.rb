@@ -98,4 +98,49 @@ RSpec.describe Closure, type: :model do
       end
     end
   end
+
+  describe :reopen_date do
+    it 'returns nil if there is no current closure' do
+      expect(Closure.current).not_to exist # just to be sure
+      expect(Closure.reopen_date).to be_nil
+    end
+
+    it 'returns nil if the current closure is indefinite' do
+      create(:closure, start_date: Date.current - 1, end_date: nil)
+      expect(Closure.reopen_date).to be_nil
+    end
+
+    it 'returns the end date if the current closure is definite' do
+      expected_date = Date.current + 1
+      create(:closure, start_date: Date.current - 1, end_date: expected_date)
+      expect(Closure.reopen_date).to eq(expected_date)
+    end
+
+    it 'returns the latest end date if there are multiple overlapping closures' do
+      [
+        [Date.current - 1, Date.current + 1],
+        [Date.current - 2, Date.current + 1],
+        [Date.current - 1, Date.current + 2],
+        [Date.current - 5, Date.current + 3]
+      ].each do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+
+      expected_date = Closure.current.maximum(:end_date)
+      expect(Closure.reopen_date).to eq(expected_date)
+    end
+
+    it 'returns nil if any current closure is indefinite' do
+      [
+        [Date.current - 1, nil],
+        [Date.current - 2, Date.current + 1],
+        [Date.current - 1, Date.current + 2],
+        [Date.current - 5, Date.current + 3]
+      ].each do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+
+      expect(Closure.reopen_date).to be_nil
+    end
+  end
 end

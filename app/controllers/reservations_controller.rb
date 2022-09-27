@@ -2,6 +2,7 @@ class ReservationsController < ApplicationController
   include JSONAPI::Deserialization
 
   before_action :authenticate!, only: %i[create]
+  before_action :ensure_open!, only: %i[create]
 
   # POST /requests
   def create

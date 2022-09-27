@@ -111,6 +111,19 @@ RSpec.describe 'Reservations', type: :request do
           expect(actual).to contain_jsonapi_for(expected)
         end
       end
+
+      it 'returns 403 Forbidden for an attempt to reserve during a closure' do
+        allow(AvailabilityService).to receive(:available?).with(item).and_return(true)
+
+        create(:closure, start_date: Date.current - 1, end_date: Date.current + 1)
+        expect(Closure.current).to exist # just to be sure
+
+        post(reservations_url, params: payload, as: :jsonapi)
+        expect(response).to have_http_status(:forbidden)
+
+        expected_rsvn = Reservation.new(user: current_user, item: item)
+        expect(parsed_response).not_to contain_jsonapi_for(expected_rsvn)
+      end
     end
   end
 end

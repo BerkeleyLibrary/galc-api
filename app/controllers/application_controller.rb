@@ -48,6 +48,16 @@ class ApplicationController < ActionController::API
     raise Error::ForbiddenError, 'This endpoint is restricted to administrators.'
   end
 
+  def ensure_open!
+    return unless Closure.current.exist?
+
+    msg = 'The Graphic Arts Loan Collection is currently closed.'
+    if (reopen_date = Closure.reopen_date)
+      msg = "#{msg} It will reopen #{reopen_date}."
+    end
+    raise Error::ForbiddenError, msg
+  end
+
   private
 
   def user_from_token

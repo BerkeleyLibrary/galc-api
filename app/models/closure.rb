@@ -35,8 +35,6 @@ class Closure < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
-  default_scope { order(start_date: :desc) }
-
   scope :current, -> { where("id IN (#{SELECT_CURRENT_SQL})") }
   scope :not_current, -> { where("id NOT IN (#{SELECT_CURRENT_SQL})") }
 
@@ -48,4 +46,14 @@ class Closure < ApplicationRecord
     (today >= start_date) && (end_date.nil? || today < end_date)
   end
 
+  # ------------------------------------------------------------
+  # Class methods
+
+  class << self
+    def reopen_date
+      return unless (controlling_closure = Closure.current.order(end_date: :desc).first)
+
+      controlling_closure.end_date
+    end
+  end
 end
