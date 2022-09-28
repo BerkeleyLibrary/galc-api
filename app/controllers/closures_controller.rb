@@ -36,6 +36,13 @@ class ClosuresController < ApplicationController
 
   private
 
+  def limit_param
+    @limit ||= begin
+      limit_val = params[:limit]
+      ActiveRecord::Type::Integer.new.cast(limit_val)
+    end
+  end
+
   def filter_current_param
     @filter_current ||= begin
       current_val = filter_params[:current]
@@ -67,6 +74,13 @@ class ClosuresController < ApplicationController
   end
 
   def filtered_closures
+    closures = filtered_current
+    return closures unless limit_param
+
+    closures.limit(limit_param)
+  end
+
+  def filtered_current
     return Closure.current if only_current?
     return Closure.not_current if exclude_current?
 

@@ -29,8 +29,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="browse" level="application" />
-    <orderEntry type="library" name="@berkeleylibrary/galc-ui" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="actioncable (v7.0.3.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="actionmailbox (v7.0.3.1, RVM: ruby-3.0.3) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="actionmailer (v7.0.3.1, RVM: ruby-3.0.3) [gem]" level="application" />

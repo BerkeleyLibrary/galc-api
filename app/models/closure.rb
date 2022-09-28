@@ -35,8 +35,8 @@ class Closure < ApplicationRecord
   # ------------------------------------------------------------
   # Scopes
 
-  scope :current, -> { where("id IN (#{SELECT_CURRENT_SQL})") }
-  scope :not_current, -> { where("id NOT IN (#{SELECT_CURRENT_SQL})") }
+  scope :current, -> { where("id IN (#{SELECT_CURRENT_SQL})").order(end_date: :desc) }
+  scope :not_current, -> { where("id NOT IN (#{SELECT_CURRENT_SQL})") } # TODO: order?
 
   # ------------------------------------------------------------
   # Synthetic accessors
@@ -51,7 +51,7 @@ class Closure < ApplicationRecord
 
   class << self
     def effective_current_closure
-      Closure.current.order(end_date: :desc).first
+      Closure.current.first
     end
 
     def reopen_date

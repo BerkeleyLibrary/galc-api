@@ -59,6 +59,28 @@ RSpec.describe 'Closures', type: :request do
         expected_closures = Closure.where.not(id: Closure.current)
         expect(parsed_response).to contain_jsonapi_for(expected_closures)
       end
+
+      it 'accepts a limit' do
+        Closure.effective_current_closure.tap do |cls|
+          cls.end_date = Date.current + 2.months
+          cls.save!
+
+          new_cls = create(:closure, start_date: Date.current - 1.days, end_date: cls.end_date + 1.days)
+          expect(Closure.effective_current_closure).to eq(new_cls) # just to be sure
+          current_count = Closure.current.count
+          expect(current_count).to be > 1 # just to be sure
+        end
+
+        get closures_url, params: { 'filter[current]' => 'true', 'limit' => 1 }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+
+        expected_closures = [Closure.effective_current_closure]
+        expect(parsed_response).to contain_jsonapi_for(expected_closures)
+      end
     end
   end
 
