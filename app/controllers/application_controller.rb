@@ -60,6 +60,7 @@ class ApplicationController < ActionController::API
 
   private
 
+  # TODO: Store CalNet user in the session & compare token w/session
   def user_from_token
     return unless (payload = bearer_token_payload)
 
