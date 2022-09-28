@@ -121,6 +121,8 @@ RSpec.describe 'Reservations', type: :request do
         post(reservations_url, params: payload, as: :jsonapi)
         expect(response).to have_http_status(:forbidden)
 
+        parsed_response = JSON.parse(response.body)
+
         expected_rsvn = Reservation.new(user: current_user, item: item)
         expect(parsed_response).not_to contain_jsonapi_for(expected_rsvn)
       end

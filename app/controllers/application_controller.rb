@@ -49,7 +49,7 @@ class ApplicationController < ActionController::API
   end
 
   def ensure_open!
-    return unless Closure.current.exist?
+    return unless Closure.current.exists?
 
     msg = 'The Graphic Arts Loan Collection is currently closed.'
     if (reopen_date = Closure.reopen_date)
