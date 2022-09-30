@@ -3,8 +3,14 @@ require 'berkeley_library/util/uris'
 class AuthController < ApplicationController
   ERR_TICKET_MISMATCH = 'Ticket from callback URL parameter does not match credential from OmniAuth hash'.freeze
 
+  # Debug UI for staging, 404 Not Found for production
   def index
-    raise Error::NotFoundError
+    raise Error::NotFoundError if ENV['SERVE_TEST_UI'].blank?
+
+    # TODO: Something more elegant
+    # Hack to get around the fact that API-only apps don't include an HTML renderer
+    pathname = Rails.root.join('public', 'index.html')
+    render xml: File.read(pathname), content_type: 'text/html'
   end
 
   def callback

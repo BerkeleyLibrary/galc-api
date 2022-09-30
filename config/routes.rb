@@ -18,5 +18,4 @@ Rails.application.routes.draw do
   end
 
   direct(:current_user) { '/users/current' } # convenience to provide current_user_url helper
-
 end

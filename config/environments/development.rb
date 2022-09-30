@@ -17,13 +17,17 @@ Rails.application.configure do
   # Enable server timing
   config.server_timing = true
 
+  # Disable serving static files from the `/public` folder by default since
+  # we don't have any, except public.html which is served by AuthController#index
+  config.public_file_server.enabled = false
+
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.cache_store = :memory_store
-    config.public_file_server.headers = {
-      'Cache-Control' => "public, max-age=#{2.days.to_i}"
-    }
+    # config.public_file_server.headers = {
+    #   'Cache-Control' => "public, max-age=#{2.days.to_i}"
+    # }
   else
     config.action_controller.perform_caching = false
 
@@ -51,4 +55,12 @@ Rails.application.configure do
   # Fake sending of emails
   config.action_mailer.delivery_method = :test
   config.action_mailer.perform_caching = false
+
+  Rails.application.config.hosts = [
+    IPAddr.new('0.0.0.0/0'),        # All IPv4 addresses.
+    IPAddr.new('::/0'),             # All IPv6 addresses.
+    'localhost',                    # The localhost reserved domain.
+    ENV['RAILS_DEVELOPMENT_HOSTS']  # Additional comma-separated hosts for development.
+  ]
+  Rails.application.config.hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
 end

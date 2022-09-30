@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'support/cas_contexts'
 
-RSpec.describe 'Sessions', type: :request do
+RSpec.describe AuthController, type: :request do
 
   # ------------------------------------------------------------
   # Fixture
@@ -43,6 +43,14 @@ RSpec.describe 'Sessions', type: :request do
     it 'returns 404 Not Found' do
       get root_path
       expect(response).to have_http_status(:not_found)
+    end
+
+    it 'serves a test UI in staging' do
+      allow(ENV).to receive(:[]).with('SERVE_TEST_UI').and_return(true)
+
+      get root_path
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to start_with('text/html')
     end
   end
 
