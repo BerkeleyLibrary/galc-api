@@ -1,3 +1,7 @@
+# 0.0.2.1 (2022-10-03)
+
+- Close GALC 10/3 to 10/17
+
 # 0.0.2 (2022-09-30)
 
 - Add `/closures` endpoint
