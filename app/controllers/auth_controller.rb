@@ -14,7 +14,7 @@ class AuthController < ApplicationController
   end
 
   def callback
-    logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash })
+    logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash, params: params.to_unsafe_h })
 
     # TODO: Store CalNet user in the session & compare token w/session
     user = User.from_omniauth(auth_hash)
@@ -34,7 +34,13 @@ class AuthController < ApplicationController
   end
 
   def omniauth_origin
-    ensure_valid_origin(request.env['omniauth.origin'])
+    ensure_valid_origin(raw_origin)
+  end
+
+  def raw_origin
+    # TODO: Figure out why we can't depend on omniauth.origin --
+    #       should we be setting `origin_param: 'url'` in initializers/omniauth.rb?
+    request.env['omniauth.origin'] || params['url']
   end
 
   # TODO: Can we intercept the original /auth/cas call and enforce this there as well?
