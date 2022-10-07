@@ -75,6 +75,39 @@ RSpec.describe Closure, type: :model do
       expect(Closure.current).not_to exist
     end
 
+    it 'sorts closures in descending order by end date' do
+      closures = [
+        [Date.current - 1, Date.current + 1],
+        [Date.current - 2, Date.current + 1],
+        [Date.current - 1, Date.current + 2],
+        [Date.current - 5, Date.current + 3]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+      closures.sort! { |a, b| b.end_date <=> a.end_date }
+
+      expect(Closure.current.to_a).to eq(closures)
+    end
+
+    it 'sorts indefinite closures before definite ones' do
+      closures = [
+        [Date.current - 1, nil],
+        [Date.current - 2, Date.current + 1],
+        [Date.current - 1, Date.current + 2],
+        [Date.current - 5, Date.current + 3]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+      closures.sort! do |a, b|
+        next -1 if (a_end_date = a.end_date).nil?
+        next 1 if (b_end_date = b.end_date).nil?
+
+        b_end_date <=> a_end_date
+      end
+
+      expect(Closure.current.to_a).to eq(closures)
+    end
+
     context 'with time zones' do
       attr_reader :env_tz_actual
       attr_reader :rails_tz_actual
