@@ -6,7 +6,8 @@ class Closure < ApplicationRecord
   ALL_ATTRS = Closure.column_names.map(&:to_sym).freeze
   DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
   EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at]).freeze
-  JSONAPI_ATTRS = DATA_ATTRS
+  SYNTH_ATTRS = %i[current].freeze
+  JSONAPI_ATTRS = (DATA_ATTRS + SYNTH_ATTRS).freeze
 
   TIME_ZONE = 'America/Los_Angeles'.freeze # TODO: something smarter
 
@@ -45,6 +46,7 @@ class Closure < ApplicationRecord
     today = Date.current
     (today >= start_date) && (end_date.nil? || today < end_date)
   end
+  alias current current?
 
   # ------------------------------------------------------------
   # Class methods

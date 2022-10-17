@@ -188,6 +188,26 @@ RSpec.describe 'Closures', type: :request do
             parsed_response = JSON.parse(response.body)
             expect(parsed_response).to contain_jsonapi_for(closure)
           end
+
+          it 'allows setting end date to null' do
+            closure = Closure.where.not(end_date: nil).take
+            old_attributes = closure.attributes.slice(*Closure::EDIT_ATTRS)
+
+            new_end_date = nil
+            expected_attributes = old_attributes.merge(end_date: new_end_date)
+
+            payload = { data: { type: 'closure', id: closure.id.to_s, attributes: { end_date: new_end_date } } }
+            patch closure_url(closure), params: payload, as: :jsonapi
+
+            expect(response).to have_http_status(:ok)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            closure.reload
+            expected_attributes.each { |attr, val| expect(closure.send(attr)).to eq(val), "Wrong value for #{attr}" }
+
+            parsed_response = JSON.parse(response.body)
+            expect(parsed_response).to contain_jsonapi_for(closure)
+          end
         end
 
         describe :failure do
