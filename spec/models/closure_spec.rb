@@ -1,6 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe Closure, type: :model do
+
+  def compare_closures(a, b)
+    order = compare_end_dates(a, b)
+    return -order if order != 0
+
+    a.start_date <=> b.start_date
+  end
+
+  def compare_end_dates(a, b)
+    order = (a_end_date = a.end_date) <=> b.end_date
+    order || (a_end_date.nil? ? 1 : -1)
+  end
+
   describe :create do
     it 'requires start date to be before end date' do
       closure = Closure.create(note: 'Backwards', start_date: Date.current, end_date: Date.current - 1.days)
@@ -57,6 +70,18 @@ RSpec.describe Closure, type: :model do
       expect(Closure.current).not_to include(closure)
     end
 
+    it 'does not include future definite closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1, end_date: Date.current + 2)
+      expect(closure).not_to be_current
+      expect(Closure.current).not_to include(closure)
+    end
+
+    it 'does not include future indefinite closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1, end_date: nil)
+      expect(closure).not_to be_current
+      expect(Closure.current).not_to include(closure)
+    end
+
     it 'includes indefinite closures' do
       closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: nil)
       expect(closure).to be_persisted # just to be sure
@@ -77,14 +102,14 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts closures in descending order by end date' do
       closures = [
-        [Date.current - 1, Date.current + 1],
         [Date.current - 2, Date.current + 1],
+        [Date.current - 1, Date.current + 1],
         [Date.current - 1, Date.current + 2],
         [Date.current - 5, Date.current + 3]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
-      closures.sort! { |a, b| b.end_date <=> a.end_date }
+      closures.sort! { |a, b| compare_closures(a, b) }
 
       expect(Closure.current.to_a).to eq(closures)
     end
@@ -98,12 +123,7 @@ RSpec.describe Closure, type: :model do
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
-      closures.sort! do |a, b|
-        next -1 if (a_end_date = a.end_date).nil?
-        next 1 if (b_end_date = b.end_date).nil?
-
-        b_end_date <=> a_end_date
-      end
+      closures.sort! { |a, b| compare_closures(a, b) }
 
       expect(Closure.current.to_a).to eq(closures)
     end
@@ -128,6 +148,266 @@ RSpec.describe Closure, type: :model do
           ENV['TZ'] = tz
           expect(closure).to be_current
         end
+      end
+    end
+  end
+
+  describe :future do
+    it 'returns future closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1.days, end_date: Date.current + 2.days)
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure).to be_future
+      expect(Closure.future).to include(closure)
+    end
+
+    it 'includes indefinite closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1.days, end_date: nil)
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure).to be_future
+      expect(Closure.future).to include(closure)
+    end
+
+    it 'sorts closures in descending order by end date' do
+      closures = [
+        [Date.current + 1, Date.current + 3],
+        [Date.current + 2, Date.current + 4],
+        [Date.current + 1, Date.current + 2],
+        [Date.current + 5, Date.current + 6]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+      closures.sort! { |a, b| compare_closures(a, b) }
+
+      expect(Closure.future.to_a).to eq(closures)
+    end
+
+    it 'sorts indefinite closures before definite ones' do
+      closures = [
+        [Date.current + 1, nil],
+        [Date.current + 2, Date.current + 4],
+        [Date.current + 1, Date.current + 2],
+        [Date.current + 5, Date.current + 6]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+      closures.sort! { |a, b| compare_closures(a, b) }
+
+      expect(Closure.future.to_a).to eq(closures)
+    end
+  end
+
+  describe :past do
+    it 'returns past closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current - 3.days, end_date: Date.current - 1.days)
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure).to be_past
+      expect(Closure.past).to include(closure)
+    end
+
+    it 'includes closures ended today' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current - 3.days, end_date: Date.current)
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure).to be_past
+      expect(Closure.past).to include(closure)
+    end
+
+    it 'does not include indefinite closures' do
+      closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: nil)
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure).not_to be_past
+      expect(Closure.past).not_to include(closure)
+    end
+
+    it 'sorts closures in descending order by end date' do
+      closures = [
+        [Date.current - 3, Date.current - 1],
+        [Date.current - 4, Date.current - 2],
+        [Date.current - 2, Date.current - 1],
+        [Date.current - 6, Date.current - 5]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+      closures.sort! { |a, b| compare_closures(a, b) }
+
+      expect(Closure.past.to_a).to eq(closures)
+    end
+  end
+
+  describe :filtered do
+    before do
+      [
+        [Date.current + 1, Date.current + 2],
+        [Date.current + 1, nil],
+        [Date.current + 2, Date.current + 4],
+        [Date.current + 5, Date.current + 6],
+        [Date.current - 1, Date.current + 2],
+        [Date.current - 1, nil],
+        [Date.current - 2, Date.current + 1],
+        [Date.current - 2, Date.current - 1],
+        [Date.current - 3, Date.current - 1],
+        [Date.current - 4, Date.current - 2],
+        [Date.current - 5, Date.current + 3],
+        [Date.current - 6, Date.current - 5]
+      ].map do |start_date, end_date|
+        create(:closure, start_date: start_date, end_date: end_date)
+      end
+    end
+
+    it 'returns all closures when filter is empty' do
+      filter = {}
+      expected = Closure.all
+
+      result = Closure.filter_by(filter).to_a
+      expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+      expect(result).to eq(expected_in_order)
+    end
+
+    context 'excluding' do
+      it 'can exclude past and future' do
+        filter = {
+          past: false,
+          future: false
+        }
+        expected = Closure.current
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'can exclude past and current' do
+        filter = {
+          past: false,
+          current: false
+        }
+
+        expected = Closure.future
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'can exclude current and future' do
+        filter = {
+          future: false,
+          current: false
+        }
+
+        expected = Closure.past
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'returns nothing when everything is excluded' do
+        filter = {
+          past: false,
+          current: false,
+          future: false
+        }
+        result = Closure.filter_by(filter).to_a
+        expect(result).to be_empty
+      end
+    end
+
+    context 'including' do
+      it 'can include past and future' do
+        filter = {
+          past: true,
+          future: true
+        }
+        expected = Closure.not_current
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'can include past and current' do
+        filter = {
+          past: true,
+          current: true
+        }
+
+        expected = Closure.not_future
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'can include current and future' do
+        filter = {
+          future: true,
+          current: true
+        }
+
+        expected = Closure.not_past
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it 'returns everything when everything is included' do
+        filter = {
+          past: true,
+          current: true,
+          future: true
+        }
+
+        expected = Closure.all
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+    end
+
+    context 'mixed' do
+      it "can mix 2 include/exclude conditions (not that it's clear why you'd want to)" do
+        filter = {
+          past: true,
+          current: false
+        }
+        expected = Closure.past
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it "can mix 2 include + 1 exclude conditions (not that it's clear why you'd want to)" do
+        filter = {
+          past: true,
+          future: true,
+          current: false
+        }
+        expected = Closure.not_current
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
+      end
+
+      it "can mix 2 exclude + 1 exclude conditions (not that it's clear why you'd want to)" do
+        filter = {
+          past: false,
+          future: false,
+          current: true
+        }
+        expected = Closure.current
+
+        result = Closure.filter_by(filter).to_a
+        expected_in_order = expected.to_a.sort! { |a, b| compare_closures(a, b) }
+        expect(result).to eq(expected_in_order)
       end
     end
   end

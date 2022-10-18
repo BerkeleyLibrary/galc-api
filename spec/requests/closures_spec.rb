@@ -60,6 +60,35 @@ RSpec.describe 'Closures', type: :request do
         expect(parsed_response).to contain_jsonapi_for(expected_closures)
       end
 
+      it 'supports multiple filters' do
+        [
+          [Date.current + 1, Date.current + 2],
+          [Date.current + 1, nil],
+          [Date.current + 2, Date.current + 4],
+          [Date.current + 5, Date.current + 6],
+          [Date.current - 1, Date.current + 2],
+          [Date.current - 1, nil],
+          [Date.current - 2, Date.current + 1],
+          [Date.current - 2, Date.current - 1],
+          [Date.current - 3, Date.current - 1],
+          [Date.current - 4, Date.current - 2],
+          [Date.current - 5, Date.current + 3],
+          [Date.current - 6, Date.current - 5]
+        ].map do |start_date, end_date|
+          create(:closure, start_date: start_date, end_date: end_date)
+        end
+
+        get closures_url, params: { 'filter[current]' => 'false', 'filter[past]' => 'false' }
+
+        expect(response).to be_successful
+        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+        parsed_response = JSON.parse(response.body)
+
+        expected_closures = Closure.future
+        expect(parsed_response).to contain_jsonapi_for(expected_closures)
+      end
+
       it 'accepts a limit' do
         Closure.effective_current_closure.tap do |cls|
           cls.end_date = Date.current + 2.months
