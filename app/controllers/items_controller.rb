@@ -90,18 +90,36 @@ class ItemsController < ApplicationController
   def facet_values
     @facet_values ||= filter_params
       .to_h
-      .except(:keywords)
+      .except(:keywords, :suppressed)
       .transform_values { |terms| terms.split(',') }
+  end
+
+  # @return true if we should only retrieve suppressed items, false if we
+  #   should only retrieve unsuppressed items, nil if we should retrieve both
+  def suppressed
+    return @suppressed if instance_variable_defined?(:@suppressed)
+
+    @suppressed = calc_suppressed
   end
 
   def filtered_items
     @filtered_items ||= begin
       items = Item.with_facet_values(facet_values)
-      items = items.where(suppressed: false)
+      items = items.where(suppressed: suppressed) unless suppressed.nil?
       items = items.with_all_keywords(keywords) if keywords
       # TODO: add sorting to API
       # TODO: allow sorting by facet values
       items.order(:artist, :title, :date)
     end
+  end
+
+  # @return true if we should only retrieve suppressed items, false if we
+  #   should only retrieve unsuppressed items, nil if we should retrieve both
+  def calc_suppressed
+    return false unless galc_admin?
+    return false if (val = filter_params[:suppressed]).blank?
+
+    vals = val.split(',').map { |v| ActiveRecord::Type::Boolean.new.cast(v) }.uniq
+    vals.first if vals.size == 1 # i.e., if it doesn't include both `true` and `false`
   end
 end

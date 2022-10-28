@@ -1,5 +1,30 @@
 require 'rails_helper'
 
+RSpec.shared_examples 'suppressed items are suppressed' do
+  it 'excludes suppressed items' do
+    expected_data = all_items.where(suppressed: false)
+    expect(expected_data.count).to be > 0
+    expect(all_items.count).to be > expected_data.count # just to be sure
+
+    expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+    expected_meta = {
+      availability: AvailabilityService.availability_for(expected_mms_ids),
+      pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
+    }
+
+    get items_url, params: params
+
+    expect(response).to be_successful
+    expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+    parsed_response = JSON.parse(response.body)
+
+    _links = parsed_response.delete('links')
+
+    expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+  end
+end
+
 RSpec.describe 'Items', type: :request do
   before do
     create_all(Item)
@@ -127,29 +152,136 @@ RSpec.describe 'Items', type: :request do
         expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
       end
 
-      it 'excludes suppressed items' do
-        keywords = 'color medium numbered'
-        all_items = Item.with_all_keywords(keywords)
-        all_items.take.tap { |it| it.update(suppressed: true) }
+      context 'suppressed items' do
 
-        expected_data = all_items.where(suppressed: false)
-        expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
-        expected_meta = {
-          availability: AvailabilityService.availability_for(expected_mms_ids),
-          pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
-        }
+        let(:keywords) { 'color medium numbered' }
 
-        keywords = 'color medium numbered'
-        get items_url, params: { 'filter[keywords]' => keywords }
+        attr_reader :all_items
+        attr_reader :params
 
-        expect(response).to be_successful
-        expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+        before do
+          @all_items = Item.with_all_keywords(keywords)
+          expect(all_items.count).to be > 1 # just to be sure
+          all_items.take.tap { |it| it.update(suppressed: true) }
 
-        parsed_response = JSON.parse(response.body)
+          @params = { 'filter[keywords]' => keywords }
+        end
 
-        _links = parsed_response.delete('links')
+        context 'without filter[suppressed]' do
+          context 'without login' do
+            it_behaves_like 'suppressed items are suppressed'
+          end
 
-        expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+          context 'as patron' do
+            include_context 'patron request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as admin' do
+            include_context 'admin request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+        end
+
+        context 'with filter[suppressed]=false' do
+          before do
+            params.merge!({ 'filter[suppressed]' => 'false' })
+          end
+
+          context 'without login' do
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as patron' do
+            include_context 'patron request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as admin' do
+            include_context 'admin request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+        end
+
+        context 'with filter[suppressed]=true,false' do
+          before do
+            params.merge!({ 'filter[suppressed]' => 'true,false' })
+          end
+
+          context 'without login' do
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as patron' do
+            include_context 'patron request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as admin' do
+            include_context 'admin request'
+
+            it 'includes both suppressed and unsuppressed items' do
+              expected_mms_ids = all_items.reorder(nil).pluck('DISTINCT(mms_id)')
+              expected_meta = {
+                availability: AvailabilityService.availability_for(expected_mms_ids),
+                pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
+              }
+
+              get items_url, params: params
+
+              expect(response).to be_successful
+              expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+              parsed_response = JSON.parse(response.body)
+
+              _links = parsed_response.delete('links')
+
+              expect(parsed_response).to contain_jsonapi_for(all_items, { meta: expected_meta })
+            end
+          end
+        end
+
+        context 'with filter[suppressed]=true' do
+          before do
+            params.merge!({ 'filter[suppressed]' => 'true' })
+          end
+
+          context 'without login' do
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as patron' do
+            include_context 'patron request'
+            it_behaves_like 'suppressed items are suppressed'
+          end
+
+          context 'as admin' do
+            include_context 'admin request'
+
+            it 'includes only suppressed items' do
+              expected_data = all_items.where(suppressed: true)
+              expect(expected_data.count).to be > 0
+              expect(all_items.count).to be > expected_data.count # just to be sure
+
+              expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
+              expected_meta = {
+                availability: AvailabilityService.availability_for(expected_mms_ids),
+                pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
+              }
+
+              get items_url, params: params
+
+              expect(response).to be_successful
+              expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+              parsed_response = JSON.parse(response.body)
+
+              _links = parsed_response.delete('links')
+
+              expect(parsed_response).to contain_jsonapi_for(expected_data, { meta: expected_meta })
+            end
+          end
+        end
       end
     end
 
