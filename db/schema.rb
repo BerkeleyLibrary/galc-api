@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_03_153449) do
+ActiveRecord::Schema[7.0].define(version: 2022_10_31_204826) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -30,6 +30,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_153449) do
     t.datetime "updated_at", null: false
     t.boolean "ordered", default: false, null: false
     t.integer "ord", default: 0, null: false
+    t.boolean "allow_multiple", default: false, null: false
     t.index ["name"], name: "index_facets_on_name", unique: true
     t.index ["ord"], name: "index_facets_on_ord", unique: true
   end
