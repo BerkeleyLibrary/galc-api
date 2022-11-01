@@ -10,8 +10,7 @@ class SuppressAdditionalItems < ActiveRecord::Migration[7.0]
 
     ITEM_ATTRS.each do |attrs|
       item = Item.find_by!(suppressed: false, **attrs)
-      item.suppressed = true
-      item.save!
+      item.update_column(:suppressed, true)
     end
   end
 
@@ -20,8 +19,7 @@ class SuppressAdditionalItems < ActiveRecord::Migration[7.0]
 
     ITEM_ATTRS.each do |attrs|
       item = Item.find_by!(suppressed: true, **attrs)
-      item.suppressed = false
-      item.save!
+      item.update_column(:suppressed, false)
     end
   end
 end
