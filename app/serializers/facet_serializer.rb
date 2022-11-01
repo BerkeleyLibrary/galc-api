@@ -1,7 +1,7 @@
 class FacetSerializer
   include JSONAPI::Serializer
 
-  attributes(:name)
+  attributes(:name, :allow_multiple)
 
   has_many :terms do |facet|
     # NOTE: We don't do this with a default_scope on Term because that
