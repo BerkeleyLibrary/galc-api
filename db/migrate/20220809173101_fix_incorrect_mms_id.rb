@@ -4,12 +4,14 @@ class FixIncorrectMMSId < ActiveRecord::Migration[7.0]
   NEW_ID = '991051112769706532'
 
   def up
-    item = Item.find_by!(mms_id: OLD_ID)
-    item.update!(mms_id: NEW_ID)
+    sql = 'UPDATE items SET mms_id = :new_id where mms_id = :old_id'
+    stmt = ActiveRecord::Base.sanitize_sql([sql, { old_id: OLD_ID, new_id: NEW_ID }])
+    exec_update(stmt)
   end
 
   def down
-    item = Item.find_by!(mms_id: NEW_ID)
-    item.update!(mms_id: OLD_ID)
+    sql = 'UPDATE items SET mms_id = :old_id where mms_id = :new_id'
+    stmt = ActiveRecord::Base.sanitize_sql([sql, { old_id: OLD_ID, new_id: NEW_ID }])
+    exec_update(stmt)
   end
 end
