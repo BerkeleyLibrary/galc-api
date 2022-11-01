@@ -22,10 +22,17 @@ class Item < ApplicationRecord
 
   validates :mms_id, uniqueness: { allow_nil: true }
   validates :title, presence: true # TODO: enforce this in the schema
+  validate :multiple_terms_allowed
 
-  # TODO: figure out when we can enforce this
-  # validates :image, presence: true
-  # validates :artist, presence: true
+  def multiple_terms_allowed
+    terms_by_facet = terms.group_by(&:facet)
+    terms_by_facet.each do |facet, terms|
+      next if facet.allow_multiple
+      next if terms.size < 2
+
+      errors.add(:terms, "multiple values for #{facet.name}: #{terms.map(&:value).join(', ')}")
+    end
+  end
 
   # ------------------------------------------------------------
   # Scopes

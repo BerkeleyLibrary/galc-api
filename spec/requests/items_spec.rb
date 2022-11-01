@@ -28,6 +28,7 @@ end
 RSpec.describe 'Items', type: :request do
   before do
     create_all(Item)
+    create_all(Term)
   end
 
   describe 'reading' do
@@ -320,6 +321,11 @@ RSpec.describe 'Items', type: :request do
   end
 
   describe 'writing' do
+
+    def to_relationships(terms)
+      { terms: { data: terms.map { |term| { type: 'term', id: term.id.to_s } } } }
+    end
+
     let(:valid_attributes) do
       {
         image: 'viera da silva (composition).jpg',
@@ -329,7 +335,7 @@ RSpec.describe 'Items', type: :request do
         date: '1959',
         # decade: '1950-1959',
         description: 'Annotated "Epreuve d\'artiste."',
-        # medium: 'Serigraph',
+        # medium: ['Stencil', 'Serigraph'],
         # colors: 'Color',
         # genre: 'Still Life',
         dimensions: '19 x 15"',
@@ -346,22 +352,40 @@ RSpec.describe 'Items', type: :request do
       }
     end
 
+    let(:valid_terms) do
+      factory_names = %i[term_1950_1959 term_serigraph term_stencil term_color term_still_life term_small]
+      factory_names.map { |factory_name| create(factory_name) }
+    end
+
+    let(:valid_relationships) do
+      to_relationships(valid_terms)
+    end
+
     context 'as admin' do
       include_context 'admin request'
 
       # TODO: share code with closures_spec
       def expected_errors_for(invalid_attributes, item_to_update: nil)
         (item_to_update ? Item.find(item_to_update.id) : Item.new).tap do |item|
-          item.assign_attributes(**invalid_attributes)
-          item.validate
-          expect(item).not_to be_valid # just to be sure
+          Item.transaction do
+            item.assign_attributes(**invalid_attributes)
+            item.validate
+            expect(item).not_to be_valid # just to be sure
+            raise ActiveRecord::Rollback
+          end
         end.errors
       end
 
       describe :create do
         describe 'success' do
           it 'creates an item' do
-            payload = { data: { type: 'item', attributes: valid_attributes } }
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes,
+                relationships: valid_relationships
+              }
+            }
             expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
 
             expect(response).to have_http_status(:created)
@@ -374,33 +398,13 @@ RSpec.describe 'Items', type: :request do
             expect(item).not_to be_nil
             valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
+            expect(item.terms).to contain_exactly(*valid_terms)
+
             links = parsed_response.delete('links')
             expect(links['self']).to eq(items_url)
 
             expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
-          end
-
-          it 'sets the terms' do
-            expected_terms = Facet.all.map { |f| f.terms.take }
-            payload = {
-              data: {
-                type: 'item',
-                attributes: valid_attributes,
-                relationships: {
-                  terms: {
-                    data: expected_terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
-                  }
-                }
-              }
-            }
-            expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
-
-            expect(response).to have_http_status(:created)
-            parsed_response = JSON.parse(response.body)
-
-            item = Item.find(parsed_response['data']['id'].to_i)
-            expect(item.terms).to contain_exactly(*expected_terms)
           end
 
           it 'accepts a nil MMS ID' do
@@ -489,6 +493,49 @@ RSpec.describe 'Items', type: :request do
           end
 
           xit 'returns 403 forbidden for a client-generated ID'
+
+          context 'multiple term validation' do
+            attr_reader :singular_facets
+
+            before do
+              @singular_facets = Facet
+                .where(allow_multiple: false)
+                .where.not(name: 'Concept') # exclude mock facet
+                .to_a
+              expect(singular_facets.size).to be > 1 # just to be sure
+            end
+
+            it 'fails with 422 Unprocessable Entity for multiple term values on singular facets' do
+              singular_facets.each do |facet|
+                term_ids = facet.terms.limit(2).pluck(:id)
+                expect(term_ids.size).to eq(2) # just to be sure
+
+                payload = {
+                  data: {
+                    type: 'item',
+                    attributes: valid_attributes,
+                    relationships: {
+                      terms: {
+                        data: term_ids.map { |id| { 'type' => 'term', 'id' => id.to_s } }
+                      }
+                    }
+                  }
+                }
+
+                expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+
+                expect(response).to have_http_status(:unprocessable_entity)
+                expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+                actual_errors = JSON.parse(response.body)['errors']
+                invalid_attributes = valid_attributes.merge(term_ids: term_ids)
+                expected_errors = expected_errors_for(invalid_attributes)
+                expected_json = expected_errors.map { |err| jsonapi_for(err) }
+                expect(actual_errors).to contain_exactly(*expected_json)
+              end
+            end
+
+          end
         end
       end
 
@@ -501,7 +548,10 @@ RSpec.describe 'Items', type: :request do
             new_attributes = old_attributes.transform_values.with_index { |v, i| (i % 3 == 0) && v.is_a?(String) ? "#{v} (new)" : v }
             expected_attributes = old_attributes.merge(new_attributes)
 
-            payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes } }
+            expected_terms = item.terms.to_a + [create(:term_abstract), create(:term_pop_art)] - [create(:term_stencil)]
+
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes,
+                                relationships: to_relationships(expected_terms) } }
             patch item_url(item), params: payload, as: :jsonapi
 
             expect(response).to have_http_status(:ok)
@@ -509,6 +559,8 @@ RSpec.describe 'Items', type: :request do
 
             item.reload
             expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
+
+            expect(item.terms).to contain_exactly(*expected_terms)
 
             parsed_response = JSON.parse(response.body)
 
@@ -565,6 +617,52 @@ RSpec.describe 'Items', type: :request do
           xit 'returns 409 conflict for an invalid type'
           xit 'returns 409 conflict for an ID that does not match the URL'
           xit 'returns 404 not found for a nonexistent object'
+
+          context 'multiple term validation' do
+            attr_reader :singular_facets
+
+            before do
+              # creating the terms creates the facets by side effect
+              create_all(Term)
+
+              @singular_facets = Facet
+                .where(allow_multiple: false)
+                .where.not(name: 'Concept') # exclude mock facet
+                .to_a
+              expect(singular_facets.size).to be > 1 # just to be sure
+            end
+
+            it 'fails with 422 Unprocessable Entity for multiple term values on singular facets' do
+              item = Item.take
+              original_updated_at = item.updated_at
+              original_terms = item.terms.to_a
+
+              singular_facets.each do |facet|
+                terms_added = facet.terms.limit(2)
+                expect(terms_added.size).to eq(2) # just to be sure
+
+                invalid_terms = (original_terms + terms_added).uniq
+
+                payload = { data: { type: 'item', attributes: valid_attributes, relationships: to_relationships(invalid_terms) } }
+
+                expect { patch item_url(item), params: payload, as: :jsonapi }.not_to change(ItemsTerm, :count)
+
+                expect(response).to have_http_status(:unprocessable_entity)
+                expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+                actual_errors = JSON.parse(response.body)['errors']
+                expected_errors = expected_errors_for({ terms: invalid_terms }, item_to_update: item)
+                expected_json = expected_errors.map { |err| jsonapi_for(err) }
+                expect(actual_errors).to contain_exactly(*expected_json)
+
+                item.reload
+                expect(item.updated_at).to eq(original_updated_at)
+                expect(item.terms.pluck(:value)).to contain_exactly(*original_terms.map(&:value))
+              end
+            end
+
+          end
+
         end
       end
 
