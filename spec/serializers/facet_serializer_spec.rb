@@ -12,7 +12,7 @@ describe FacetSerializer do
       data: {
         id: facet.id.to_s,
         type: :facet,
-        attributes: { name: facet.name },
+        attributes: { name: facet.name, allow_multiple: facet.allow_multiple },
         relationships: {
           terms: {
             data: facet.terms.map { |t| { id: t.id.to_s, type: :term } }
