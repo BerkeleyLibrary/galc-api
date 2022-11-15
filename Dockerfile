@@ -34,7 +34,8 @@ RUN apt-get update -qq
 
 # Install standard packages from the Debian repository
 RUN apt-get install -y --no-install-recommends \
-    libpq-dev
+    libpq-dev \
+    libvips42
 
 # ------------------------------------------------------------
 # Run configuration
