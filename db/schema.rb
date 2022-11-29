@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_31_204826) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_29_191450) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -35,8 +35,14 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_31_204826) do
     t.index ["ord"], name: "index_facets_on_ord", unique: true
   end
 
+  create_table "images", force: :cascade do |t|
+    t.string "basename"
+    t.string "thumbnail"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "items", force: :cascade do |t|
-    t.string "image"
     t.string "title"
     t.string "artist"
     t.string "artist_url"
@@ -54,11 +60,10 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_31_204826) do
     t.date "reserve_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "thumbnail"
     t.boolean "suppressed", default: false, null: false
-    t.index ["image"], name: "index_items_on_image", unique: true
+    t.bigint "image_id", null: false
+    t.index ["image_id"], name: "index_items_on_image_id"
     t.index ["mms_id"], name: "index_items_on_mms_id", unique: true
-    t.index ["thumbnail"], name: "index_items_on_thumbnail", unique: true
   end
 
   create_table "items_terms", id: false, force: :cascade do |t|
@@ -81,6 +86,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_31_204826) do
     t.index ["value"], name: "index_terms_on_value", unique: true
   end
 
+  add_foreign_key "items", "images"
   add_foreign_key "items_terms", "items"
   add_foreign_key "items_terms", "terms"
   add_foreign_key "terms", "facets"

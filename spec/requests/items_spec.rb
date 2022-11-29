@@ -326,9 +326,16 @@ RSpec.describe 'Items', type: :request do
       { terms: { data: terms.map { |term| { type: 'term', id: term.id.to_s } } } }
     end
 
+    let(:image) do
+      basename = 'viera da silva (composition).jpg'
+      thumbnail = 'viera da silva (composition)_360px.jpg'
+      create(:image, basename: basename, thumbnail: thumbnail)
+    end
+
     let(:valid_attributes) do
       {
-        image: 'viera da silva (composition).jpg',
+        # image: 'viera da silva (composition).jpg',
+        image_id: image.id,
         title: 'Composition (Le Gardin)',
         artist: 'Vieira da Silva, Maria Elena',
         artist_url: 'https://en.wikipedia.org/wiki/Maria_Helena_Vieira_da_Silva',

@@ -174,8 +174,7 @@ describe Item do
       describe :image_uri do
         it 'returns the image URI' do
           item = Item.find_by(artist: 'Minami, Keiko')
-          escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(item.image)
-          expected_uri = BerkeleyLibrary::Util::URIs.append(base_url, escaped_basename)
+          expected_uri = item.image.relative_uri
           expect(item.image_uri).to eq(expected_uri)
         end
 
@@ -189,14 +188,13 @@ describe Item do
       describe :thumbnail_uri do
         it 'returns the thumbnail URI' do
           item = Item.find_by(artist: 'Minami, Keiko')
-          escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(item.thumbnail)
-          expected_uri = BerkeleyLibrary::Util::URIs.append(base_url, escaped_basename)
+          expected_uri = item.image.thumbnail_relative_uri
           expect(item.thumbnail_uri).to eq(expected_uri)
         end
 
         it 'returns nil for a missing thumbnail' do
           item = Item.find_by(artist: 'Minami, Keiko')
-          item.thumbnail = nil
+          item.image = nil
           expect(item.thumbnail_uri).to eq(nil)
         end
       end
