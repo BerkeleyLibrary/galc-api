@@ -54,4 +54,6 @@ Rails.application.configure do
     ActionDispatch::Integration::Session::DEFAULT_HOST,
     ActionController::Renderer::DEFAULTS['http_host']
   )
+
+  config.galc_volume_root = ENV['GALC_VOLUME_ROOT'] || Rails.root.join('spec/data/galc_volume')
 end
