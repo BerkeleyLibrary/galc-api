@@ -63,4 +63,6 @@ Rails.application.configure do
     ENV['RAILS_DEVELOPMENT_HOSTS']  # Additional comma-separated hosts for development.
   ]
   Rails.application.config.hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
+
+  config.galc_volume_root = ENV['GALC_VOLUME_ROOT'] || Rails.root.join('spec/data/galc_volume')
 end

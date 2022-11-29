@@ -70,6 +70,11 @@ module GalcApi
     config.galc_image_base_url = ENV['GALC_IMAGE_BASE_URL'] || 'https://digitalassets.lib.berkeley.edu/galc/ucb/images/'
 
     # ------------------------------------------------------------
+    # Volume configuration
+
+    config.galc_volume_root = ENV['GALC_VOLUME_ROOT'] || '/var/app'
+
+    # ------------------------------------------------------------
     # Alma API client configuration
 
     BerkeleyLibrary::Alma::Config.default!
