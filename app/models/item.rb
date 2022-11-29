@@ -16,6 +16,7 @@ class Item < ApplicationRecord
   # Relations
 
   has_and_belongs_to_many :terms
+  belongs_to :image
 
   # ------------------------------------------------------------
   # Validations
@@ -64,22 +65,6 @@ class Item < ApplicationRecord
   end
 
   # ------------------------------------------------------------
-  # Class methods
-
-  class << self
-    def image_base_uri
-      @image_base_uri ||= URI.parse(Rails.application.config.galc_image_base_url)
-    end
-
-    def image_uri_for(basename)
-      return unless basename
-
-      escaped_basename = BerkeleyLibrary::Util::URIs.path_escape(basename)
-      BerkeleyLibrary::Util::URIs.append(Item.image_base_uri, escaped_basename)
-    end
-  end
-
-  # ------------------------------------------------------------
   # Synthetic attributes
 
   def record_id
@@ -98,16 +83,14 @@ class Item < ApplicationRecord
   end
 
   def image_uri
-    prepend_image_base_uri(image)
+    return unless image
+
+    image.relative_uri
   end
 
   def thumbnail_uri
-    prepend_image_base_uri(thumbnail)
-  end
+    return unless image
 
-  private
-
-  def prepend_image_base_uri(basename)
-    Item.image_uri_for(basename)
+    image.thumbnail_relative_uri
   end
 end

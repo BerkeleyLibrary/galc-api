@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :closures
   root to: 'auth#index'
 
   direct(:login) { '/auth/calnet' } # convenience to provide login_url helper
@@ -8,6 +7,7 @@ Rails.application.routes.draw do
 
   defaults format: :jsonapi do
     constraints(->(req) { req.format == :jsonapi }) do
+      resources :closures
       resources :items
       resources :terms, only: :index
       resources :facets, only: :index
@@ -16,6 +16,11 @@ Rails.application.routes.draw do
       resources :build_info, only: :index
     end
   end
+
+  post '/images', constraints: ->(req) { req.form_data? }, to: 'images#create', defaults: { format: :txt }
+  get '/images/:id', to: 'images#show', as: :image
+  get '/images/:id/thumbnail', to: 'images#thumbnail', as: :thumbnail
+  delete '/images/:id', to: 'images#destroy'
 
   direct(:current_user) { '/users/current' } # convenience to provide current_user_url helper
 end
