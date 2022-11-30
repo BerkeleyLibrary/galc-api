@@ -20,7 +20,7 @@ class Image < ApplicationRecord
   end
 
   class << self
-    delegate :galc_volume_root, to: 'Rails.application'
+    delegate :galc_volume_root, to: 'Rails.application.config'
 
     def images_path
       File.join(galc_volume_root, 'images')

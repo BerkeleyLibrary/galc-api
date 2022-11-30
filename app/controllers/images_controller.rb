@@ -1,20 +1,23 @@
 class ImagesController < ApplicationController
+  include ActionController::MimeResponds
   include JSONAPI::Pagination
 
   before_action :require_galc_admin!, only: %i[create destroy]
-  before_action :set_image, only: %i[show destroy]
+  before_action :set_image, except: %i[create]
 
+  # TODO: do we really want/need to be sending images from the Rails app?
+  
   # GET /images/1
   def show
     respond_to do |format|
       format.jsonapi { render jsonapi: @image }
-      format.jpg { send_file @image.file_path, type: 'image/jpeg', disposition: 'inline' }
+      format.jpeg { send_file @image.file_path, type: 'image/jpeg', disposition: 'inline' }
     end
   end
 
   def thumbnail
     respond_to do |format|
-      format.jpg { send_file @image.thumbnail_path, type: 'image/jpeg', disposition: 'inline' }
+      format.jpeg { send_file @image.thumbnail_path, type: 'image/jpeg', disposition: 'inline' }
     end
   end
 
