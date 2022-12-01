@@ -1,27 +1,20 @@
 require 'rails_helper'
+require 'support/image_dir_context'
 
 describe Image do
-  attr_reader :tmp_root
-  attr_reader :tmp_images
-
-  before do
-    @tmp_root = Dir.mktmpdir(File.basename(__FILE__, '.rb'))
-    allow(Rails.application.config).to receive(:galc_volume_root).and_return(tmp_root)
-
-    @tmp_images = File.join(tmp_root, 'images')
-    Dir.mkdir(tmp_images)
-  end
-
-  after do
-    FileUtils.remove_entry(tmp_root)
-  end
+  include_context('temp image dir')
 
   describe :from_uploaded_file do
     attr_reader :source_file_path
     attr_reader :uploaded_file
 
     before do
-      @source_file_path = 'spec/data/galc_volume/images/(Sato)Fog.jpg'
+      @source_file_path = File.join(images_orig, '(Sato)Fog.jpg')
+    end
+
+    def uploaded_file
+      # Tempfile#path will return null if it's been unlinked (deleted)
+      return @uploaded_file if @uploaded_file && @uploaded_file.path
 
       tmp = Tempfile.new.tap do |t|
         File.open(source_file_path, 'rb') { |f| IO.copy_stream(f, t) }
@@ -56,12 +49,17 @@ describe Image do
       image = Image.from_uploaded_file(uploaded_file)
 
       original_data = File.read(source_file_path, mode: 'rb')
+      expected_size = original_data.bytesize
       expected_digest = Digest::MD5.hexdigest(original_data)
 
       uploaded_data = File.read(image.file_path, mode: 'rb')
+      actual_size = uploaded_data.bytesize
       actual_digest = Digest::MD5.hexdigest(uploaded_data)
 
-      expect(actual_digest).to eq(expected_digest)
+      aggregate_failures do
+        expect(actual_size).to eq(expected_size)
+        expect(actual_digest).to eq(expected_digest)
+      end
     end
 
     it 'creates a thumbnail' do
