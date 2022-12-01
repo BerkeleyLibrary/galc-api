@@ -4,13 +4,14 @@ require 'support/image_dir_context'
 describe Image do
   include_context('temp image dir')
 
-  describe :from_uploaded_file do
-    attr_reader :source_file_path
-    attr_reader :uploaded_file
+  attr_reader :source_file_path
 
-    before do
-      @source_file_path = File.join(images_orig, '(Sato)Fog.jpg')
-    end
+  before do
+    @source_file_path = File.join(images_orig, '(Sato)Fog.jpg')
+  end
+
+  describe :from_uploaded_file do
+    attr_reader :uploaded_file
 
     def uploaded_file
       # Tempfile#path will return null if it's been unlinked (deleted)
@@ -102,6 +103,41 @@ describe Image do
 
       image = Image.from_uploaded_file(uploaded_file)
       expect(image.basename).to eq(good_filename)
+    end
+  end
+
+  describe :destroy do
+    attr_reader :image
+    attr_reader :source_file_path
+    attr_reader :source_thumbnail_path
+
+    before do
+      @image = create(:image)
+      @source_file_path = File.join(images_orig, image.basename)
+      @source_thumbnail_path = File.join(images_orig, image.thumbnail)
+      FileUtils.cp(source_file_path, image.file_path)
+      FileUtils.cp(source_thumbnail_path, image.thumbnail_path)
+    end
+
+    it 'deletes the image files' do
+      file_path = image.file_path
+      thumbnail_path = image.thumbnail_path
+      expect(File.exist?(file_path)).to eq(true) # just to be sure
+      expect(File.exist?(thumbnail_path)).to eq(true) # just to be sure
+
+      image.destroy
+      expect(File.exist?(file_path)).to eq(false)
+      expect(File.exist?(thumbnail_path)).to eq(false)
+    end
+
+    it 'does not delete an image in use by an item' do
+      item = create(:item)
+      expect(item.image).to eq(image) # just to be sure
+
+      expect { image.destroy }.to raise_error(ActiveRecord::DeleteRestrictionError)
+      expect(Image.find(image.id)).to eq(image)
+      expect(File.exist?(image.file_path)).to eq(true)
+      expect(File.exist?(image.thumbnail_path)).to eq(true)
     end
   end
 end

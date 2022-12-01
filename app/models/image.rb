@@ -5,13 +5,36 @@ require 'pathname'
 require 'zaru'
 
 class Image < ApplicationRecord
+  # ------------------------------------------------------------
+  # Constants
+
   JPEG_EXT = '.jpg'.freeze
   JPEG_MIME_TYPE = 'image/jpeg'.freeze
   THUMBNAIL_WIDTH = 360
+  JSONAPI_ATTRS = %i[thumbnail basename].freeze
+
+  # ------------------------------------------------------------
+  # Relations
+
+  has_many :items, dependent: :restrict_with_exception
+
+  # ------------------------------------------------------------
+  # Hooks
+
+  after_destroy :remove_image_files
+
+  def remove_image_files
+    FileUtils.rm_f(file_path)
+    FileUtils.rm_f(thumbnail_path)
+  end
+
+  # ------------------------------------------------------------
+  # Delegate methods
 
   delegate :url_helpers, to: 'Rails.application.routes'
 
-  has_many :items, dependent: :nullify
+  # ------------------------------------------------------------
+  # Synthetic accessors
 
   def relative_uri
     url_helpers.image_path(self, format: :jpg)
@@ -28,6 +51,9 @@ class Image < ApplicationRecord
   def thumbnail_path
     File.join(Image.images_path, thumbnail)
   end
+
+  # ------------------------------------------------------------
+  # Class methods
 
   class << self
     # TODO: move most of this to a service
