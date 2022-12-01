@@ -104,6 +104,62 @@ describe Image do
       image = Image.from_uploaded_file(uploaded_file)
       expect(image.basename).to eq(good_filename)
     end
+
+    describe 'format conversion' do
+      it 'converts PNG to JPEG' do
+        @source_file_path = 'spec/data/Artschwager-Untitled.png'
+        original_data = File.read(source_file_path, mode: 'rb')
+        original_mime_type = Marcel::MimeType.for(original_data)
+        expect(original_mime_type).to eq('image/png') # just to be sure
+
+        image = Image.from_uploaded_file(uploaded_file)
+        expect(image).not_to be_nil
+        expect(image).to be_persisted
+
+        file_path = image.file_path
+        expect(File.exist?(file_path)).to eq(true)
+
+        thumbnail_path = image.thumbnail_path
+        expect(File.exist?(thumbnail_path)).to eq(true)
+
+        original = Vips::Image.new_from_file(source_file_path)
+        uploaded = Vips::Image.new_from_file(file_path)
+
+        expect(uploaded.width).to eq(original.width)
+        expect(uploaded.height).to eq(original.height)
+
+        uploaded_data = File.read(image.file_path, mode: 'rb')
+        uploaded_mime_type = Marcel::MimeType.for(uploaded_data)
+        expect(uploaded_mime_type).to eq(Image::JPEG_MIME_TYPE)
+      end
+
+      it 'converts TIFF to JPEG' do
+        @source_file_path = 'spec/data/Artschwager-Untitled.tif'
+        original_data = File.read(source_file_path, mode: 'rb')
+        original_mime_type = Marcel::MimeType.for(original_data)
+        expect(original_mime_type).to eq('image/tiff') # just to be sure
+
+        image = Image.from_uploaded_file(uploaded_file)
+        expect(image).not_to be_nil
+        expect(image).to be_persisted
+
+        file_path = image.file_path
+        expect(File.exist?(file_path)).to eq(true)
+
+        thumbnail_path = image.thumbnail_path
+        expect(File.exist?(thumbnail_path)).to eq(true)
+
+        original = Vips::Image.new_from_file(source_file_path)
+        uploaded = Vips::Image.new_from_file(file_path)
+
+        expect(uploaded.width).to eq(original.width)
+        expect(uploaded.height).to eq(original.height)
+
+        uploaded_data = File.read(image.file_path, mode: 'rb')
+        uploaded_mime_type = Marcel::MimeType.for(uploaded_data)
+        expect(uploaded_mime_type).to eq(Image::JPEG_MIME_TYPE)
+      end
+    end
   end
 
   describe :destroy do
