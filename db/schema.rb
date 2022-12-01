@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_29_191450) do
+ActiveRecord::Schema[7.0].define(version: 2022_12_01_214805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_29_191450) do
     t.string "thumbnail"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["basename"], name: "index_images_on_basename", unique: true
+    t.index ["thumbnail"], name: "index_images_on_thumbnail", unique: true
   end
 
   create_table "items", force: :cascade do |t|
