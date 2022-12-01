@@ -1,11 +1,13 @@
-require 'marcel'
-require 'zaru'
-require 'image_processing/vips'
 require 'active_storage'
+require 'image_processing/vips'
+require 'marcel'
+require 'pathname'
+require 'zaru'
 
 class Image < ApplicationRecord
-  THUMBNAIL_WIDTH = 360
   JPEG_EXT = '.jpg'.freeze
+  JPEG_MIME_TYPE = 'image/jpeg'.freeze
+  THUMBNAIL_WIDTH = 360
 
   delegate :url_helpers, to: 'Rails.application.routes'
 
@@ -48,43 +50,56 @@ class Image < ApplicationRecord
     private
 
     def write_jpeg_file(uploaded_file)
-      jpeg_file = jpeg_tempfile_from(uploaded_file)
+      jpeg_tmp = jpeg_tempfile_from(uploaded_file)
       begin
         stem = stem_from(uploaded_file.original_filename)
-
-        open_unique_image_file(stem, JPEG_EXT) do |file|
-          IO.copy_stream(jpeg_file, file)
-          file.path
-        end
+        save_image(stem, jpeg_tmp)
       ensure
-        jpeg_file.close(true)
+        # TODO: can we do this only for tempfiles we create?
+        jpeg_tmp.close(true)
       end
     end
 
     def write_thumbnail(final_path)
       thumbnail_tmp = thumbnail_tmpfile_from(final_path)
       begin
-        basename = File.basename(final_path)
-        thumbnail_basename = "#{File.basename(basename, JPEG_EXT)}_#{THUMBNAIL_WIDTH}px#{JPEG_EXT}"
-        File.join(images_path, thumbnail_basename).tap do |thumbnail_path|
-          FileUtils.cp(thumbnail_tmp.path, thumbnail_path)
-        end
+        save_thumbnail(File.basename(final_path), thumbnail_tmp)
       ensure
         thumbnail_tmp.close(true)
       end
     end
 
+    def save_image(stem, jpeg_tmp)
+      open_unique_image_file(stem, JPEG_EXT) do |file|
+        logger.info("Writing image to #{file.path}")
+        IO.copy_stream(jpeg_tmp, file)
+        file.path
+      end
+    end
+
+    def save_thumbnail(basename, thumbnail_tmp)
+      thumbnail_basename = "#{File.basename(basename, JPEG_EXT)}_#{THUMBNAIL_WIDTH}px#{JPEG_EXT}"
+      File.join(images_path, thumbnail_basename).tap do |thumbnail_path|
+        logger.info("Writing thumbnail to #{thumbnail_path}")
+        FileUtils.cp(thumbnail_tmp.path, thumbnail_path)
+      end
+    end
+
     def mime_type_of(uploaded_file)
-      Marcel::MimeType.for(uploaded_file.path)
+      pathname = Pathname.new(uploaded_file.path)
+      Marcel::MimeType.for(pathname)
     end
 
     def jpeg_tempfile_from(uploaded_file)
-      return uploaded_file if mime_type_of(uploaded_file) == 'image/jpeg'
+      mime_type = mime_type_of(uploaded_file)
+      return uploaded_file if (mime_type) == JPEG_MIME_TYPE
 
+      logger.info("#{uploaded_file.path} (#{uploaded_file.original_filename}) is #{mime_type}; converting to #{JPEG_MIME_TYPE}")
       ImageProcessing::Vips.source(uploaded_file).convert('jpeg').call
     end
 
     def thumbnail_tmpfile_from(jpeg_path)
+      logger.info("Creating thumbnail from #{jpeg_path}")
       ImageProcessing::Vips.source(jpeg_path).convert('jpeg').resize_to_limit(THUMBNAIL_WIDTH, nil).call
     end
 
