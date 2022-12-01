@@ -23,15 +23,30 @@ class DropDuplicateItem < ActiveRecord::Migration[7.0]
   }
 
   def up
-    item = Item.find_by!(ITEM_ATTRS)
-    item.destroy!
+    cond = ITEM_ATTRS.keys.map { |k| "#{k} = :#{k}" }.join(' AND ')
+    sql = "SELECT id FROM items WHERE #{cond}"
+    stmt = ActiveRecord::Base.sanitize_sql([sql, ITEM_ATTRS])
+    item_id = exec_query(stmt).to_a[0]['id']
+
+    exec_delete("DELETE FROM items_terms WHERE item_id = #{item_id}")
+    exec_delete("DELETE FROM items WHERE id = #{item_id}")
   end
 
   def down
-    item = Item.create!(ITEM_ATTRS)
-    item.terms = ITEM_TERMS.map do |fn, tv|
+    columns = ITEM_ATTRS.keys.join(', ') + ", created_at, updated_at"
+    binds = ITEM_ATTRS.keys.map { |k| ":#{k}" }.join(', ') + ", now(), now()"
+
+    sql = "INSERT INTO items (#{columns}) VALUES (#{binds})"
+    stmt = ActiveRecord::Base.sanitize_sql([sql, ITEM_ATTRS])
+    item_id = exec_insert(stmt).to_a[0]['id']
+
+    ITEM_TERMS.each do |fn, tv|
       facet = Facet.find_by!(name: fn)
-      facet.terms.where(value: tv).first
+      term = facet.terms.where(value: tv).first
+
+      sql = "INSERT INTO items_terms (item_id, term_id) VALUES (:item_id, :term_id)"
+      stmt = ActiveRecord::Base.sanitize_sql([sql, { item_id: item_id, term_id: term.id }])
+      exec_insert(stmt)
     end
   end
 end

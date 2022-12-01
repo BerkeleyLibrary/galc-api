@@ -41,7 +41,6 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
   def up
     return if Rails.env.test?
 
-    raise ArgumentError, "Missing images:\n\t#{image_errors.join("\n\t")}" if image_errors.any?
     ActiveRecord::Base.connection.reset_pk_sequence!('items', :id, 'items_id_seq')
     importer.import_items!
   end
@@ -55,11 +54,7 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
   private
 
   def importer
-    @importer ||= Importer.new(DATA.join("\n"), validate_images: false)
-  end
-
-  def image_errors
-    importer.image_errors
+    @importer ||= Importer.new(DATA.join("\n"))
   end
 
   def mms_ids
@@ -89,9 +84,8 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
 
     attr_reader :data
 
-    def initialize(data, validate_images: true)
+    def initialize(data)
       @data = data
-      @validate_images = validate_images
     end
 
     def import_items!
@@ -104,10 +98,6 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
       @factories ||= csv.map { |csv_row| factory_from(csv_row) }
     end
 
-    def image_errors
-      @image_errors ||= factories.flat_map(&:image_errors)
-    end
-
     private
 
     def csv
@@ -115,11 +105,7 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
     end
 
     def factory_from(csv_row)
-      ItemFactory.new(csv_row, validate_images?)
-    end
-
-    def validate_images?
-      @validate_images
+      ItemFactory.new(csv_row)
     end
 
     # rubocop:disable Metrics/ClassLength
@@ -148,9 +134,10 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
 
       attr_reader :csv_row
 
-      def initialize(csv_row, validate_images)
+      delegate :exec_insert, to: 'ActiveRecord::Base.connection'
+
+      def initialize(csv_row)
         @csv_row = csv_row
-        @validate_images = validate_images
 
         csv_row.each { |header, raw_value| add_cell(header, raw_value) }
       end
@@ -165,23 +152,34 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
 
       def create_item!
         ActiveRecord::Base.transaction do
-          validate_images! if validate_images?
-          Item.create!(attributes).tap { |item| item.terms = facet_terms.values.flatten }
+          item_terms = facet_terms.to_h { |f, tt| [f.name, tt.map(&:value)] }
+          create_item(attributes, item_terms)
         end
       rescue ActiveRecord::ActiveRecordError => e
         raise ArgumentError, "Unable to create record from attributes #{attributes.inspect}: #{e}"
       end
 
-      def image_errors
-        @image_errors ||= [].tap do |errors|
-          %i[image thumbnail].each { |attr| validate_image(attr, errors) }
-        end
-      end
-
       private
 
-      def validate_images?
-        @validate_images
+      def create_item(item_attrs, item_terms)
+        columns = item_attrs.keys.join(', ') + ', created_at, updated_at'
+        binds = item_attrs.keys.map { |k| ":#{k}" }.join(', ') + ', now(), now()'
+
+        sql = "INSERT INTO items (#{columns}) VALUES (#{binds})"
+        stmt = ActiveRecord::Base.sanitize_sql([sql, item_attrs])
+        item_id = exec_insert(stmt).to_a[0]['id']
+
+        item_terms.each do |fn, values|
+          facet = Facet.find_by!(name: fn)
+          values = Array(values)
+          values.each do |tv|
+            term = facet.terms.where(value: tv).first
+
+            sql = 'INSERT INTO items_terms (item_id, term_id) VALUES (:item_id, :term_id)'
+            stmt = ActiveRecord::Base.sanitize_sql([sql, { item_id: item_id, term_id: term.id }])
+            exec_insert(stmt)
+          end
+        end
       end
 
       def terms_for(facet)
@@ -233,20 +231,6 @@ class AddFall2022Items < ActiveRecord::Migration[7.0]
         return v unless (facet.name == 'Medium') && (dash_index = v.rindex('-'))
 
         v[(dash_index + 1)..]
-      end
-
-      def validate_images!
-        raise ArgumentError, image_errors.join('; ') unless image_errors.empty?
-      end
-
-      def validate_image(attr, errors)
-        if (basename = attributes[attr])
-          image_uri = Item.image_uri_for(basename)
-          http_status = BerkeleyLibrary::Util::URIs.head(image_uri)
-          errors << "HEAD #{image_uri} returned #{http_status}" unless http_status == 200
-        else
-          errors << "Missing #{attr} for #{attributes[:title]}"
-        end
       end
 
       class << self
