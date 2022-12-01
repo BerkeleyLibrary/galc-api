@@ -313,6 +313,7 @@ GEM
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    zaru (0.3.0)
     zeitwerk (2.6.6)
 
 PLATFORMS
@@ -351,6 +352,7 @@ DEPENDENCIES
   simplecov (~> 0.21)
   simplecov-rcov (~> 0.2)
   webmock
+  zaru (~> 0.3.0)
 
 RUBY VERSION
    ruby 3.0.3p157

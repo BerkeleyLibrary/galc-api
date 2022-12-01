@@ -6,11 +6,11 @@ class ImagesController < ApplicationController
   before_action :set_image, except: %i[create]
 
   # TODO: do we really want/need to be sending images from the Rails app?
-  
+
   # GET /images/1
   def show
     respond_to do |format|
-      format.jsonapi { render jsonapi: @image }
+      format.jsonapi { render jsonapi: @image } # TODO: add serializer
       format.jpeg { send_file @image.file_path, type: 'image/jpeg', disposition: 'inline' }
     end
   end
@@ -22,11 +22,14 @@ class ImagesController < ApplicationController
   end
 
   # POST /images
+  #
+  # NOTE: In an ideal world we wouldn't process images synchronously,
+  #       but it's safe enough given only admins can do it
   def create
-    @image = Image.new(image_params)
-    @image.save!
+    file = params.require(:file)
+    @image = Image.from_uploaded_file(file)
 
-    render plain: @image.id
+    render plain: @image.id.to_s
   end
 
   # DELETE /images/1
