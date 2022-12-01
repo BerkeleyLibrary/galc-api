@@ -138,6 +138,8 @@ describe Image do
       expect(Image.find(image.id)).to eq(image)
       expect(File.exist?(image.file_path)).to eq(true)
       expect(File.exist?(image.thumbnail_path)).to eq(true)
+
+      expect(Item.find(item.id)).to eq(item)
     end
   end
 end

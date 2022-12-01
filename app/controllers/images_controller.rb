@@ -9,6 +9,7 @@ class ImagesController < ApplicationController
 
   # GET /images/1
   def show
+    # TODO: store checksums, send ETags
     respond_to do |format|
       format.jsonapi { render jsonapi: @image } # TODO: add serializer
       format.jpeg { send_file @image.file_path, type: 'image/jpeg', disposition: 'inline' }
@@ -16,6 +17,7 @@ class ImagesController < ApplicationController
   end
 
   def thumbnail
+    # TODO: store checksums, send ETags
     respond_to do |format|
       format.jpeg { send_file @image.thumbnail_path, type: 'image/jpeg', disposition: 'inline' }
     end
@@ -35,6 +37,10 @@ class ImagesController < ApplicationController
   # DELETE /images/1
   def destroy
     @image.destroy
+  rescue ActiveRecord::DeleteRestrictionError => e
+    item_details = @image.items.pluck(:artist, :title).map { |a, t| "#{a}, #{t.inspect}" }.join('; ')
+    e.message << ": #{item_details}"
+    raise
   end
 
   # TODO: add test to enforce there's no route for PUT/PATCH
@@ -43,10 +49,5 @@ class ImagesController < ApplicationController
 
   def set_image
     @image = Image.find(params[:id])
-  end
-
-  # Only allow a list of trusted parameters through.
-  def image_params
-    params.fetch(:image, {})
   end
 end
