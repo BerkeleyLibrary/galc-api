@@ -18,7 +18,7 @@ Rails.application.routes.draw do
   end
 
   post '/images', constraints: ->(req) { req.form_data? }, to: 'images#create', defaults: { format: :txt }
-  get '/images/:id', to: 'images#show', as: :image
+  get '/images/:id', to: 'images#show', as: :image, defaults: { format: :jsonapi }
   get '/images/:id/thumbnail', to: 'images#thumbnail', as: :thumbnail
   delete '/images/:id', to: 'images#destroy'
 
