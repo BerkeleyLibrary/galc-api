@@ -19,6 +19,7 @@ module ExceptionHandlers
     rescue_from Error::NotFoundError, with: :render_jsonapi_not_found
     rescue_from Error::UnauthorizedError, with: :render_jsonapi_unauthorized_error
     rescue_from Error::ForbiddenError, with: :render_jsonapi_forbidden_error
+    rescue_from ActionController::ParameterMissing, with: :render_jsonapi_parameter_missing
     rescue_from ActiveRecord::DeleteRestrictionError, with: :render_jsonapi_conflict
     rescue_from ActiveRecord::RecordInvalid, with: :render_validation_errors_as_unprocessable_entity
     rescue_from ActiveModel::ValidationError, with: :render_validation_errors_as_unprocessable_entity
@@ -35,6 +36,11 @@ module ExceptionHandlers
     def render_jsonapi_unauthorized_error(exception)
       logger.error(exception)
       render_jsonapi_error(:unauthorized)
+    end
+
+    def render_jsonapi_parameter_missing(exception)
+      logger.error(exception)
+      render_jsonapi_error(:unprocessable_entity, detail: exception.message)
     end
 
     def render_validation_errors_as_unprocessable_entity(exception)

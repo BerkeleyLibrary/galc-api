@@ -7,9 +7,9 @@ class Item < ApplicationRecord
   # Constants
 
   ALL_ATTRS = Item.column_names.map(&:to_sym).freeze
-  DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
-  EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at] + [:terms]).freeze
-  SYNTH_ATTRS = %i[permalink_uri image_uri thumbnail_uri].freeze
+  DATA_ATTRS = (ALL_ATTRS - %i[id image_id]).freeze
+  EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at] + %i[terms image]).freeze
+  SYNTH_ATTRS = %i[permalink_uri].freeze
   JSONAPI_ATTRS = (DATA_ATTRS + SYNTH_ATTRS).freeze
 
   # ------------------------------------------------------------
