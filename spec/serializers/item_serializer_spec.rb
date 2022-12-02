@@ -11,6 +11,9 @@ describe ItemSerializer do
         relationships: {
           terms: {
             data: item.terms.map { |t| { id: t.id.to_s, type: :term } }
+          },
+          image: {
+            data: { id: item.image.id.to_s, type: :image }
           }
         }
       }

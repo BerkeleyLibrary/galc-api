@@ -322,11 +322,14 @@ RSpec.describe 'Items', type: :request do
 
   describe 'writing' do
 
-    def to_relationships(terms)
-      { terms: { data: terms.map { |term| { type: 'term', id: term.id.to_s } } } }
+    def to_relationships(terms: nil, image: nil)
+      {}.tap do |rels|
+        rels[:terms] = { data: terms.map { |term| { type: 'term', id: term.id.to_s } } } if terms
+        rels[:image] = { data: { type: 'image', id: image.id.to_s } } if image
+      end
     end
 
-    let(:image) do
+    let(:valid_image) do
       basename = 'viera da silva (composition).jpg'
       thumbnail = 'viera da silva (composition)_360px.jpg'
       create(:image, basename: basename, thumbnail: thumbnail)
@@ -335,7 +338,6 @@ RSpec.describe 'Items', type: :request do
     let(:valid_attributes) do
       {
         # image: 'viera da silva (composition).jpg',
-        image_id: image.id,
         title: 'Composition (Le Gardin)',
         artist: 'Vieira da Silva, Maria Elena',
         artist_url: 'https://en.wikipedia.org/wiki/Maria_Helena_Vieira_da_Silva',
@@ -365,17 +367,19 @@ RSpec.describe 'Items', type: :request do
     end
 
     let(:valid_relationships) do
-      to_relationships(valid_terms)
+      to_relationships(terms: valid_terms, image: valid_image)
     end
 
     context 'as admin' do
       include_context 'admin request'
 
       # TODO: share code with closures_spec
-      def expected_errors_for(invalid_attributes, item_to_update: nil)
+      def expected_errors_for(attributes, terms: valid_terms, image: valid_image, item_to_update: nil)
         (item_to_update ? Item.find(item_to_update.id) : Item.new).tap do |item|
           Item.transaction do
-            item.assign_attributes(**invalid_attributes)
+            item.assign_attributes(**attributes)
+            item.terms = terms
+            item.image = image
             item.validate
             expect(item).not_to be_valid # just to be sure
             raise ActiveRecord::Rollback
@@ -417,7 +421,7 @@ RSpec.describe 'Items', type: :request do
           it 'accepts a nil MMS ID' do
             attributes = valid_attributes.except(:mms_id)
 
-            payload = { data: { type: 'item', attributes: attributes } }
+            payload = { data: { type: 'item', attributes: attributes, relationships: to_relationships(image: valid_image) } }
             expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
 
             expect(response).to have_http_status(:created)
@@ -441,7 +445,7 @@ RSpec.describe 'Items', type: :request do
         describe 'failure' do
           it 'fails with 422 Unprocessable Entity for a missing title' do
             invalid_attributes = valid_attributes.except(:title)
-            payload = { data: { type: 'item', attributes: invalid_attributes } }
+            payload = { data: { type: 'item', attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
@@ -456,10 +460,30 @@ RSpec.describe 'Items', type: :request do
             expect(actual_errors).to contain_exactly(*expected_json)
           end
 
+          it 'fails with 422 Unprocessable Entity for a missing image' do
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes,
+                relationships: to_relationships(terms: valid_terms)
+              }
+            }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActionController::ParameterMissing))
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            expect(actual_errors.size).to eq(1)
+          end
+
           it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
             existing_mms_id = Item.pluck(:mms_id).compact.first
             invalid_attributes = valid_attributes.merge({ mms_id: existing_mms_id })
-            payload = { data: { type: 'item', attributes: invalid_attributes } }
+            payload = { data: { type: 'item', attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
@@ -483,6 +507,34 @@ RSpec.describe 'Items', type: :request do
                 relationships: {
                   terms: {
                     data: [{ 'type' => 'term', 'id' => invalid_id.to_s }]
+                  },
+                  image: {
+                    data: { 'type' => 'image', 'id' => valid_image.id }
+                  }
+                }
+              }
+            }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordNotFound))
+
+            expect(response).to have_http_status(:not_found)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            expect(actual_errors.size).to eq(1)
+          end
+
+          it 'fails with 404 Not Found for a nonexistent image' do
+            invalid_id = Image.maximum(:id) + 999
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes,
+                relationships: {
+                  image: {
+                    data: { 'type' => 'image', 'id' => invalid_id.to_s }
                   }
                 }
               }
@@ -514,7 +566,8 @@ RSpec.describe 'Items', type: :request do
 
             it 'fails with 422 Unprocessable Entity for multiple term values on singular facets' do
               singular_facets.each do |facet|
-                term_ids = facet.terms.limit(2).pluck(:id)
+                invalid_terms = facet.terms.limit(2)
+                term_ids = invalid_terms.pluck(:id)
                 expect(term_ids.size).to eq(2) # just to be sure
 
                 payload = {
@@ -524,6 +577,9 @@ RSpec.describe 'Items', type: :request do
                     relationships: {
                       terms: {
                         data: term_ids.map { |id| { 'type' => 'term', 'id' => id.to_s } }
+                      },
+                      image: {
+                        data: { 'type' => 'image', 'id' => valid_image.id }
                       }
                     }
                   }
@@ -535,8 +591,7 @@ RSpec.describe 'Items', type: :request do
                 expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
                 actual_errors = JSON.parse(response.body)['errors']
-                invalid_attributes = valid_attributes.merge(term_ids: term_ids)
-                expected_errors = expected_errors_for(invalid_attributes)
+                expected_errors = expected_errors_for(valid_attributes, terms: invalid_terms, image: valid_image)
                 expected_json = expected_errors.map { |err| jsonapi_for(err) }
                 expect(actual_errors).to contain_exactly(*expected_json)
               end
@@ -546,6 +601,7 @@ RSpec.describe 'Items', type: :request do
         end
       end
 
+      # TODO: separate PUT and PATCH tests
       describe :update do
         describe 'success' do
           it 'updates an item' do
@@ -558,7 +614,7 @@ RSpec.describe 'Items', type: :request do
             expected_terms = item.terms.to_a + [create(:term_abstract), create(:term_pop_art)] - [create(:term_stencil)]
 
             payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes,
-                                relationships: to_relationships(expected_terms) } }
+                                relationships: to_relationships(terms: expected_terms, image: item.image) } }
             patch item_url(item), params: payload, as: :jsonapi
 
             expect(response).to have_http_status(:ok)
@@ -583,7 +639,7 @@ RSpec.describe 'Items', type: :request do
             item = Item.take
 
             invalid_attributes = { title: nil }
-            payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)
             patch item_url(item), params: payload, as: :jsonapi
@@ -604,7 +660,7 @@ RSpec.describe 'Items', type: :request do
             mms_id = Item.pluck(:mms_id).find { |id| id && id != item.mms_id }
 
             invalid_attributes = { mms_id: mms_id }
-            payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes } }
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)
             patch item_url(item), params: payload, as: :jsonapi
@@ -650,7 +706,8 @@ RSpec.describe 'Items', type: :request do
 
                 invalid_terms = (original_terms + terms_added).uniq
 
-                payload = { data: { type: 'item', attributes: valid_attributes, relationships: to_relationships(invalid_terms) } }
+                payload = { data: { type: 'item', attributes: valid_attributes,
+                                    relationships: to_relationships(terms: invalid_terms, image: item.image) } }
 
                 expect { patch item_url(item), params: payload, as: :jsonapi }.not_to change(ItemsTerm, :count)
 
@@ -658,7 +715,7 @@ RSpec.describe 'Items', type: :request do
                 expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
                 actual_errors = JSON.parse(response.body)['errors']
-                expected_errors = expected_errors_for({ terms: invalid_terms }, item_to_update: item)
+                expected_errors = expected_errors_for(valid_attributes, terms: invalid_terms, image: valid_image, item_to_update: item)
                 expected_json = expected_errors.map { |err| jsonapi_for(err) }
                 expect(actual_errors).to contain_exactly(*expected_json)
 

@@ -5,6 +5,7 @@ class ItemsController < ApplicationController
 
   before_action :set_item, only: %i[show update destroy]
   before_action :require_galc_admin!, only: %i[create update destroy]
+  before_action :ensure_image_param!, only: %i[create]
 
   # GET /items
   # GET /items?filter[<facet1>]=<term1>,<term2>…&filter[<facet2>]=…
@@ -75,6 +76,15 @@ class ItemsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def item_params
     @item_params ||= jsonapi_deserialize(params, only: Item::EDIT_ATTRS)
+  end
+
+  def ensure_image_param!
+    item_params.tap do |pp|
+      image_id = pp.delete('image_id') do
+        raise ActionController::ParameterMissing.new(:image_id, pp.keys)
+      end
+      pp[:image] = Image.find(image_id)
+    end
   end
 
   # @return ActionController::Parameters the filter parameters, if present
