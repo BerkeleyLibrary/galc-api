@@ -77,19 +77,19 @@ class Closure < ApplicationRecord
   # Synthetic accessors
 
   def future?
-    start_date > Date.current
+    start_date > Closure.today_in_tz
   end
 
   alias future future?
 
   def past?
-    end_date && end_date <= Date.current
+    end_date && end_date <= Closure.today_in_tz
   end
 
   alias past past?
 
   def current?
-    today = Date.current
+    today = Closure.today_in_tz
     (today >= start_date) && (end_date.nil? || today < end_date)
   end
 
@@ -116,6 +116,10 @@ class Closure < ApplicationRecord
 
         "#{conds} #{wanted ? 'OR' : 'AND'} (#{cond})"
       end
+    end
+
+    def today_in_tz
+      Time.now.in_time_zone(TIME_ZONE).to_date
     end
   end
 end
