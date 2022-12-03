@@ -48,10 +48,12 @@ RSpec.describe Closure, type: :model do
     end
   end
 
-  # TODO: make sure these all still work after midnight UTC
   describe :current do
+
+    let(:today_in_tz) { Closure.today_in_tz }
+
     it 'includes the currently active closure' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: Date.current + 1.days)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: today_in_tz + 1.days)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_current
@@ -59,31 +61,31 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'includes closures starting today' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current, end_date: Date.current + 1.days)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz, end_date: today_in_tz + 1.days)
       expect(closure).to be_current
       expect(Closure.current).to include(closure)
     end
 
     it 'does not include closures ending today' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 1, end_date: Date.current)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1, end_date: today_in_tz)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
 
     it 'does not include future definite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1, end_date: Date.current + 2)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1, end_date: today_in_tz + 2)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
 
     it 'does not include future indefinite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1, end_date: nil)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1, end_date: nil)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
 
     it 'includes indefinite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: nil)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: nil)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_current
@@ -93,7 +95,7 @@ RSpec.describe Closure, type: :model do
     it 'is empty if there is no currently active closure' do
       Closure.where(end_date: nil).destroy_all
 
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 3.days, end_date: Date.current - 1.days)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 3.days, end_date: today_in_tz - 1.days)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).not_to be_current
@@ -102,10 +104,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts closures in descending order by end date' do
       closures = [
-        [Date.current - 2, Date.current + 1],
-        [Date.current - 1, Date.current + 1],
-        [Date.current - 1, Date.current + 2],
-        [Date.current - 5, Date.current + 3]
+        [today_in_tz - 2, today_in_tz + 1],
+        [today_in_tz - 1, today_in_tz + 1],
+        [today_in_tz - 1, today_in_tz + 2],
+        [today_in_tz - 5, today_in_tz + 3]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -116,10 +118,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts indefinite closures before definite ones' do
       closures = [
-        [Date.current - 1, nil],
-        [Date.current - 2, Date.current + 1],
-        [Date.current - 1, Date.current + 2],
-        [Date.current - 5, Date.current + 3]
+        [today_in_tz - 1, nil],
+        [today_in_tz - 2, today_in_tz + 1],
+        [today_in_tz - 1, today_in_tz + 2],
+        [today_in_tz - 5, today_in_tz + 3]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -143,7 +145,7 @@ RSpec.describe Closure, type: :model do
       end
 
       it 'works regardless of the ENV time zone' do
-        closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: Date.current + 1.days)
+        closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: today_in_tz + 1.days)
         %w[UTC America/Los_Angeles].each do |tz|
           ENV['TZ'] = tz
           expect(closure).to be_current
