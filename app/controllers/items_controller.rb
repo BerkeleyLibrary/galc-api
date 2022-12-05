@@ -48,15 +48,7 @@ class ItemsController < ApplicationController
 
       # TODO: send page size
       (pagination = jsonapi_pagination_meta(items)) && (meta[:pagination] = pagination)
-
-      (closure = closure_meta) && (meta[:closure] = closure)
     end
-  end
-
-  def closure_meta
-    return unless (ecc = Closure.effective_current_closure)
-
-    ClosureSerializer.new(ecc).serializable_hash
   end
 
   # @see JSONAPI::Pagination#jsonapi_pagination_meta
