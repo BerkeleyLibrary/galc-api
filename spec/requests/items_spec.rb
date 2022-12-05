@@ -69,7 +69,7 @@ RSpec.describe 'Items', type: :request do
       end
 
       it 'accepts JSONAPI include parameters' do
-        get items_url, params: { include: 'terms,terms.facet' }
+        get items_url, params: { include: 'image,terms,terms.facet' }
 
         expect(response).to be_successful
         expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
@@ -77,8 +77,8 @@ RSpec.describe 'Items', type: :request do
         parsed_response = JSON.parse(response.body)
 
         links = parsed_response.delete('links')
-        expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
-        expect(links['current']).to eq("#{items_url}?include=terms,terms.facet&page[number]=1")
+        expect(links['self']).to eq("#{items_url}?include=image%2Cterms%2Cterms.facet")
+        expect(links['current']).to eq("#{items_url}?include=image,terms,terms.facet&page[number]=1")
 
         expected_data = Item.includes(:terms)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
@@ -86,7 +86,7 @@ RSpec.describe 'Items', type: :request do
           availability: AvailabilityService.availability_for(expected_mms_ids),
           pagination: { current: 1, records: expected_mms_ids.count, offset: 0, limit: 30 }
         }
-        expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[terms terms.facet], meta: expected_meta })
+        expect(parsed_response).to contain_jsonapi_for(expected_data, { include: %i[image terms terms.facet], meta: expected_meta })
       end
 
       it 'supports searches by facet' do
@@ -296,6 +296,23 @@ RSpec.describe 'Items', type: :request do
         expect(terms_data).to be_a(Array)
         expected_terms_data = item.terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
         expect(terms_data).to contain_exactly(*expected_terms_data)
+      end
+
+      it 'includes the image' do
+        item = Item.take
+
+        get item_url(item), params: { include: 'image' }
+        parsed_response = JSON.parse(response.body)
+        data = parsed_response['data']
+
+        item_data = data['relationships']['image']['data']
+        expect(item_data).to eq({ 'id' => item.image.id.to_s, 'type' => 'image' })
+
+        included = parsed_response['included']
+        expect(included).to be_a(Array)
+
+        expected_data = ImageSerializer.new(item.image).serializable_hash[:data]
+        expect(included[0]).to deep_eq_hash(expected_data, indifferent: true)
       end
     end
   end

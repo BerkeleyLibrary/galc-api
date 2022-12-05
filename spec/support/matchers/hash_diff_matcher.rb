@@ -4,12 +4,12 @@ module BerkeleyLibrary
 
   module Matchers
 
-    def deep_include_hashes(expected)
-      HashDiffMatcher.new(expected, strict: false)
+    def deep_include_hashes(expected, indifferent: false, strict: false)
+      HashDiffMatcher.new(expected, indifferent: indifferent, strict: strict)
     end
 
-    def deep_eq_hash(expected)
-      HashDiffMatcher.new(expected)
+    def deep_eq_hash(expected, indifferent: false, strict: true)
+      HashDiffMatcher.new(expected, indifferent: indifferent, strict: strict)
     end
 
     class HashDiffMatcher
@@ -17,12 +17,13 @@ module BerkeleyLibrary
 
       INDENT = '  '.freeze
 
-      attr_reader :expected, :strict, :actual
+      attr_reader :expected, :indifferent, :strict, :actual
 
-      def initialize(expected, strict: true)
+      def initialize(expected, indifferent: false, strict: true)
         raise ArgumentError, "Not a hash: #{expected}" unless hash_like?(expected)
 
         @expected = expected
+        @indifferent = indifferent
         @strict = strict
       end
 
@@ -67,8 +68,9 @@ module BerkeleyLibrary
       end
 
       def diffs
-        @diffs ||= Hashdiff.diff(deep_sort(expected), deep_sort(actual)).tap do |dd|
-          dd.reject! { |diff| diff[0] == '+' } unless strict
+        @diffs ||= Hashdiff.diff(expected_sorted, actual_sorted, hashdiff_options).tap do |dd|
+          remove_indifferences!(dd) if indifferent
+          remove_extras!(dd) unless strict
         end
       end
 
@@ -105,6 +107,30 @@ module BerkeleyLibrary
         end
       end
 
+      private
+
+      def remove_extras!(dd)
+        dd.reject! { |diff| diff[0] == '+' }
+      end
+
+      def hashdiff_options
+        { strict: strict, indifferent: indifferent }
+      end
+
+      def expected_sorted
+        @expected_sorted ||= deep_sort(expected)
+      end
+
+      def actual_sorted
+        @actual_sorted ||= deep_sort(actual)
+      end
+
+      def remove_indifferences!(diffs)
+        diffs.reject! do |diff|
+          sign, _, v1, v2 = diff
+          sign == '~' && v1.to_s == v2.to_s
+        end
+      end
     end
   end
 end
