@@ -24,8 +24,10 @@ class Image < ApplicationRecord
   after_destroy :remove_image_files
 
   def remove_image_files
-    FileUtils.rm_f(file_path)
-    FileUtils.rm_f(thumbnail_path)
+    [file_path, thumbnail_path].each do |p|
+      logger.info("Image #{id}: deleting #{p}")
+      FileUtils.rm_f(p)
+    end
   end
 
   # ------------------------------------------------------------
