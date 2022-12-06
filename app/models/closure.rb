@@ -1,13 +1,16 @@
+require 'tzinfo'
+
 class Closure < ApplicationRecord
   # ------------------------------------------------------------
   # Constants
 
-  TIME_ZONE = 'America/Los_Angeles'.freeze # TODO: something smarter
+  TZ_NAME = 'America/Los_Angeles'.freeze # TODO: something smarter
+  TIMEZONE = TZInfo::Timezone.get(TZ_NAME)
 
   SELECT_CURRENT_SQL = <<~SQL.squish.freeze
     SELECT closures.id
       FROM closures,
-           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TIME_ZONE}')) AS today) t
+           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TZ_NAME}')) AS today) t
      WHERE closures.start_date <= t.today
        AND (closures.end_date IS NULL
             OR closures.end_date > t.today)
@@ -16,14 +19,14 @@ class Closure < ApplicationRecord
   SELECT_FUTURE_SQL = <<~SQL.squish.freeze
     SELECT closures.id
       FROM closures,
-           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TIME_ZONE}')) AS today) t
+           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TZ_NAME}')) AS today) t
      WHERE closures.start_date > t.today
   SQL
 
   SELECT_PAST_SQL = <<~SQL.squish.freeze
     SELECT closures.id
       FROM closures,
-           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TIME_ZONE}')) AS today) t
+           (SELECT DATE(DATE_TRUNC('day', CURRENT_TIMESTAMP, '#{TZ_NAME}')) AS today) t
      WHERE closures.end_date <= t.today
   SQL
 
@@ -37,7 +40,6 @@ class Closure < ApplicationRecord
   # NOTE: We don't use default_scope because it mucks up query composition
   DEFAULT_ORDER = { end_date: :desc, start_date: :asc }.freeze
 
-  MSG_START_MUST_PRECEDE_END = 'Closure start date must precede end date'.freeze
   ALL_ATTRS = Closure.column_names.map(&:to_sym).freeze
   DATA_ATTRS = (ALL_ATTRS - [:id]).freeze
   EDIT_ATTRS = (DATA_ATTRS - %i[created_at updated_at]).freeze
@@ -54,7 +56,8 @@ class Closure < ApplicationRecord
     return unless start_date && end_date
     return if start_date < end_date
 
-    errors.add(:end_date, MSG_START_MUST_PRECEDE_END)
+    msg = "Closure start date #{start_date} must precede end date #{end_date}"
+    errors.add(:end_date, msg)
   end
 
   # ------------------------------------------------------------
@@ -74,23 +77,33 @@ class Closure < ApplicationRecord
   }
 
   # ------------------------------------------------------------
+  # Overrides
+
+  def start_date=(value)
+    super(ensure_local(value))
+  end
+
+  def end_date=(value)
+    super(ensure_local(value))
+  end
+
+  # ------------------------------------------------------------
   # Synthetic accessors
 
   def future?
-    start_date > Closure.today_in_tz
+    to_local_midnight(start_date) > Time.current
   end
 
   alias future future?
 
   def past?
-    end_date && end_date <= Closure.today_in_tz
+    end_date && to_local_midnight(end_date) <= Time.current
   end
 
   alias past past?
 
   def current?
-    today = Closure.today_in_tz
-    (today >= start_date) && (end_date.nil? || today < end_date)
+    !(future || past)
   end
 
   alias current current?
@@ -117,9 +130,17 @@ class Closure < ApplicationRecord
         "#{conds} #{wanted ? 'OR' : 'AND'} (#{cond})"
       end
     end
-
-    def today_in_tz
-      Time.now.in_time_zone(TIME_ZONE).to_date
-    end
   end
+
+  private
+
+  def ensure_local(date)
+    date.respond_to?(:zone) ? date.in_time_zone(TIMEZONE) : date
+  end
+
+  def to_local_midnight(date)
+    d = ensure_local(date)
+    Time.new(d.year, d.month, d.day, 0, 0, 0, TIMEZONE)
+  end
+
 end
