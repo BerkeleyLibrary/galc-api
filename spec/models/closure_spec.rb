@@ -35,8 +35,8 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'coerces times to date' do
-      start_date = Time.zone.local(2021, 8, 18)
-      end_date = Time.zone.local(2021, 12, 17, 23, 59, 59)
+      start_date = Time.new(2021, 8, 18, 0, 0, 0, Closure::TIMEZONE)
+      end_date = Time.new(2021, 12, 17, 23, 59, 59, Closure::TIMEZONE)
       expected_start_date = Date.new(2021, 8, 18)
       expected_end_date = Date.new(2021, 12, 17)
       closure = Closure.create(note: 'Fall 2021', start_date: start_date, end_date: end_date)
@@ -45,12 +45,36 @@ RSpec.describe Closure, type: :model do
 
       expect(closure.start_date).to eq(expected_start_date)
       expect(closure.end_date).to eq(expected_end_date)
+
+      closure.reload
+
+      expect(closure.start_date).to eq(expected_start_date)
+      expect(closure.end_date).to eq(expected_end_date)
+    end
+
+    it 'handles weird time zones, not that we should see any' do
+      start_date = Date.new(2021, 5, 19).in_time_zone('Asia/Tokyo')
+      end_date = Date.new(2021, 5, 21).in_time_zone('Pacific/Marquesas')
+      expected_start_date = Date.new(2021, 5, 18)
+      expected_end_date = Date.new(2021, 5, 21)
+
+      closure = Closure.create(note: 'Fall 2021', start_date: start_date, end_date: end_date)
+      expect(closure).to be_valid # just to be sure
+      expect(closure).to be_persisted # just to be sure
+
+      expect(closure.start_date).to eq(expected_start_date)
+      expect(closure.end_date).to eq(expected_end_date)
+
+      closure.reload
+
+      expect(closure.start_date).to eq(expected_start_date)
+      expect(closure.end_date).to eq(expected_end_date)
     end
   end
 
   describe :current do
 
-    let(:today_in_tz) { Closure.today_in_tz }
+    let(:today_in_tz) { Time.now.in_time_zone(Closure::TIMEZONE).to_date }
 
     it 'includes the currently active closure' do
       closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: today_in_tz + 1.days)
@@ -67,19 +91,19 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'does not include closures ending today' do
-      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1, end_date: today_in_tz)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: today_in_tz)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
 
     it 'does not include future definite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1, end_date: today_in_tz + 2)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1.days, end_date: today_in_tz + 2.days)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
 
     it 'does not include future indefinite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1, end_date: nil)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1.days, end_date: nil)
       expect(closure).not_to be_current
       expect(Closure.current).not_to include(closure)
     end
@@ -104,10 +128,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts closures in descending order by end date' do
       closures = [
-        [today_in_tz - 2, today_in_tz + 1],
-        [today_in_tz - 1, today_in_tz + 1],
-        [today_in_tz - 1, today_in_tz + 2],
-        [today_in_tz - 5, today_in_tz + 3]
+        [today_in_tz - 2.days, today_in_tz + 1.days],
+        [today_in_tz - 1.days, today_in_tz + 1.days],
+        [today_in_tz - 1.days, today_in_tz + 2.days],
+        [today_in_tz - 5.days, today_in_tz + 3.days]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -118,10 +142,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts indefinite closures before definite ones' do
       closures = [
-        [today_in_tz - 1, nil],
-        [today_in_tz - 2, today_in_tz + 1],
-        [today_in_tz - 1, today_in_tz + 2],
-        [today_in_tz - 5, today_in_tz + 3]
+        [today_in_tz - 1.days, nil],
+        [today_in_tz - 2.days, today_in_tz + 1.days],
+        [today_in_tz - 1.days, today_in_tz + 2.days],
+        [today_in_tz - 5.days, today_in_tz + 3.days]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
