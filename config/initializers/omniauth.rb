@@ -1,3 +1,17 @@
+# omniauth-cas ignores the 'origin' parameter and uses
+# the HTTP Referer, which doesn't include query parameters
+# TODO: figure out why sending 'origin' as 'url' breaks things
+# TODO: figure out something more elegant
+module CASExtensions
+  def return_url
+    if (origin = request.params['origin'])
+      return { url: origin }
+    end
+
+    super
+  end
+end
+
 # Override the default 'puts' logger that Omniauth uses.
 OmniAuth.config.logger = Rails.logger
 
@@ -21,4 +35,8 @@ Rails.application.configure do
   }
 
   config.middleware.use(OmniAuth::Builder) { provider(:cas, **cas_opts) }
+
+  config.to_prepare do
+    OmniAuth::Strategies::CAS.class_eval { prepend CASExtensions }
+  end
 end

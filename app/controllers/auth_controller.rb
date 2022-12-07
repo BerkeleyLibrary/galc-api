@@ -40,6 +40,8 @@ class AuthController < ApplicationController
   def raw_origin
     # TODO: Figure out why we can't depend on omniauth.origin --
     #       should we be setting `origin_param: 'url'` in initializers/omniauth.rb?
+    logger.debug("AuthController#raw_origin: request.env['omniauth.origin'] = #{request.env['omniauth.origin'].inspect}")
+    logger.debug("AuthController#raw_origin: params['url'] = #{params['url'].inspect}")
     request.env['omniauth.origin'] || params['url']
   end
 
