@@ -41,7 +41,6 @@ RSpec.describe 'Items', type: :request do
       end
     end
 
-    # TODO: sort out image includes
     describe :index do
       it 'returns the items' do
         expect(Item).to exist # just to be sure
@@ -59,7 +58,7 @@ RSpec.describe 'Items', type: :request do
         expect(links['self']).to eq(items_url)
         expect(links['current']).to eq("#{items_url}?page[number]=1")
 
-        expected_data = Item.includes(:terms)
+        expected_data = Item.where(suppressed: false).includes(:terms)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
@@ -80,7 +79,7 @@ RSpec.describe 'Items', type: :request do
         expect(links['self']).to eq("#{items_url}?include=image%2Cterms%2Cterms.facet")
         expect(links['current']).to eq("#{items_url}?include=image,terms,terms.facet&page[number]=1")
 
-        expected_data = Item.includes(:terms)
+        expected_data = Item.where(suppressed: false).includes(:terms)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
@@ -104,7 +103,7 @@ RSpec.describe 'Items', type: :request do
         # expect(links['self']).to eq("#{items_url}?include=terms%2Cterms.facet")
         # expect(links['current']).to eq("#{links['self']}&page[number]=1")
 
-        expected_data = Item.with_facet_values(facet_values)
+        expected_data = Item.with_facet_values(facet_values).where(suppressed: false)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
@@ -124,7 +123,7 @@ RSpec.describe 'Items', type: :request do
 
         _links = parsed_response.delete('links')
 
-        expected_data = Item.with_all_keywords(keywords)
+        expected_data = Item.where(suppressed: false).with_all_keywords(keywords)
         expected_mms_ids = expected_data.reorder(nil).pluck('DISTINCT(mms_id)')
         expected_meta = {
           availability: AvailabilityService.availability_for(expected_mms_ids),
@@ -135,14 +134,14 @@ RSpec.describe 'Items', type: :request do
 
       context 'suppressed items' do
 
-        let(:keywords) { 'color medium numbered' }
+        let(:keywords) { 'color medium' }
 
         attr_reader :all_items
         attr_reader :params
 
         before do
           @all_items = Item.with_all_keywords(keywords)
-          expect(all_items.count).to be > 1 # just to be sure
+          expect(all_items.count).to be > 2 # just to be sure
           all_items.take.tap { |it| it.update(suppressed: true) }
 
           @params = { 'filter[keywords]' => keywords }
@@ -415,8 +414,8 @@ RSpec.describe 'Items', type: :request do
             expect(response.headers['Location']).to eq(item_url(item))
           end
 
-          it 'accepts a nil MMS ID' do
-            attributes = valid_attributes.except(:mms_id)
+          it 'accepts a suppressed item with a nil MMS ID' do
+            attributes = valid_attributes.except(:mms_id).merge(suppressed: true)
 
             payload = { data: { type: 'item', attributes: attributes, relationships: to_relationships(image: valid_image) } }
             expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
@@ -511,6 +510,23 @@ RSpec.describe 'Items', type: :request do
           it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
             existing_mms_id = Item.pluck(:mms_id).compact.first
             invalid_attributes = valid_attributes.merge({ mms_id: existing_mms_id })
+            payload = { data: { type: 'item', attributes: invalid_attributes, relationships: valid_relationships } }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            expected_errors = expected_errors_for(invalid_attributes)
+            expected_json = expected_errors.map { |err| jsonapi_for(err) }
+            expect(actual_errors).to contain_exactly(*expected_json)
+          end
+
+          it 'fails with 422 Unprocessable Entity for a missing MMS ID when not suppressed' do
+            invalid_attributes = valid_attributes.merge(mms_id: nil)
             payload = { data: { type: 'item', attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)
@@ -695,6 +711,36 @@ RSpec.describe 'Items', type: :request do
 
             expect(parsed_response).to contain_jsonapi_for(item)
           end
+
+          it 'accepts a suppressed item with a nil MMS ID' do
+            item = Item.take
+
+            old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
+            expected_attributes = old_attributes.merge(suppressed: true, mms_id: nil)
+            expected_terms = item.terms.to_a
+
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: expected_attributes,
+                                relationships: to_relationships(terms: expected_terms, image: item.image) } }
+            patch item_url(item), params: payload, as: :jsonapi
+
+            expect(response).to have_http_status(:ok)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            item.reload
+            expected_attributes.each do |attr, val|
+              actual = item.send(attr)
+              expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
+            end
+
+            expect(item.terms).to contain_exactly(*expected_terms)
+
+            parsed_response = JSON.parse(response.body)
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(item_url(item))
+
+            expect(parsed_response).to contain_jsonapi_for(item)
+          end
         end
 
         describe 'failure' do
@@ -723,6 +769,28 @@ RSpec.describe 'Items', type: :request do
             mms_id = Item.pluck(:mms_id).find { |id| id && id != item.mms_id }
 
             invalid_attributes = { mms_id: mms_id }
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes, relationships: valid_relationships } }
+
+            allow(Rails.logger).to receive(:error)
+            patch item_url(item), params: payload, as: :jsonapi
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            expect(actual_errors).to be_a(Array)
+
+            expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
+            expected_json = expected_errors.map { |err| jsonapi_for(err) }
+            expect(actual_errors).to contain_exactly(*expected_json)
+          end
+
+          it 'fails with 422 Unprocessable Entity for a missing MMS ID when not suppressed' do
+            item = Item.take
+            expect(item.suppressed).to eq(false) # just to be sure
+
+            invalid_attributes = { mms_id: nil }
             payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes, relationships: valid_relationships } }
 
             allow(Rails.logger).to receive(:error)

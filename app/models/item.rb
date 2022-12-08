@@ -25,6 +25,7 @@ class Item < ApplicationRecord
   validates :title, presence: true # TODO: enforce this in the schema
   validate :multiple_terms_allowed
   validate :unsuppressed_item_has_image
+  validate :unsuppressed_item_has_mms_id
 
   def multiple_terms_allowed
     terms_by_facet = terms.group_by(&:facet)
@@ -40,6 +41,12 @@ class Item < ApplicationRecord
     return if suppressed || image_id.present?
 
     errors.add(:image, 'unsuppressed item must have an image')
+  end
+
+  def unsuppressed_item_has_mms_id
+    return if suppressed || mms_id.present?
+
+    errors.add(:mms_id, 'unsuppressed item must have an MMS ID')
   end
 
   # ------------------------------------------------------------
