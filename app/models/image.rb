@@ -19,6 +19,12 @@ class Image < ApplicationRecord
   has_many :items, dependent: :restrict_with_exception
 
   # ------------------------------------------------------------
+  # Validations
+
+  validates :basename, presence: true
+  validates :thumbnail, presence: true
+
+  # ------------------------------------------------------------
   # Hooks
 
   after_destroy :remove_image_files

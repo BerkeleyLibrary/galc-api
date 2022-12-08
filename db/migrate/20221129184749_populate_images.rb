@@ -4,6 +4,8 @@ class PopulateImages < ActiveRecord::Migration[7.0]
       INSERT INTO images (basename, thumbnail, created_at, updated_at)
            SELECT image, thumbnail, now(), now()
              FROM items
+            WHERE image IS NOT NULL
+              AND thumbnail IS NOT NULL
          ORDER BY 1
     SQL
     exec_insert(stmt)
