@@ -162,6 +162,46 @@ describe Image do
     end
   end
 
+  describe 'validations' do
+    it 'requires a basename' do
+      count_before = Image.count
+
+      aggregate_failures do
+        [nil, ''].each do |bad_value|
+          img = Image.new(basename: bad_value, thumbnail: "#{bad_value}_360px.jpg")
+          expect(img).not_to be_valid
+
+          errors = img.errors
+          expect(errors.size).to eq(1)
+          error = errors.first
+          expect(error.attribute).to eq(:basename)
+
+          expect { img.save! }.to raise_error(ActiveRecord::RecordInvalid)
+          expect(Image.count).to eq(count_before)
+        end
+      end
+    end
+
+    it 'requires a thumbnail' do
+      count_before = Image.count
+
+      aggregate_failures do
+        [nil, ''].each do |bad_value|
+          img = Image.new(basename: 'image.jpg', thumbnail: bad_value)
+          expect(img).not_to be_valid
+
+          errors = img.errors
+          expect(errors.size).to eq(1)
+          error = errors.first
+          expect(error.attribute).to eq(:thumbnail)
+
+          expect { img.save! }.to raise_error(ActiveRecord::RecordInvalid)
+          expect(Image.count).to eq(count_before)
+        end
+      end
+    end
+  end
+
   describe :destroy do
     attr_reader :image
     attr_reader :source_file_path
