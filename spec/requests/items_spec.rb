@@ -437,6 +437,37 @@ RSpec.describe 'Items', type: :request do
             expect(parsed_response).to contain_jsonapi_for(item)
             expect(response.headers['Location']).to eq(item_url(item))
           end
+
+          it 'accepts a suppressed item without an image' do
+            payload = {
+              data: {
+                type: 'item',
+                attributes: valid_attributes.merge(suppressed: true),
+                relationships: to_relationships(terms: valid_terms)
+              }
+            }
+            expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+
+            expect(response).to have_http_status(:created)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            parsed_response = JSON.parse(response.body)
+            item_id = parsed_response['data']['id'].to_i
+
+            item = Item.find(item_id)
+            expect(item).not_to be_nil
+            valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+
+            expect(item.terms).to contain_exactly(*valid_terms)
+            expect(item.image).to be_nil
+            expect(item).to be_suppressed
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(items_url)
+
+            expect(parsed_response).to contain_jsonapi_for(item)
+            expect(response.headers['Location']).to eq(item_url(item))
+          end
         end
 
         describe 'failure' do
@@ -621,6 +652,41 @@ RSpec.describe 'Items', type: :request do
             expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
             expect(item.terms).to contain_exactly(*expected_terms)
+
+            parsed_response = JSON.parse(response.body)
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(item_url(item))
+
+            expect(parsed_response).to contain_jsonapi_for(item)
+          end
+
+          it 'accepts a suppressed item without an image' do
+            item = Item.take
+
+            old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
+            new_attributes = old_attributes.merge(suppressed: true)
+            expected_attributes = old_attributes.merge(new_attributes)
+
+            expected_terms = item.terms.to_a
+
+            relationships = to_relationships(terms: expected_terms).merge(image: { data: nil })
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: new_attributes,
+                                relationships: relationships } }
+            patch item_url(item), params: payload, as: :jsonapi
+
+            expect(response).to have_http_status(:ok)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            item.reload
+            expected_attributes.each do |attr, val|
+              actual = item.send(attr)
+              expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
+            end
+
+            expect(item.terms).to contain_exactly(*expected_terms)
+            expect(item.image).to be_nil
+            expect(item).to be_suppressed
 
             parsed_response = JSON.parse(response.body)
 

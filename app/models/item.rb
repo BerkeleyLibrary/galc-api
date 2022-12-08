@@ -16,7 +16,7 @@ class Item < ApplicationRecord
   # Relations
 
   has_and_belongs_to_many :terms
-  belongs_to :image
+  belongs_to :image, optional: true
 
   # ------------------------------------------------------------
   # Validations
@@ -24,6 +24,7 @@ class Item < ApplicationRecord
   validates :mms_id, uniqueness: { allow_nil: true }
   validates :title, presence: true # TODO: enforce this in the schema
   validate :multiple_terms_allowed
+  validate :unsuppressed_item_has_image
 
   def multiple_terms_allowed
     terms_by_facet = terms.group_by(&:facet)
@@ -33,6 +34,12 @@ class Item < ApplicationRecord
 
       errors.add(:terms, "multiple values for #{facet.name}: #{terms.map(&:value).join(', ')}")
     end
+  end
+
+  def unsuppressed_item_has_image
+    return if suppressed || image_id.present?
+
+    errors.add(:image, 'unsuppressed item must have an image')
   end
 
   # ------------------------------------------------------------

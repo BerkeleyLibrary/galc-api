@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_12_07_235838) do
+ActiveRecord::Schema[7.0].define(version: 2022_12_08_171034) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,9 +63,10 @@ ActiveRecord::Schema[7.0].define(version: 2022_12_07_235838) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "suppressed", default: false, null: false
-    t.bigint "image_id", null: false
+    t.bigint "image_id"
     t.index ["image_id"], name: "index_items_on_image_id"
     t.index ["mms_id"], name: "index_items_on_mms_id", unique: true
+    t.check_constraint "suppressed = true OR image_id IS NOT NULL", name: "unsuppressed_item_has_image"
   end
 
   create_table "items_terms", id: false, force: :cascade do |t|

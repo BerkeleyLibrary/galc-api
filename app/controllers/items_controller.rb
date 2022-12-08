@@ -72,10 +72,12 @@ class ItemsController < ApplicationController
 
   def ensure_image_param!
     item_params.tap do |pp|
-      image_id = pp.delete('image_id') do
-        raise ActionController::ParameterMissing.new(:image_id, pp.keys)
+      if (image_id = pp.delete('image_id'))
+        pp[:image] = Image.find(image_id)
+      else
+        suppressed = ActiveModel::Type::Boolean.new.cast(pp['suppressed'])
+        raise ActionController::ParameterMissing.new(:image_id, pp.keys) unless suppressed
       end
-      pp[:image] = Image.find(image_id)
     end
   end
 
