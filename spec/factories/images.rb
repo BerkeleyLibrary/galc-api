@@ -16,9 +16,19 @@ FactoryBot.define do
       thumbnail { 'Reyes (Eastern Sierras Color)_360px.jpg' }
     end
 
-    factory :image_moore do
-      basename { 'Moore(SeatedFigures).jpg' }
-      thumbnail { 'Moore(SeatedFigures)_360px.jpg' }
+    factory :image_jo do
+      basename { 'Jo(RIP).jpg' }
+      thumbnail { 'Jo(RIP)_360px.jpg' }
+    end
+
+    factory :image_tachibana do
+      basename { 'Tachibana(Conversation).jpg' }
+      thumbnail { 'Tachibana(Conversation)_360px.jpg' }
+    end
+
+    factory :image_rosa do
+      basename { 'Rosa (Democritus).jpg' }
+      thumbnail { 'Rosa (Democritus)_360px.jpg' }
     end
   end
 end

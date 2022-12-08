@@ -81,12 +81,12 @@ describe Item do
 
     it 'finds items based on implicit parent material values' do
       facet_medium = Facet.find_by!(name: 'Medium')
-      term_planographic = Term.find_by!(value: 'Planographic', facet: facet_medium)
-      direct_items = term_planographic.items
-      indirect_items = term_planographic.children.flat_map(&:items)
+      term_relief = Term.find_by!(value: 'Relief', facet: facet_medium)
+      direct_items = term_relief.items
+      indirect_items = term_relief.children.flat_map(&:items)
       expected_items = direct_items + indirect_items
 
-      facet_values = { 'Medium' => ['Planographic'] }
+      facet_values = { 'Medium' => ['Relief'] }
       results = Item.with_facet_values(facet_values)
       expect(results).to contain_exactly(*expected_items)
     end
@@ -106,15 +106,15 @@ describe Item do
     end
 
     it 'finds items by description' do
-      items = Item.with_all_keywords('severe')
+      items = Item.with_all_keywords('signed')
       expect(items).to exist
-      items.each { |i| expect(i.description.downcase).to include('severe') }
+      items.each { |i| expect(i.description.downcase).to include('signed') }
     end
 
     it 'finds items by date' do
-      items = Item.with_all_keywords('1957')
+      items = Item.with_all_keywords('1955')
       expect(items).to exist
-      items.each { |i| expect(i.date).to include('1957') }
+      items.each { |i| expect(i.date).to include('1955') }
     end
 
     it 'finds items by term values' do
@@ -165,6 +165,37 @@ describe Item do
       item.reload
       expect(item.suppressed).to eq(true)
       expect(item.image).to be_nil
+    end
+
+    it 'requires an mms_id for unsuppressed items' do
+      item = Item.take
+      img_before = item.mms_id
+      updated_at_before = item.updated_at
+
+      item.mms_id = nil
+      expect(item).not_to be_valid
+
+      errors = item.errors
+      expect(errors.size).to eq(1)
+      error = errors.first
+      expect(error.attribute).to eq(:mms_id)
+
+      expect { item.save! }.to raise_error(ActiveRecord::RecordInvalid)
+      item.reload
+      expect(item.updated_at).to eq(updated_at_before)
+      expect(item.mms_id).to eq(img_before)
+    end
+
+    it 'allows a nil mms_id for suppressed items' do
+      item = Item.take
+      item.suppressed = true
+      item.mms_id = nil
+      expect(item).to be_valid
+
+      item.save!
+      item.reload
+      expect(item.suppressed).to eq(true)
+      expect(item.mms_id).to be_nil
     end
   end
 
