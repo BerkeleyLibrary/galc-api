@@ -2,6 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Closure, type: :model do
 
+  let(:today_in_tz) { Time.now.in_time_zone(Closure::TIMEZONE).to_date }
+
   def compare_closures(a, b)
     order = compare_end_dates(a, b)
     return -order if order != 0
@@ -16,7 +18,7 @@ RSpec.describe Closure, type: :model do
 
   describe :create do
     it 'requires start date to be before end date' do
-      closure = Closure.create(note: 'Backwards', start_date: Date.current, end_date: Date.current - 1.days)
+      closure = Closure.create(note: 'Backwards', start_date: today_in_tz, end_date: today_in_tz - 1.days)
       expect(closure).not_to be_valid
       expect(closure).not_to be_persisted
     end
@@ -73,8 +75,6 @@ RSpec.describe Closure, type: :model do
   end
 
   describe :current do
-
-    let(:today_in_tz) { Time.now.in_time_zone(Closure::TIMEZONE).to_date }
 
     it 'includes the currently active closure' do
       closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: today_in_tz + 1.days)
@@ -180,7 +180,7 @@ RSpec.describe Closure, type: :model do
 
   describe :future do
     it 'returns future closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1.days, end_date: Date.current + 2.days)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1.days, end_date: today_in_tz + 2.days)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_future
@@ -188,7 +188,7 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'includes indefinite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current + 1.days, end_date: nil)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz + 1.days, end_date: nil)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_future
@@ -197,10 +197,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts closures in descending order by end date' do
       closures = [
-        [Date.current + 1, Date.current + 3],
-        [Date.current + 2, Date.current + 4],
-        [Date.current + 1, Date.current + 2],
-        [Date.current + 5, Date.current + 6]
+        [today_in_tz + 1, today_in_tz + 3],
+        [today_in_tz + 2, today_in_tz + 4],
+        [today_in_tz + 1, today_in_tz + 2],
+        [today_in_tz + 5, today_in_tz + 6]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -211,10 +211,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts indefinite closures before definite ones' do
       closures = [
-        [Date.current + 1, nil],
-        [Date.current + 2, Date.current + 4],
-        [Date.current + 1, Date.current + 2],
-        [Date.current + 5, Date.current + 6]
+        [today_in_tz + 1, nil],
+        [today_in_tz + 2, today_in_tz + 4],
+        [today_in_tz + 1, today_in_tz + 2],
+        [today_in_tz + 5, today_in_tz + 6]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -226,7 +226,7 @@ RSpec.describe Closure, type: :model do
 
   describe :past do
     it 'returns past closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 3.days, end_date: Date.current - 1.days)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 3.days, end_date: today_in_tz - 1.days)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_past
@@ -234,7 +234,7 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'includes closures ended today' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 3.days, end_date: Date.current)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 3.days, end_date: today_in_tz)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).to be_past
@@ -242,7 +242,7 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'does not include indefinite closures' do
-      closure = create(:closure, note: 'Test 1', start_date: Date.current - 1.days, end_date: nil)
+      closure = create(:closure, note: 'Test 1', start_date: today_in_tz - 1.days, end_date: nil)
       expect(closure).to be_persisted # just to be sure
 
       expect(closure).not_to be_past
@@ -251,10 +251,10 @@ RSpec.describe Closure, type: :model do
 
     it 'sorts closures in descending order by end date' do
       closures = [
-        [Date.current - 3, Date.current - 1],
-        [Date.current - 4, Date.current - 2],
-        [Date.current - 2, Date.current - 1],
-        [Date.current - 6, Date.current - 5]
+        [today_in_tz - 3, today_in_tz - 1],
+        [today_in_tz - 4, today_in_tz - 2],
+        [today_in_tz - 2, today_in_tz - 1],
+        [today_in_tz - 6, today_in_tz - 5]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -267,18 +267,18 @@ RSpec.describe Closure, type: :model do
   describe :filtered do
     before do
       [
-        [Date.current + 1, Date.current + 2],
-        [Date.current + 1, nil],
-        [Date.current + 2, Date.current + 4],
-        [Date.current + 5, Date.current + 6],
-        [Date.current - 1, Date.current + 2],
-        [Date.current - 1, nil],
-        [Date.current - 2, Date.current + 1],
-        [Date.current - 2, Date.current - 1],
-        [Date.current - 3, Date.current - 1],
-        [Date.current - 4, Date.current - 2],
-        [Date.current - 5, Date.current + 3],
-        [Date.current - 6, Date.current - 5]
+        [today_in_tz + 1, today_in_tz + 2],
+        [today_in_tz + 1, nil],
+        [today_in_tz + 2, today_in_tz + 4],
+        [today_in_tz + 5, today_in_tz + 6],
+        [today_in_tz - 1, today_in_tz + 2],
+        [today_in_tz - 1, nil],
+        [today_in_tz - 2, today_in_tz + 1],
+        [today_in_tz - 2, today_in_tz - 1],
+        [today_in_tz - 3, today_in_tz - 1],
+        [today_in_tz - 4, today_in_tz - 2],
+        [today_in_tz - 5, today_in_tz + 3],
+        [today_in_tz - 6, today_in_tz - 5]
       ].map do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -445,22 +445,22 @@ RSpec.describe Closure, type: :model do
     end
 
     it 'returns nil if the current closure is indefinite' do
-      create(:closure, start_date: Date.current - 1, end_date: nil)
+      create(:closure, start_date: today_in_tz - 1, end_date: nil)
       expect(Closure.reopen_date).to be_nil
     end
 
     it 'returns the end date if the current closure is definite' do
-      expected_date = Date.current + 1
-      create(:closure, start_date: Date.current - 1, end_date: expected_date)
+      expected_date = today_in_tz + 1
+      create(:closure, start_date: today_in_tz - 1, end_date: expected_date)
       expect(Closure.reopen_date).to eq(expected_date)
     end
 
     it 'returns the latest end date if there are multiple overlapping closures' do
       [
-        [Date.current - 1, Date.current + 1],
-        [Date.current - 2, Date.current + 1],
-        [Date.current - 1, Date.current + 2],
-        [Date.current - 5, Date.current + 3]
+        [today_in_tz - 1, today_in_tz + 1],
+        [today_in_tz - 2, today_in_tz + 1],
+        [today_in_tz - 1, today_in_tz + 2],
+        [today_in_tz - 5, today_in_tz + 3]
       ].each do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
@@ -471,10 +471,10 @@ RSpec.describe Closure, type: :model do
 
     it 'returns nil if any current closure is indefinite' do
       [
-        [Date.current - 1, nil],
-        [Date.current - 2, Date.current + 1],
-        [Date.current - 1, Date.current + 2],
-        [Date.current - 5, Date.current + 3]
+        [today_in_tz - 1, nil],
+        [today_in_tz - 2, today_in_tz + 1],
+        [today_in_tz - 1, today_in_tz + 2],
+        [today_in_tz - 5, today_in_tz + 3]
       ].each do |start_date, end_date|
         create(:closure, start_date: start_date, end_date: end_date)
       end
