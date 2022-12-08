@@ -135,6 +135,39 @@ describe Item do
     end
   end
 
+  describe 'validations' do
+    it 'requires an image for unsuppressed items' do
+      item = Item.take
+      img_before = item.image
+      updated_at_before = item.updated_at
+
+      item.image = nil
+      expect(item).not_to be_valid
+
+      errors = item.errors
+      expect(errors.size).to eq(1)
+      error = errors.first
+      expect(error.attribute).to eq(:image)
+
+      expect { item.save! }.to raise_error(ActiveRecord::RecordInvalid)
+      item.reload
+      expect(item.updated_at).to eq(updated_at_before)
+      expect(item.image).to eq(img_before)
+    end
+
+    it 'allows a nil image for suppressed items' do
+      item = Item.take
+      item.suppressed = true
+      item.image = nil
+      expect(item).to be_valid
+
+      item.save!
+      item.reload
+      expect(item.suppressed).to eq(true)
+      expect(item.image).to be_nil
+    end
+  end
+
   describe 'synthetic accessors' do
     describe :record_id do
       it 'returns a RecordId if MMS ID is present' do
