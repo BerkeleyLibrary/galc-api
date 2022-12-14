@@ -67,8 +67,6 @@ module GalcApi
     config.reserve_email_to = ENV['RESERVE_EMAIL_TO'] || 'lib-testmail@lists.berkeley.edu'
     config.reserve_email_bcc = ENV['RESERVE_EMAIL_BCC']
 
-    config.galc_image_base_url = ENV['GALC_IMAGE_BASE_URL'] || 'https://digitalassets.lib.berkeley.edu/galc/ucb/images/'
-
     # ------------------------------------------------------------
     # Volume configuration
 

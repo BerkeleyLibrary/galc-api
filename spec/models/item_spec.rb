@@ -233,8 +233,6 @@ describe Item do
     end
 
     describe 'image URIs' do
-      let(:base_url) { Rails.application.config.galc_image_base_url }
-
       describe :image_uri do
         it 'returns the image URI' do
           item = Item.find_by(artist: 'Minami, Keiko')
