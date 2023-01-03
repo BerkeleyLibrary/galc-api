@@ -12,6 +12,7 @@ class Image < ApplicationRecord
   JPEG_MIME_TYPE = 'image/jpeg'.freeze
   THUMBNAIL_WIDTH = 360
   JSONAPI_ATTRS = %i[thumbnail basename].freeze
+  MODE_NEW_FILES = File::WRONLY | File::CREAT | File::EXCL
 
   # ------------------------------------------------------------
   # Relations
@@ -86,10 +87,10 @@ class Image < ApplicationRecord
     def write_jpeg_file(uploaded_file)
       jpeg_tmp = jpeg_tempfile_from(uploaded_file)
       begin
-        stem = stem_from(uploaded_file.original_filename)
+        sanitized_name = Zaru.sanitize!(uploaded_file.original_filename)
+        stem = File.basename(sanitized_name, File.extname(sanitized_name))
         save_image(stem, jpeg_tmp)
       ensure
-        # TODO: can we do this only for tempfiles we create?
         jpeg_tmp.close(true)
       end
     end
@@ -137,17 +138,16 @@ class Image < ApplicationRecord
       ImageProcessing::Vips.source(jpeg_path).convert('jpeg').resize_to_limit(THUMBNAIL_WIDTH, nil).call
     end
 
-    def stem_from(name)
-      sanitized_name = Zaru.sanitize!(name)
-      extname = File.extname(sanitized_name)
-      File.basename(sanitized_name, extname)
-    end
-
     def open_unique_image_file(base, ext, attempt = 0, &block)
       name = attempt > 0 ? "#{base}-#{attempt}#{ext}" : "#{base}#{ext}"
       full_path = File.join(images_path, name)
-      File.open(full_path, File::WRONLY | File::CREAT | File::EXCL, &block)
-    rescue Errno::EEXIST
+
+      begin
+        return File.open(full_path, MODE_NEW_FILES, &block) unless Image.exists?(basename: name)
+      rescue Errno::EEXIST
+        # fall through to next attempt
+      end
+
       open_unique_image_file(base, ext, attempt + 1, &block)
     end
   end

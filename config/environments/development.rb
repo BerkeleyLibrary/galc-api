@@ -64,5 +64,6 @@ Rails.application.configure do
   ]
   Rails.application.config.hosts << '.vpn.berkeley.edu' if ENV['ALLOW_VPN'].present?
 
+  # TODO: find a better solution for dev images
   config.galc_volume_root = ENV['GALC_VOLUME_ROOT'] || Rails.root.join('spec/data/galc_volume')
 end

@@ -75,23 +75,67 @@ describe Image do
       expect(thumbnail_ratio).to be_within('1/100'.to_r).of(original_ratio)
     end
 
-    it 'handles name collisions' do
-      image1 = Image.from_uploaded_file(uploaded_file)
-      image2 = Image.from_uploaded_file(uploaded_file)
+    describe 'name collisions' do
+      it 'handles name collisions' do
+        image1 = Image.from_uploaded_file(uploaded_file)
+        image2 = Image.from_uploaded_file(uploaded_file)
 
-      expect(image2.id).not_to eq(image1.id)
+        expect(image2.id).not_to eq(image1.id)
 
-      %i[file_path thumbnail_path].each do |path_attr|
-        path1 = image1.send(path_attr)
-        path2 = image2.send(path_attr)
-        expect(path1).not_to eq(path2)
+        %i[file_path thumbnail_path].each do |path_attr|
+          path1 = image1.send(path_attr)
+          path2 = image2.send(path_attr)
+          expect(path1).not_to eq(path2)
 
-        data1 = File.read(path1, mode: 'rb')
-        data2 = File.read(path2, mode: 'rb')
+          data1 = File.read(path1, mode: 'rb')
+          data2 = File.read(path2, mode: 'rb')
 
-        digest1 = Digest::MD5.hexdigest(data1)
-        digest2 = Digest::MD5.hexdigest(data2)
-        expect(digest2).to eq(digest1)
+          digest1 = Digest::MD5.hexdigest(data1)
+          digest2 = Digest::MD5.hexdigest(data2)
+          expect(digest2).to eq(digest1)
+        end
+      end
+
+      it 'handles name collisions with files on disk' do
+        image1 = Image.from_uploaded_file(uploaded_file).tap(&:delete)
+        expect { Image.find(image1.id) }.to raise_error(ActiveRecord::RecordNotFound)
+        expect(File.exist?(image1.file_path)).to eq(true)
+        expect(File.exist?(image1.thumbnail_path)).to eq(true)
+
+        image2 = Image.from_uploaded_file(uploaded_file)
+
+        expect(image2.id).not_to eq(image1.id)
+
+        %i[file_path thumbnail_path].each do |path_attr|
+          path1 = image1.send(path_attr)
+          path2 = image2.send(path_attr)
+          expect(path1).not_to eq(path2)
+
+          data1 = File.read(path1, mode: 'rb')
+          data2 = File.read(path2, mode: 'rb')
+
+          digest1 = Digest::MD5.hexdigest(data1)
+          digest2 = Digest::MD5.hexdigest(data2)
+          expect(digest2).to eq(digest1)
+        end
+      end
+
+      it 'handles name collisions with files in the DB' do
+        image1 = Image.from_uploaded_file(uploaded_file)
+        %i[file_path thumbnail_path].each do |path_attr|
+          path = image1.send(path_attr)
+          FileUtils.rm(path)
+          expect(File.exist?(path)).to eq(false)
+        end
+
+        image2 = Image.from_uploaded_file(uploaded_file)
+
+        expect(image2.id).not_to eq(image1.id)
+        %i[file_path thumbnail_path].each do |path_attr|
+          path1 = image1.send(path_attr)
+          path2 = image2.send(path_attr)
+          expect(path1).not_to eq(path2)
+        end
       end
     end
 
