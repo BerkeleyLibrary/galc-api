@@ -437,6 +437,30 @@ RSpec.describe 'Items', type: :request do
             expect(response.headers['Location']).to eq(item_url(item))
           end
 
+          it 'treats a blank MMS ID as nil' do
+            post_attributes = valid_attributes.except(:mms_id).merge(suppressed: true, mms_id: ' ')
+
+            payload = { data: { type: 'item', attributes: post_attributes, relationships: to_relationships(image: valid_image) } }
+            expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
+
+            expect(response).to have_http_status(:created)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            parsed_response = JSON.parse(response.body)
+            item_id = parsed_response['data']['id'].to_i
+
+            item = Item.find(item_id)
+            expect(item).not_to be_nil
+            expected_attributes = post_attributes.merge(mms_id: nil)
+            expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(items_url)
+
+            expect(parsed_response).to contain_jsonapi_for(item)
+            expect(response.headers['Location']).to eq(item_url(item))
+          end
+
           it 'accepts a suppressed item without an image' do
             payload = {
               data: {
@@ -482,6 +506,24 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
+            expected_errors = expected_errors_for(invalid_attributes)
+            expected_json = expected_errors.map { |err| jsonapi_for(err) }
+            expect(actual_errors).to contain_exactly(*expected_json)
+          end
+
+          it 'treats a blank title as missing' do
+            post_attributes = valid_attributes.merge(title: ' ')
+            payload = { data: { type: 'item', attributes: post_attributes, relationships: valid_relationships } }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            invalid_attributes = post_attributes.merge(title: nil)
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
             expect(actual_errors).to contain_exactly(*expected_json)
@@ -537,6 +579,24 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
+            expected_errors = expected_errors_for(invalid_attributes)
+            expected_json = expected_errors.map { |err| jsonapi_for(err) }
+            expect(actual_errors).to contain_exactly(*expected_json)
+          end
+
+          it 'treats a blank MMS ID as missing' do
+            post_attributes = valid_attributes.merge(mms_id: ' ')
+            payload = { data: { type: 'item', attributes: post_attributes, relationships: valid_relationships } }
+
+            allow(Rails.logger).to receive(:error)
+            expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
+            expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            actual_errors = JSON.parse(response.body)['errors']
+            invalid_attributes = post_attributes.merge(mms_id: nil)
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
             expect(actual_errors).to contain_exactly(*expected_json)
@@ -727,6 +787,38 @@ RSpec.describe 'Items', type: :request do
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             item.reload
+            expected_attributes.each do |attr, val|
+              actual = item.send(attr)
+              expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
+            end
+
+            expect(item.terms).to contain_exactly(*expected_terms)
+
+            parsed_response = JSON.parse(response.body)
+
+            links = parsed_response.delete('links')
+            expect(links['self']).to eq(item_url(item))
+
+            expect(parsed_response).to contain_jsonapi_for(item)
+          end
+
+          it 'treats a blank MMS ID as nil' do
+            item = Item.take
+
+            old_attributes = item.attributes.slice(*Item::EDIT_ATTRS)
+            patch_attributes = old_attributes.merge(suppressed: true, mms_id: '')
+            expected_terms = item.terms.to_a
+
+            payload = { data: { type: 'item', id: item.id.to_s, attributes: patch_attributes,
+                                relationships: to_relationships(terms: expected_terms, image: item.image) } }
+            patch item_url(item), params: payload, as: :jsonapi
+
+            expect(response).to have_http_status(:ok)
+            expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+            item.reload
+
+            expected_attributes = patch_attributes.merge(mms_id: nil)
             expected_attributes.each do |attr, val|
               actual = item.send(attr)
               expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"

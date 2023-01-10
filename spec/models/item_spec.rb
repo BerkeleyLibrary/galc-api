@@ -197,6 +197,50 @@ describe Item do
       expect(item.suppressed).to eq(true)
       expect(item.mms_id).to be_nil
     end
+
+    it 'does not allow an empty mms_id even for suppressed items' do
+      item = Item.take
+      mms_id_before = item.mms_id
+      updated_at_before = item.updated_at
+
+      item.suppressed = true
+      item.mms_id = ''
+      expect(item).not_to be_valid
+
+      expect { item.save! }.to raise_error(ActiveRecord::RecordInvalid)
+      item.reload
+      expect(item.updated_at).to eq(updated_at_before)
+      expect(item.mms_id).to eq(mms_id_before)
+    end
+
+    it 'does not allow a blank, non-empty mms_id even for suppressed items' do
+      item = Item.take
+      mms_id_before = item.mms_id
+      updated_at_before = item.updated_at
+
+      item.suppressed = true
+      item.mms_id = ' '
+      expect(item).not_to be_valid
+
+      expect { item.save! }.to raise_error(ActiveRecord::RecordInvalid)
+      item.reload
+      expect(item.updated_at).to eq(updated_at_before)
+      expect(item.mms_id).to eq(mms_id_before)
+    end
+
+    it 'allows multiple suppressed items with nil mms_id' do
+      aggregate_failures do
+        (0..1).each do |i|
+          title = "item #{i}"
+          item = Item.create!(title: title, suppressed: true)
+          expect(item).to be_persisted
+          item.reload
+          expect(item.mms_id).to be_nil
+          expect(item.title).to eq(title)
+          expect(item.suppressed).to eq(true)
+        end
+      end
+    end
   end
 
   describe 'synthetic accessors' do
