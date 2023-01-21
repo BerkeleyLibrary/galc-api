@@ -14,7 +14,7 @@ class ReservationsController < ApplicationController
     log_headers(reservation_request_email)
     reservation_request_email.deliver_now
 
-    render jsonapi: @reservation, status: :created, location: @reservation
+    render jsonapi: @reservation, include: [:item], status: :created, location: @reservation
   end
 
   private

@@ -41,7 +41,7 @@ RSpec.describe 'Reservations', type: :request do
 
         expected_rsvn = Reservation.new(user: current_user, item: item)
 
-        expect(parsed_response).to contain_jsonapi_for(expected_rsvn)
+        expect(parsed_response).to contain_jsonapi_for(expected_rsvn, include: [:item])
       end
 
       # rubocop:disable RSpec/ExampleLength
