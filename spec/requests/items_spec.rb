@@ -360,7 +360,8 @@ RSpec.describe 'Items', type: :request do
         value: '800',
         appraisal_date: '2006',
         notes: '17741786',
-        reserve_date: Date.new(2019, 9, 16) # '2019-09-16'
+        reserve_date: Date.new(2019, 9, 16), # '2019-09-16'
+        suppressed: false
       }
     end
 
@@ -400,6 +401,7 @@ RSpec.describe 'Items', type: :request do
                 relationships: valid_relationships
               }
             }
+            # TODO: figure out how to test w/suppressed as JSON boolean rather than string
             expect { post items_url, params: payload, as: :jsonapi }.to change(Item, :count).by(1)
 
             expect(response).to have_http_status(:created)
@@ -469,10 +471,11 @@ RSpec.describe 'Items', type: :request do
           end
 
           it 'accepts a suppressed item without an image' do
+            expected_attributes = valid_attributes.merge(suppressed: true)
             payload = {
               data: {
                 type: 'item',
-                attributes: valid_attributes.merge(suppressed: true),
+                attributes: expected_attributes,
                 relationships: to_relationships(terms: valid_terms)
               }
             }
@@ -486,7 +489,7 @@ RSpec.describe 'Items', type: :request do
 
             item = Item.find(item_id)
             expect(item).not_to be_nil
-            valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
+            expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
             expect(item.terms).to contain_exactly(*valid_terms)
             expect(item.image).to be_nil
