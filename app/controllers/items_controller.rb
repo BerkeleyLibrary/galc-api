@@ -67,7 +67,7 @@ class ItemsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def item_params
-    @item_params ||= jsonapi_deserialize(params, only: Item::EDIT_ATTRS).transform_values { |v| v unless v.nil? }
+    @item_params ||= jsonapi_deserialize(params, only: Item::EDIT_ATTRS).transform_values { |v| v if v == false || v.present? }
   end
 
   def ensure_image_param!
