@@ -297,10 +297,10 @@ RSpec.describe 'Items', type: :request do
         expect(terms_data).to contain_exactly(*expected_terms_data)
       end
 
-      it 'includes the image' do
+      it 'can include both image and terms' do
         item = Item.take
 
-        get item_url(item), params: { include: 'image' }
+        get item_url(item), params: { include: 'image,terms' }
         parsed_response = JSON.parse(response.body)
         data = parsed_response['data']
 
@@ -312,6 +312,13 @@ RSpec.describe 'Items', type: :request do
 
         expected_data = ImageSerializer.new(item.image).serializable_hash[:data]
         expect(included[0]).to deep_eq_hash(expected_data, indifferent: true)
+
+        item.terms.each do |t|
+          expected_term_data = TermSerializer.new(t).serializable_hash[:data]
+          actual_term_data = included.find { |h| h['type'] == 'term' && h['id'] == t.id.to_s }
+          expect(actual_term_data).not_to(be_nil)
+          expect(actual_term_data).to deep_eq_hash(expected_term_data, indifferent: true)
+        end
       end
     end
   end
