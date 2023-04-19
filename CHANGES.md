@@ -1,3 +1,11 @@
+# 0.0.5 (2023-04-19)
+
+- Dependency updates
+
+# 0.0.4 (2023-03-14)
+
+- Administrative UI support
+
 # 0.0.3 (2022-10-03)
 
 - Close GALC 10/3 to 10/17
