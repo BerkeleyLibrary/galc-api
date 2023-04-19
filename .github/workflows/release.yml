@@ -44,6 +44,7 @@ jobs:
       packages: write
 
     steps:
+      # TODO: Make this fail if tag is a bad semver (see https://github.com/docker/metadata-action/issues/200)
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v3
