@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      target: production
+      target: development
 #    platform: linux/amd64
     depends_on:
       - db
