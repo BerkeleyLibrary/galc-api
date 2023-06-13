@@ -140,7 +140,29 @@ authorization code is similar to those other apps.
 
 ### JSON serialization
 
-**TO DO**
+GALC API endpoints follow the [JSON:API](https://jsonapi.org/) specification
+for object serialization, using the [`jsonapi`](https://github.com/stas/jsonapi.rb)
+gem. Key differences for the developer from traditional Rails JSON serialization
+include:
+
+- rendering the `:jsonapi` format rather than `:json`
+- using the `application/vnd.api+json` media type rather than `application/json`
+- explicit serialization for all model objects rather than using the default
+  ActiveModel serializer (see the [`app/serializers`](app/serializers) directory)
+- side-channel information via the [`meta`](https://jsonapi.org/format/#document-meta)
+  element in the response object
+- query parameters following JSON:API's [paging](https://jsonapi.org/format/#fetching-pagination)
+  specification and [filtering](https://jsonapi.org/recommendations/#filtering)
+  recommendation instead of following Rails / ActionController norms
+
+Testing JSON:API responses (and, in particular, getting useful information out
+of test failures) can be fairly involved. Some custom RSpec matchers are included
+in the [`spec/support/matchers`](spec/support/matchers) directory, see e.g.
+the [`ItemsController request spec`](spec/requests/items_spec.rb) for an example
+of their usage. They're not perfect (note for instance that the specs usually
+need to delete the `links` field from the response object before comparing) but
+they do help. Note that these matchers depend on the serializers in `app/serializers`
+to be working properly, so those need their own [lower-level unit tests](spec/serializers).
 
 ### Image file handling
 
