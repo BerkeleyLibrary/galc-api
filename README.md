@@ -184,9 +184,33 @@ file when the ActiveRecord model object is destroyed.
 
 Besides API endpoints, the [`ImagesController`](app/controllers/images_controller.rb)
 is also responsible for streaming the images themselves to the browser — not ideal
-for a high-volume application, but good enough for now.
+for a high-volume application, but good enough for now and obviates the need for
+a separate image server.
 
 ## Build, packaging, and deployment
 
-**TO DO**
+The GALC API application is built via GitHub actions. The workflow in 
+[`build.yml`](.github/workflows/build.yml) runs the following jobs on
+each push or pull request:
 
+1. `build`: builds a Docker image and pushes it to GitHub's `ghcr.io` repository,
+   tagged with the short commit hash
+2. `test`: if `build` succeeds, pulls the image and runs tests, style checks, etc.
+3. `push`: if `test` succeeds, retags the image from (1) with the branch name
+   (e.g. `main`)
+
+For each GitHub
+[release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository),
+the workflow in [`release.yml`](.github/workflows/build.yml) uses the short commit
+hash associated with the release to find and pull the docker image from step (1)
+above, and retags it with:
+
+- a semantic version number taken from the release name (actually, major, minor, 
+  and patch versions — e.g. release 6.5.4 would be tagged note only as `6.5.4` but
+  also as `6` and `6.5`) and (b) the tag `latest`.
+
+### Deployment
+
+Deployment is triggered manually via the `ops/docker-swarm` Jenkins build. The
+staging and production Docker stacks are configured to pull the `main` and `latest`
+images, respectively.
