@@ -90,7 +90,53 @@ In addition, the following non-RESTful endpoints are implemented by
 
 ### Authentication and authorization
 
-**TO DO**
+As noted above, authentication is somewhat tricky given that it runs
+on a different host from the GALC UI and browser makers have in the
+past few years cracked down hard on cross-site cookies. This makes
+Rails' traditional cookie-based session mechanism infeasible and
+requires us to rely on JSON Web Tokens.
+
+Furthermore, CAS/CalNet has no provision for API-based authentication
+in the background; the only way to log into CalNet is to navigate to
+the CalNet login page.
+
+The resulting authentication / authorization flow, then, is as follows:
+
+1. User POSTs a form from the UI to the API's `/auth/calnet` endpoint
+   (`login` in [`routes.rb`](config/routes.rb). The form includes a hidden
+   `origin` field with the full UI URL to which the user should be
+   redirected after login.
+2. The API `/auth/calnet` endpoint constructs a CalNet callback URL, consisting
+   of the URL for the API `/auth/calnet/callback` endpoint plus a `url` query
+   parameter capturing the `origin` value from the POST payload, and sends
+   a `302 Found` response redirecting the browser to the CalNet login page,
+   with the API callback URL (including the captured UI callback URL) as
+   the value of a `service` query parameter.
+3. The user logs into CalNet, Duo, etc. and is redirected to the callback URL
+   provided in the `service` parameter - the `/auth/calnet/callback` endpoint.
+4. The `/auth/calnet/callback` endpoint reads the user's identity and other
+   relevant fields from the Omniauth / CalNet response, constructs a
+   [`User`](app/models/user.rb) object, and serializes it as an encrypted JWT,
+   then redirects the browser back to the UI, with the JWT appended to the
+   UI callback URL as the `token` query parameter.
+5. Subsequent API calls made by the UI include the still-encrypted JWT in an
+   `Authorization` header.
+
+The UI can access relevant user information — name, email, privileges, etc. — 
+by querying the `/users` endpoint while including that token, as mentioned above, 
+but cannot itself decrypt / encrypt tokens.
+
+Within the API application, the user information serialized and encrypted
+in the token is treated similarly to user information serialized in a
+traditional session cookie — certain endpoints require authentication,
+others require admin privileges, and so on.
+
+**Note:** A key difference from the Library's monolithic Rails applications 
+such as Framework, UC BEARS, and AV Player, is that unauthenticated API requests
+to endpoints that require authentication cannot simply be redirected to login.
+Instead they return `401 Unauthorized`, and it is the UI's responsibility to
+handle the situtation appropriately. In most other respects, GALC API 
+authorization code is similar to those other apps.
 
 ### JSON serialization
 

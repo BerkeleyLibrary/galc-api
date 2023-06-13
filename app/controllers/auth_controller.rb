@@ -16,7 +16,6 @@ class AuthController < ApplicationController
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash, params: params.to_unsafe_h })
 
-    # TODO: Store CalNet user in the session & compare token w/session
     user = User.from_omniauth(auth_hash)
     redirect_url = append_token(omniauth_origin, user.to_jwt_payload)
 
