@@ -41,6 +41,9 @@ Filtering Recommentation](https://jsonapi.org/recommendations/#filtering),
 and also accepts pagination paramters following the [JSON:API pagination
 spec](https://jsonapi.org/format/#fetching-pagination).
 
+Note also that for POSTing new images to the the `/images` endpoint,
+we use plain `multipart/form-data` rather than JSON.
+
 #### Synthetic resources
 
 In addition, the following endpoints appear as RESTful resources, but
@@ -166,7 +169,22 @@ to be working properly, so those need their own [lower-level unit tests](spec/se
 
 ### Image file handling
 
-**TO DO**
+In order to simplify migration from the old GALC servlet and make it easier to
+troubleshoot any imaging issues, uploaded images and their generated thumbnails are
+managed as a plain directory (in staging and production, a named NetApp volume
+also accessible from vm135 as `/netapp/galc_staging` / `/netapp/galc_production/`),
+rather than via ActiveStorage or similar.
+
+The [`Image`](app/models/image.rb) class  is a plain ActiveRecord model with a corresponding
+database table, but also includes  code to manage its associated files — reading a Rails
+[`UploadedFile`](https://api.rubyonrails.org/v7.0/classes/ActionDispatch/Http/UploadedFile.html)
+object from a form POST, writing the file to the appropriate location on disk,
+creating and writing a thumbnail, etc.; as well as deleting both thumbnail and full-size
+file when the ActiveRecord model object is destroyed.
+
+Besides API endpoints, the [`ImagesController`](app/controllers/images_controller.rb)
+is also responsible for streaming the images themselves to the browser — not ideal
+for a high-volume application, but good enough for now.
 
 ## Build, packaging, and deployment
 
