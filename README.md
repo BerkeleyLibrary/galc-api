@@ -214,3 +214,20 @@ above, and retags it with:
 Deployment is triggered manually via the `ops/docker-swarm` Jenkins build. The
 staging and production Docker stacks are configured to pull the `main` and `latest`
 images, respectively.
+
+### Docker Development
+
+For development purposes, the application can be run locally via Docker Compose.
+
+Run:
+
+```bash
+docker-compose up --build -d
+docker compose exec app rails db:setup
+```
+
+You will want to seed the database with some data. One option is to get an sql dump from prod then load it into your local db. 
+
+```bash
+cat db/backups/backup.sql | docker compose exec -T db psql -U root -d galc-dev
+```
