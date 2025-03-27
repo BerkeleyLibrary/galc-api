@@ -89,14 +89,6 @@ jobs:
           POSTGRES_PASSWORD: root
 
     steps:
-      - name: Wait for Postgres to start
-        run: |
-          until pg_isready -h db -U root; do
-            echo "Waiting for postgres to start..."
-            sleep 2
-          done
-      - name: Create test database
-        run: createdb -h db -U root galc-test
       - name: Run tests
         env:
           RAILS_ENV: test
