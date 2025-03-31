@@ -223,11 +223,14 @@ Run:
 
 ```bash
 docker-compose up --build -d
-docker compose exec app rails db:setup
+docker compose exec app rails db:create
+docker compose exec app rails db:migrate
 ```
 
-You will want to seed the database with some data. One option is to get an sql dump from prod then load it into your local db. 
+This will load some sample data into the database. You will then need to run the galc-ui application (from the [`galc-ui`](/BerkeleyLibrary/galc-ui) repository) in order to test the API.
 
+If, instead, you want to create the database and not load the sample data, you can run...
 ```bash
-cat db/backups/backup.sql | docker compose exec -T db psql -U root -d galc-dev
+docker-compose up --build -d
+docker compose exec app rails db:setup
 ```
