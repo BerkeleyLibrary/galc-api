@@ -214,3 +214,23 @@ above, and retags it with:
 Deployment is triggered manually via the `ops/docker-swarm` Jenkins build. The
 staging and production Docker stacks are configured to pull the `main` and `latest`
 images, respectively.
+
+### Docker Development
+
+For development purposes, the application can be run locally via Docker Compose.
+
+Run:
+
+```bash
+docker-compose up --build -d
+docker compose exec app rails db:create
+docker compose exec app rails db:migrate
+```
+
+This will load some sample data into the database. You will then need to run the galc-ui application (from the [`galc-ui`](/BerkeleyLibrary/galc-ui) repository) in order to test the API.
+
+If, instead, you want to create the database and not load the sample data, you can run...
+```bash
+docker-compose up --build -d
+docker compose exec app rails db:setup
+```
