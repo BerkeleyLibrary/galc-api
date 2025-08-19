@@ -227,7 +227,13 @@ docker compose exec app rails db:create
 docker compose exec app rails db:migrate
 ```
 
-This will load some sample data into the database. You will then need to run the galc-ui application (from the [`galc-ui`](/BerkeleyLibrary/galc-ui) repository) in order to test the API.
+This will load some sample data into the database. You will then need to run the galc-ui application (from the [`galc-ui`](/BerkeleyLibrary/galc-ui) repository) in order to test the API. As a shortcut, you can set the `SERVE_TEST_UI` environment variable to `true` when you bring the containers up to fetch the assets for the latest `galc-ui`' snapshot:
+
+```bash
+docker compose down
+SERVE_TEST_UI=true docker compose up -d
+```
+
 
 If, instead, you want to create the database and not load the sample data, you can run...
 ```bash

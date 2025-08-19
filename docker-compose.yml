@@ -16,6 +16,8 @@ services:
     ports:
       - 3000:3000
     restart: always
+    environment:
+      - SERVE_TEST_UI
 
   db:
     environment:
