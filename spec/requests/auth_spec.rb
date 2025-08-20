@@ -46,12 +46,11 @@ RSpec.describe AuthController, type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it 'serves a test UI in staging' do
+    it 'redirects to a test UI in staging' do
       allow(ENV).to receive(:[]).with('SERVE_TEST_UI').and_return(true)
 
       get root_path
-      expect(response).to have_http_status(:ok)
-      expect(response.content_type).to start_with('text/html')
+      expect(response).to redirect_to(preview_path)
     end
   end
 

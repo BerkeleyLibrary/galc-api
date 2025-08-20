@@ -5,6 +5,12 @@ Rails.application.routes.draw do
   get '/logout', to: 'auth#logout', as: :logout
   get '/auth/:provider/callback', to: 'auth#callback', as: :omniauth_callback
 
+  scope module: 'preview' do
+    constraints(->(_) { ENV['SERVE_TEST_UI'].present? }) do
+      get '/preview', to: 'preview#index', as: :preview
+    end
+  end
+
   defaults format: :jsonapi do
     constraints(->(req) { req.format == :jsonapi }) do
       resources :closures

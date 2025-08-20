@@ -7,10 +7,7 @@ class AuthController < ApplicationController
   def index
     raise Error::NotFoundError if ENV['SERVE_TEST_UI'].blank?
 
-    # TODO: Something more elegant
-    # Hack to get around the fact that API-only apps don't include an HTML renderer
-    pathname = Rails.root.join('public', 'index.html')
-    render xml: File.read(pathname), content_type: 'text/html'
+    redirect_to preview_path
   end
 
   def callback
