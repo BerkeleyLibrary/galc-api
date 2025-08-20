@@ -17,7 +17,7 @@ describe User do
         'extra' => {
           'uid' => '5551215',
           'displayName' => 'Rachel Roe',
-          'berkeleyEduOfficialEmail' => 'rroe@berkeley.test',
+          'berkeleyEduAlternateID' => 'rroe-alt@berkeley.test',
           'berkeleyEduIsMemberOf' => [
             'cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu'
           ]
@@ -30,7 +30,7 @@ describe User do
         'extra' => {
           'uid' => '5551212',
           'displayName' => 'Jane Doe',
-          'berkeleyEduOfficialEmail' => 'jdoe@berkeley.test',
+          'berkeleyEduAlternateID' => 'jdoe-alt@berkeley.test',
           'berkeleyEduIsMemberOf' => [
             'cn=edu:berkeley:official:all,ou=campus groups,dc=berkeley,dc=edu'
           ]
@@ -44,7 +44,7 @@ describe User do
       expect(user).to be_galc_admin
       expect(user.uid).to eq('5551215')
       expect(user.display_name).to eq('Rachel Roe')
-      expect(user.email).to eq('rroe@berkeley.test')
+      expect(user.email).to eq('rroe-alt@berkeley.test')
     end
 
     it 'determines admin status based on CalGroups' do
@@ -53,7 +53,7 @@ describe User do
       expect(user).not_to be_galc_admin
       expect(user.uid).to eq('5551212')
       expect(user.display_name).to eq('Jane Doe')
-      expect(user.email).to eq('jdoe@berkeley.test')
+      expect(user.email).to eq('jdoe-alt@berkeley.test')
     end
   end
 

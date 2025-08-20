@@ -6,6 +6,8 @@ services:
 #    platform: linux/amd64
     depends_on:
       - db
+    environment:
+      - SERVE_TEST_UI=${SERVE_TEST_UI:-true}
     init: true
     networks:
       default:

@@ -6,7 +6,7 @@
             <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:official:all-accounts-people-ou,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
             <cas:berkeleyEduIsMemberOf>cn=edu:berkeley:org:libr:galc:galc-admins,ou=campus groups,dc=berkeley,dc=edu</cas:berkeleyEduIsMemberOf>
             <cas:berkeleyEduAffiliations>EMPLOYEE-TYPE-STAFF</cas:berkeleyEduAffiliations>
-            <cas:berkeleyEduOfficialEmail>rroe@berkeley.test</cas:berkeleyEduOfficialEmail>
+            <cas:berkeleyEduAlternateID>rroe-alt@berkeley.test</cas:berkeleyEduAlternateID>
         </cas:attributes>
     </cas:authenticationSuccess>
 </cas:serviceResponse>

@@ -48,7 +48,7 @@ class User
         debug: 'omniauth',
         uid: auth_extra['uid'],
         display_name: auth_extra['displayName'],
-        email: auth_extra['berkeleyEduOfficialEmail'],
+        email: auth_extra['berkeleyEduAlternateID'],
         galc_admin: galc_admin?(auth_extra['berkeleyEduIsMemberOf'])
       )
     end
