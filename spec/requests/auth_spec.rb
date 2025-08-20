@@ -41,6 +41,7 @@ RSpec.describe AuthController, type: :request do
 
   describe 'GET /' do
     it 'returns 404 Not Found' do
+      allow(ENV).to receive(:[]).with('SERVE_TEST_UI').and_return(nil)
       get root_path
       expect(response).to have_http_status(:not_found)
     end
@@ -97,7 +98,7 @@ RSpec.describe AuthController, type: :request do
         expected_attrs = {
           uid: '5551215',
           display_name: 'Rachel Roe',
-          email: 'rroe@berkeley.test',
+          email: 'rroe-alt@berkeley.test',
           galc_admin: true
         }
 
