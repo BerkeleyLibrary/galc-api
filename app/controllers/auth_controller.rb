@@ -3,13 +3,6 @@ require 'berkeley_library/util/uris'
 class AuthController < ApplicationController
   ERR_TICKET_MISMATCH = 'Ticket from callback URL parameter does not match credential from OmniAuth hash'.freeze
 
-  # Debug UI for staging, 404 Not Found for production
-  def index
-    raise Error::NotFoundError if ENV['SERVE_TEST_UI'].blank?
-
-    redirect_to preview_path
-  end
-
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash, params: params.to_unsafe_h })
 

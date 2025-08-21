@@ -8,6 +8,7 @@ services:
       - db
     environment:
       - SERVE_TEST_UI=${SERVE_TEST_UI:-true}
+      - GALC_API_URL=${GALC_API_URL:-http://localhost:3000}
     init: true
     networks:
       default:

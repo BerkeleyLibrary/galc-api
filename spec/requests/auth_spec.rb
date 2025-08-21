@@ -39,21 +39,6 @@ RSpec.describe AuthController, type: :request do
   # ------------------------------------------------------------
   # Tests
 
-  describe 'GET /' do
-    it 'returns 404 Not Found' do
-      allow(ENV).to receive(:[]).with('SERVE_TEST_UI').and_return(nil)
-      get root_path
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it 'redirects to a test UI in staging' do
-      allow(ENV).to receive(:[]).with('SERVE_TEST_UI').and_return(true)
-
-      get root_path
-      expect(response).to redirect_to(preview_path)
-    end
-  end
-
   describe 'GET /auth/calnet' do
     # See https://github.com/omniauth/omniauth/wiki/Resolving-CVE-2015-9284
     it 'is disallowed' do
