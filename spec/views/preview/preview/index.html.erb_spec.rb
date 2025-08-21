@@ -8,6 +8,6 @@ RSpec.describe 'preview/preview/index', type: :view do
 
     render
 
-    expect(rendered).to match(/#{endpoint}/)
+    assert_select "div#galc-app:match('data-api-base-url', ?)", endpoint
   end
 end
