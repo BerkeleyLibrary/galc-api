@@ -1,15 +1,17 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.0.3'
+ruby '~> 3.3'
 
-gem 'berkeley_library-alma', '~> 0.0.7', '>= 0.0.7.1'
-gem 'berkeley_library-logging', '~> 0.2', '>= 0.2.7'
-gem 'berkeley_library-util', '~> 0.1.5'
+gem 'berkeley_library-alma', '~> 0.1.1'
+gem 'berkeley_library-logging', '~> 0.3'
+gem 'berkeley_library-util', '~> 0.2.0'
+gem 'drb'
 gem 'image_processing', '~> 1.12'
 gem 'jsonapi.rb', '~> 2.0'
 gem 'jsonapi-serializer', '~> 2.2'
 gem 'jwt', '~> 2.4'
+gem 'mutex_m'
 gem 'omniauth', '~> 1.9', '>= 1.9.2'
 gem 'omniauth-cas', '~> 2.0'
 gem 'pg', '~> 1.4'
