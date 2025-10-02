@@ -16,9 +16,7 @@ class AddThreeOrderedTerms < ActiveRecord::Migration[7.0]
   end
 
   def down
-    facet = Facet.find_by(name: "Decade")
-    return unless facet
-
+    facet = Facet.find_by!(name: "Decade")
     Term.where(facet: facet, value: ["2000-2009", "2010-2019", "After 2020"]).delete_all
     term  = Term.find_by!(facet: facet, value: "After 1999")
     term.update!(ord: 11)

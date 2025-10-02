@@ -32,9 +32,9 @@ class UpdateTermItemRelation < ActiveRecord::Migration[7.0]
   def down
     facet = Facet.find_by!(name: 'Decade')
     target_term = Term.find_by!(facet: facet, value: 'After 1999')
-    move_term_back_to_item(facet, target_term, '2000-2009')
-    move_term_back_to_item(facet, target_term, '2010-2019')
-    move_term_back_to_item(facet, target_term, 'After 2020')
+    move_term_back_to_item(facet,  '2000-2009', target_term)
+    move_term_back_to_item(facet, '2010-2019', target_term)
+    move_term_back_to_item(facet, 'After 2020', target_term)
   end
 
   private
@@ -52,6 +52,7 @@ class UpdateTermItemRelation < ActiveRecord::Migration[7.0]
           return $1.to_i
         end
       end
+      return nil
     end
   end
 
@@ -62,7 +63,7 @@ class UpdateTermItemRelation < ActiveRecord::Migration[7.0]
   end
 
   # Rolls back term assignment from origin_term_value to target_term for all items.
-  def move_term_back_to_item(facet, target_term, origin_term_value)
+  def move_term_back_to_item(facet, origin_term_value, target_term)
     origin_term = Term.find_by!(facet: facet, value: origin_term_value)
     origin_term.items.find_each do |item|
       re_assign_term_to_item(item, origin_term, target_term)

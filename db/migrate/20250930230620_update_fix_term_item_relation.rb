@@ -7,9 +7,9 @@ class UpdateFixTermItemRelation < ActiveRecord::Migration[7.0]
     t2020_plus = Term.find_by!(facet: facet, value: 'After 2020')
 
     # Items with nil date
-    insert_and_delete(t_after_1999.id, t2000_2009.id, "i.date is null AND i.title in ('Loading a Cannon', 'Dense Populations')")
+    update_item_term(t_after_1999.id, t2000_2009.id, "i.date is null AND i.title in ('Loading a Cannon', 'Dense Populations')")
     # Items with date = '[2020]'
-    insert_and_delete(t_after_1999.id, t2020_plus.id, "date = '[2020]'")
+    update_item_term(t_after_1999.id, t2020_plus.id, "date = '[2020]'")
   end
 
   def down
@@ -19,18 +19,18 @@ class UpdateFixTermItemRelation < ActiveRecord::Migration[7.0]
     t2020_plus = Term.find_by!(facet: facet, value: 'After 2020')
 
     # revert items with nil date
-    insert_and_delete(t2000_2009.id,t_after_1999.id, "i.date is null AND i.title in ('Loading a Cannon', 'Dense Populations')")
+    update_item_term(t2000_2009.id,t_after_1999.id, "i.date is null AND i.title in ('Loading a Cannon', 'Dense Populations')")
     # revert items with date = '[2020]'
-    insert_and_delete(t2020_plus.id, t_after_1999.id, "date = '[2020]'")
+    update_item_term(t2020_plus.id, t_after_1999.id, "date = '[2020]'")
   end
 
   private
 
-  def insert_and_delete(old_term_id, new_term_id, condition_sql)
+  def update_item_term(old_term_id, new_term_id, condition_sql)
 
     execute <<~SQL.squish
       WITH target AS (
-        SELECT it.term_id, it.item_id, i.title
+        SELECT it.term_id, it.item_id
         FROM items i
         JOIN items_terms it ON i.id = it.item_id
         JOIN terms t ON it.term_id = t.id
