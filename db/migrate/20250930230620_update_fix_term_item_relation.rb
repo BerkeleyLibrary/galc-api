@@ -1,4 +1,4 @@
-# Update terms of the three items whose value is nil or not in date or year format
+# Migration to update three items with nil or invalid date/year values
 class UpdateFixTermItemRelation < ActiveRecord::Migration[7.0]
   def up
     facet = Facet.find_by!(name: 'Decade')
