@@ -1,3 +1,4 @@
+# Migration to add "Digital" and "Drawing" terms to the "Medium" facet.
 class AddTwoTerms < ActiveRecord::Migration[7.0]
   def up
     facet = Facet.find_by!(name: "Medium")
