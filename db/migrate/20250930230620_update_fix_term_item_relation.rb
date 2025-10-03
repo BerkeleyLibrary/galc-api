@@ -28,7 +28,7 @@ class UpdateFixTermItemRelation < ActiveRecord::Migration[7.0]
 
   def update_item_term(old_term_id, new_term_id, condition_sql)
 
-    execute <<~SQL.squish
+    execute <<~SQL.squish.freeze
       WITH target AS (
         SELECT it.term_id, it.item_id
         FROM items i
