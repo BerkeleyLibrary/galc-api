@@ -1,147 +1,167 @@
-name: Build
-on: [ push, pull_request, workflow_dispatch ]
+name: Build / Test / Push
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
 env:
-  REGISTRY: ghcr.io
+  DOCKER_METADATA_SET_OUTPUT_ENV: 'true'
 
 jobs:
-  # TODO: DRY w/release.yml
-  setup:
-    runs-on: ubuntu-latest
-
-    steps:
-      # See https://github.com/docker/build-push-action/blob/v2.10.0/TROUBLESHOOTING.md#repository-name-must-be-lowercase
-      - name: Sanitize image name
-        uses: actions/github-script@v6
-        id: image-name
-        with:
-          result-encoding: string
-          script: return '${{ env.REGISTRY }}/${{ github.repository }}'.toLowerCase()
-
-      - name: Get short SHA
-        run: |
-          echo SHORT_SHA="${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-
-    outputs:
-      base_image_name: ${{ steps.image-name.outputs.result }}
-      build_image: ${{ steps.image-name.outputs.result }}:${{ env.SHORT_SHA }}
-
   build:
-    if: github.event_name != 'release'
-    needs: setup
-    env:
-      BUILD_IMAGE: ${{ needs.setup.outputs.build_image }}
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      packages: write
-
+    runs-on: ${{ matrix.runner }}
+    outputs:
+      build-image-arm: ${{ steps.gen-output.outputs.image-arm64 }}
+      build-image-x64: ${{ steps.gen-output.outputs.image-x64 }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get build start time
-        run: |
-          echo BUILD_TIMESTAMP="$(date --utc --iso-8601=seconds)" >> $GITHUB_ENV
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          context: .
-          push: true
-          tags: ${{ env.BUILD_IMAGE }}
-          build-args: |
-            BUILD_TIMESTAMP=${{ env.BUILD_TIMESTAMP }}
-            BUILD_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            DOCKER_TAG=${{ env.BUILD_IMAGE }}
-            GIT_BRANCH=${{ github.ref_name }}
-            GIT_COMMIT=${{ github.sha }}
-            GIT_URL=${{ github.repositoryUrl }}
+          images: ghcr.io/${{ github.repository }}
+          # note Specifies a single tag to ensure the default doesn't add more than one.
+          #      The actual tag is not used, this is just used to sanitize the registry name
+          #      and produce labels.
+          tags: type=sha
 
+      - name: Sanitize registry repository name
+        id: get-reg
+        run: |
+          echo "registry=$(echo '${{ steps.meta.outputs.tags }}' | cut -f1 -d:)" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Build/push the arch-specific image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          # @todo GHA caching needs tuning, these tend not to hit. Perhaps switch to type=registry?
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.get-reg.outputs.registry }}
+          outputs: type=image,push-by-digest=true,push=true
+
+      - name: Write arch-specific image digest to outputs
+        id: gen-output
+        run: |
+          echo "image-${RUNNER_ARCH,,}=${{ steps.get-reg.outputs.registry }}@${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_OUTPUT"
+
+  merge:
+    runs-on: ubuntu-24.04
+    needs:
+      - build
+    env:
+      DOCKER_APP_IMAGE_ARM64: ${{ needs.build.outputs.build-image-arm }}
+      DOCKER_APP_IMAGE_X64: ${{ needs.build.outputs.build-image-x64 }}
     outputs:
-      build_image: ${{ env.BUILD_IMAGE }}
+      build-image: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,suffix=-build-${{ github.run_id }}_${{ github.run_attempt }}
+
+      - name: Push the multi-platform image
+        run: |
+          docker buildx imagetools create \
+            --tag "$DOCKER_METADATA_OUTPUT_TAGS" \
+            "$DOCKER_APP_IMAGE_ARM64" "$DOCKER_APP_IMAGE_X64"
 
   test:
-    if: github.event_name != 'release'
-    needs: build
-
-    runs-on: ubuntu-latest
-
-    container:
-      image: ${{ needs.build.outputs.build_image }}
-
-    defaults:
-      run:
-        working-directory: /opt/app
-
-    services:
-      db:
-        image: postgres
-        env:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-
-    steps:
-      - name: Run tests
-        env:
-          RAILS_ENV: test
-        run: bundle exec rake check -t
-
-      - name: Run style checks
-        run: bundle exec rubocop
-
-      - name: Validate database migrations
-        env:
-          RAILS_ENV: production
-          DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
-        run: rails --trace db:drop db:create db:migrate
-
-      - name: Upload artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifacts
-          path: artifacts/**
-
-  # TODO: DRY w/release.yml
-  push:
-    if: github.event_name != 'release'
-
-    needs: [ setup, build, test ]
+    runs-on: ubuntu-24.04
+    needs:
+      - merge
     env:
-      BASE_IMAGE_NAME: ${{ needs.setup.outputs.base_image_name }}
-      BUILD_IMAGE: ${{ needs.build.outputs.build_image }}
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      packages: write
-
+      COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
+      DOCKER_APP_IMAGE: ${{ needs.merge.outputs.build-image }}
     steps:
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.BASE_IMAGE_NAME }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Tag and push image
-        uses: akhilerm/tag-push-action@v2.1.0
-        with:
-          src: ${{ env.BUILD_IMAGE }}
-          dst: |
-            ${{ steps.meta.outputs.tags }}
+      - name: Run the test script
+        run: |
+          docker compose run --rm --user root app chown -R avplayer:avplayer artifacts
+          docker compose up --detach --wait
+          docker compose exec app bin/test
 
+  push:
+    runs-on: ubuntu-24.04
+    needs:
+      - merge
+      - test
+    env:
+      DOCKER_APP_IMAGE: ${{ needs.merge.outputs.build-image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Produce permanent image tags
+        id: branch-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Retag and push the image
+        run: |
+          docker pull "$DOCKER_APP_IMAGE"
+          echo "$DOCKER_METADATA_OUTPUT_TAGS" | tr ' ' '\n' | xargs -n1 docker tag "$DOCKER_APP_IMAGE"
+          docker push --all-tags "$(echo "$DOCKER_APP_IMAGE" | cut -f1 -d:)"
