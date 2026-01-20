@@ -77,12 +77,12 @@ Rails.application.configure do
 
   smtp_settings = {
     address: 'smtp.gmail.com',
-    port: '587',
+    port: '465',
     domain: 'berkeley.edu',
     user_name: mail_smtp_username,
     password: mail_smtp_password,
     authentication: 'plain',
-    enable_starttls_auto: true
+    tls: true
   }
   config.action_mailer.smtp_settings = smtp_settings
   config.after_initialize do
