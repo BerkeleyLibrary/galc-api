@@ -42,10 +42,8 @@ RSpec.describe AuthController, type: :request do
   describe 'GET /auth/calnet' do
     # See https://github.com/omniauth/omniauth/wiki/Resolving-CVE-2015-9284
     it 'is disallowed' do
-      expect { get login_path, params: { origin: origin_url } }.to raise_error(ActionController::RoutingError)
-
-      # TODO: use this instead of expect { … }.to raise_error ?
-      # expect(response).not_to be_successful
+      get login_path, params: { origin: origin_url }
+      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -97,7 +95,10 @@ RSpec.describe AuthController, type: :request do
         post login_path, params: { origin: bad_origin_url }
 
         callback_url = callback_url_from_cas_redirect(response.headers['Location'])
-        expect { get callback_url }.to raise_error(ActionController::Redirecting::UnsafeRedirectError)
+
+        get callback_url
+        expect(response).to have_http_status(:internal_server_error)
+        expect(response.body).to include('ActionController::Redirecting::UnsafeRedirectError')
       end
     end
 

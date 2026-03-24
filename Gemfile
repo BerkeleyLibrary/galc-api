@@ -18,7 +18,7 @@ gem 'pg', '~> 1.4'
 gem 'pg_search', '~> 2.3'
 gem 'puma', '~> 5.0'
 gem 'rack-cors'
-gem 'rails', '~> 7.1.0'
+gem 'rails', '~> 7.2.0'
 gem 'ransack', '~> 4.2'
 gem 'zaru', '~> 0.3.0'
 
@@ -39,10 +39,10 @@ group :test do
   gem 'database_cleaner-active_record', '~> 2.0'
   gem 'factory_bot_rails'
   gem 'rails-controller-testing'
-  gem 'rspec', '~> 3.10'
-  gem 'rspec_junit_formatter', '~> 0.5'
-  gem 'rspec-rails', '~> 5.0'
-  gem 'simplecov', '~> 0.21', require: false
-  gem 'simplecov-rcov', '~> 0.2', require: false
+  gem 'rspec', '~> 3.13'
+  gem 'rspec_junit_formatter', '~> 0.6'
+  gem 'rspec-rails', '~> 8.0'
+  gem 'simplecov', '~> 0.22', require: false
+  gem 'simplecov-rcov', '~> 0.3', require: false
   gem 'webmock', require: false
 end
