@@ -26,6 +26,10 @@ Bundler.require(*Rails.groups)
 module GalcApi
   class Application < Rails::Application
     config.load_defaults 7.0
+
+    # Opt in to Rails 8.1 timezone behavior early
+    config.active_support.to_time_preserves_timezone = :zone
+
     config.api_only = true
 
     # ------------------------------------------------------------
