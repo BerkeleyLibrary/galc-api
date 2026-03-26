@@ -132,8 +132,9 @@ jobs:
       - name: Validate database migrations
         env:
           RAILS_ENV: production
+          SECRET_KEY_BASE: dummy
           DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
-        run: rails --trace db:drop db:create db:migrate
+        run: bundle exec rails --trace db:drop db:create db:migrate
 
       - name: Upload artifacts
         if: ${{ always() }}
