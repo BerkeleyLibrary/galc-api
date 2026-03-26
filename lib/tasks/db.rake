@@ -4,8 +4,9 @@ namespace :db do
     tries = 0
     max_tries = 4
     begin
-      pool ||= ActiveRecord::Base.establish_connection
-      pool.connection
+      ActiveRecord::Base.establish_connection
+
+      ActiveRecord::Base.connection_pool.with_connection(&:active?)
     rescue PG::ConnectionBad
       raise unless (tries += 1) <= max_tries
 
