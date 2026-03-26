@@ -5,7 +5,7 @@ describe 'Gemfile.lock' do
 
   before do
     lockfile_path = File.expand_path('../Gemfile.lock', __dir__)
-    expect(File.exist?(lockfile_path)).to eq(true), "Gemfile.lock not found in #{lockfile_path}"
+    expect(File.exist?(lockfile_path)).to be(true), "Gemfile.lock not found in #{lockfile_path}"
 
     lockfile = File.read(lockfile_path)
     @parser = Bundler::LockfileParser.new(lockfile)

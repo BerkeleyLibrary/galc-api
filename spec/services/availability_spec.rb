@@ -8,7 +8,7 @@ describe AvailabilityService do
   before do
     allow(AvailabilityService).to receive(:logger).and_return(logger)
   end
-  
+
   def query_value_for(ids)
     ids
       .sort
@@ -34,24 +34,24 @@ describe AvailabilityService do
     it 'gets the availability' do
       availability = AvailabilityService.availability_for(mms_ids)
       expect(availability.size).to eq(mms_ids.size)
-      expect(availability[mms_ids.first]).to eq(false)
-      expect(availability[mms_ids.last]).to eq(true)
+      expect(availability[mms_ids.first]).to be(false)
+      expect(availability[mms_ids.last]).to be(true)
     end
 
     it 'ignores nil IDs' do
       mms_ids_with_nils = [nil, mms_ids.first, nil, mms_ids.last, nil]
       availability = AvailabilityService.availability_for(mms_ids_with_nils)
       expect(availability.size).to eq(mms_ids.size)
-      expect(availability[mms_ids.first]).to eq(false)
-      expect(availability[mms_ids.last]).to eq(true)
+      expect(availability[mms_ids.first]).to be(false)
+      expect(availability[mms_ids.last]).to be(true)
     end
 
     it 'ignores garbage IDs' do
       mms_ids_with_garbage = ['garbage', mms_ids.first, 'trash', mms_ids.last, 'refuse']
       availability = AvailabilityService.availability_for(mms_ids_with_garbage)
       expect(availability.size).to eq(mms_ids.size)
-      expect(availability[mms_ids.first]).to eq(false)
-      expect(availability[mms_ids.last]).to eq(true)
+      expect(availability[mms_ids.first]).to be(false)
+      expect(availability[mms_ids.last]).to be(true)
     end
 
     describe 'caching' do
@@ -86,8 +86,8 @@ describe AvailabilityService do
           end
         end
 
-        expect(AvailabilityService.available?(items.first)).to eq(false)
-        expect(AvailabilityService.available?(items.last)).to eq(true)
+        expect(AvailabilityService.available?(items.first)).to be(false)
+        expect(AvailabilityService.available?(items.last)).to be(true)
       end
     end
   end
@@ -115,20 +115,20 @@ describe AvailabilityService do
 
     let(:sru_query_value) { query_value_for(mms_ids) }
 
-    let(:query_uri_page_1) { BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value) }
+    let(:first_page_query_uri) { BerkeleyLibrary::Alma::SRU.sru_query_uri(sru_query_value) }
 
-    let(:query_uri_page_2) { BerkeleyLibrary::Util::URIs.append(query_uri_page_1, '&startRecord=11') }
+    let(:second_page_query_uri) { BerkeleyLibrary::Util::URIs.append(first_page_query_uri, '&startRecord=11') }
 
     before do
-      stub_request(:get, query_uri_page_1).to_return(body: File.read('spec/data/alma/availability-sru-page-1.xml'))
-      stub_request(:get, query_uri_page_2).to_return(body: File.read('spec/data/alma/availability-sru-page-2.xml'))
+      stub_request(:get, first_page_query_uri).to_return(body: File.read('spec/data/alma/availability-sru-page-1.xml'))
+      stub_request(:get, second_page_query_uri).to_return(body: File.read('spec/data/alma/availability-sru-page-2.xml'))
     end
 
     it 'retrieves availability for all IDs' do
       AvailabilityService.max_records = 10
       availability = AvailabilityService.availability_for(mms_ids)
       expect(availability.size).to eq(mms_ids.size)
-      expect(availability.keys).to contain_exactly(*mms_ids)
+      expect(availability.keys).to match_array(mms_ids)
     end
   end
 
@@ -143,7 +143,7 @@ describe AvailabilityService do
     it 'can handle a single ID' do
       availability = AvailabilityService.availability_for(mms_id)
       expect(availability.size).to eq(1)
-      expect(availability[mms_id]).to eq(false)
+      expect(availability[mms_id]).to be(false)
     end
   end
 

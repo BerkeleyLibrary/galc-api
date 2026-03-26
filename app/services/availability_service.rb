@@ -90,7 +90,7 @@ module AvailabilityService
   # @param ids Array<String> a list of MMS IDs
   # @return Hash<String, Boolean> a hash from MMS IDs to availability.
   def fetch_availability_for(ids)
-    records = get_marc_records(*ids, max_records: (max_records || ids.size))
+    records = get_marc_records(*ids, max_records: max_records || ids.size)
 
     # TODO: do we need to cache this?
     records.each_with_object({}) do |marc_record, availability|

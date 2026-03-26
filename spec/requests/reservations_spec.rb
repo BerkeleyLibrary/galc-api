@@ -44,7 +44,6 @@ RSpec.describe 'Reservations', type: :request do
         expect(parsed_response).to contain_jsonapi_for(expected_rsvn, include: [:item])
       end
 
-      # rubocop:disable RSpec/ExampleLength
       it 'sends a request email' do
         expected_to = Rails.application.config.reserve_email_to
         expect(expected_to).not_to be_blank # just to be sure
@@ -85,7 +84,6 @@ RSpec.describe 'Reservations', type: :request do
 
         end
       end
-      # rubocop:enable RSpec/ExampleLength
 
       it 'rejects a nonexistent item' do
         Item.destroy_by(id: item.id)
@@ -98,7 +96,7 @@ RSpec.describe 'Reservations', type: :request do
         allow(AvailabilityService).to receive(:available?).with(item).and_return(false)
 
         post(reservations_url, params: payload, as: :jsonapi)
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         invalid_rsvn = Reservation.new(user: current_user, item: item).tap(&:validate)
         expected_errors = invalid_rsvn.errors

@@ -294,7 +294,7 @@ RSpec.describe 'Items', type: :request do
 
         expect(terms_data).to be_a(Array)
         expected_terms_data = item.terms.map { |t| { 'type' => 'term', 'id' => t.id.to_s } }
-        expect(terms_data).to contain_exactly(*expected_terms_data)
+        expect(terms_data).to match_array(expected_terms_data)
       end
 
       it 'can include both image and terms' do
@@ -414,7 +414,7 @@ RSpec.describe 'Items', type: :request do
             expect(item).not_to be_nil
             valid_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-            expect(item.terms).to contain_exactly(*valid_terms)
+            expect(item.terms).to match_array(valid_terms)
 
             links = parsed_response.delete('links')
             expect(links['self']).to eq(items_url)
@@ -491,7 +491,7 @@ RSpec.describe 'Items', type: :request do
             expect(item).not_to be_nil
             expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val) }
 
-            expect(item.terms).to contain_exactly(*valid_terms)
+            expect(item.terms).to match_array(valid_terms)
             expect(item.image).to be_nil
             expect(item).to be_suppressed
 
@@ -512,13 +512,13 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'treats a blank title as missing' do
@@ -529,14 +529,14 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             invalid_attributes = post_attributes.merge(title: nil)
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 422 Unprocessable Entity for a missing image' do
@@ -552,7 +552,7 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActionController::ParameterMissing))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
@@ -568,13 +568,13 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 422 Unprocessable Entity for a missing MMS ID when not suppressed' do
@@ -585,13 +585,13 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'treats a blank MMS ID as missing' do
@@ -602,14 +602,14 @@ RSpec.describe 'Items', type: :request do
             expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             invalid_attributes = post_attributes.merge(mms_id: nil)
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 404 Not Found for an invalid term' do
@@ -701,13 +701,13 @@ RSpec.describe 'Items', type: :request do
 
                 expect { post items_url, params: payload, as: :jsonapi }.not_to change(Item, :count)
 
-                expect(response).to have_http_status(:unprocessable_entity)
+                expect(response).to have_http_status(:unprocessable_content)
                 expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
                 actual_errors = JSON.parse(response.body)['errors']
                 expected_errors = expected_errors_for(valid_attributes, terms: invalid_terms, image: valid_image)
                 expected_json = expected_errors.map { |err| jsonapi_for(err) }
-                expect(actual_errors).to contain_exactly(*expected_json)
+                expect(actual_errors).to match_array(expected_json)
               end
             end
 
@@ -737,7 +737,7 @@ RSpec.describe 'Items', type: :request do
             item.reload
             expected_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
 
-            expect(item.terms).to contain_exactly(*expected_terms)
+            expect(item.terms).to match_array(expected_terms)
 
             parsed_response = JSON.parse(response.body)
 
@@ -770,7 +770,7 @@ RSpec.describe 'Items', type: :request do
               expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
             end
 
-            expect(item.terms).to contain_exactly(*expected_terms)
+            expect(item.terms).to match_array(expected_terms)
             expect(item.image).to be_nil
             expect(item).to be_suppressed
 
@@ -802,7 +802,7 @@ RSpec.describe 'Items', type: :request do
               expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
             end
 
-            expect(item.terms).to contain_exactly(*expected_terms)
+            expect(item.terms).to match_array(expected_terms)
 
             parsed_response = JSON.parse(response.body)
 
@@ -834,7 +834,7 @@ RSpec.describe 'Items', type: :request do
               expect(actual).to eq(val), "Wrong value for #{attr}; expected #{val.inspect}, was #{actual.inspect}"
             end
 
-            expect(item.terms).to contain_exactly(*expected_terms)
+            expect(item.terms).to match_array(expected_terms)
 
             parsed_response = JSON.parse(response.body)
 
@@ -856,13 +856,13 @@ RSpec.describe 'Items', type: :request do
             patch item_url(item), params: payload, as: :jsonapi
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 422 Unprocessable Entity for a duplicate MMS ID' do
@@ -877,7 +877,7 @@ RSpec.describe 'Items', type: :request do
             patch item_url(item), params: payload, as: :jsonapi
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
@@ -885,12 +885,12 @@ RSpec.describe 'Items', type: :request do
 
             expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 422 Unprocessable Entity for a missing MMS ID when not suppressed' do
             item = Item.take
-            expect(item.suppressed).to eq(false) # just to be sure
+            expect(item.suppressed).to be(false) # just to be sure
 
             invalid_attributes = { mms_id: nil }
             payload = { data: { type: 'item', id: item.id.to_s, attributes: invalid_attributes, relationships: valid_relationships } }
@@ -899,7 +899,7 @@ RSpec.describe 'Items', type: :request do
             patch item_url(item), params: payload, as: :jsonapi
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
@@ -907,7 +907,7 @@ RSpec.describe 'Items', type: :request do
 
             expected_errors = expected_errors_for(invalid_attributes, item_to_update: item)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           xit 'returns 409 conflict for an invalid type'
@@ -944,17 +944,17 @@ RSpec.describe 'Items', type: :request do
 
                 expect { patch item_url(item), params: payload, as: :jsonapi }.not_to change(ItemsTerm, :count)
 
-                expect(response).to have_http_status(:unprocessable_entity)
+                expect(response).to have_http_status(:unprocessable_content)
                 expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
                 actual_errors = JSON.parse(response.body)['errors']
                 expected_errors = expected_errors_for(valid_attributes, terms: invalid_terms, image: valid_image, item_to_update: item)
                 expected_json = expected_errors.map { |err| jsonapi_for(err) }
-                expect(actual_errors).to contain_exactly(*expected_json)
+                expect(actual_errors).to match_array(expected_json)
 
                 item.reload
                 expect(item.updated_at).to eq(original_updated_at)
-                expect(item.terms.pluck(:value)).to contain_exactly(*original_terms.map(&:value))
+                expect(item.terms.pluck(:value)).to match_array(original_terms.map(&:value))
               end
             end
 

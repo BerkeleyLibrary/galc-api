@@ -5,18 +5,19 @@ ruby '~> 3.3'
 
 gem 'berkeley_library-alma', '~> 0.1.1'
 gem 'berkeley_library-logging', '~> 0.3'
-gem 'berkeley_library-util', '~> 0.2.0'
+gem 'berkeley_library-util', '~> 0.3'
 gem 'drb'
 gem 'image_processing', '~> 1.12'
 gem 'jsonapi.rb', '~> 2.0'
 gem 'jsonapi-serializer', '~> 2.2'
 gem 'jwt', '~> 2.4'
 gem 'mutex_m'
-gem 'omniauth', '~> 1.9', '>= 1.9.2'
-gem 'omniauth-cas', '~> 2.0'
+gem 'omniauth', '~> 2.1'
+gem 'omniauth-cas', '~> 3.0'
+gem 'omniauth-rails_csrf_protection', '~> 1.0'
 gem 'pg', '~> 1.4'
 gem 'pg_search', '~> 2.3'
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 7.2'
 gem 'rack-cors'
 gem 'rails', '~> 8.0.4'
 gem 'ransack', '~> 4.2'
@@ -30,9 +31,10 @@ end
 
 group :development do
   gem 'hashdiff', '~> 1.0.1'
-  gem 'rubocop', '~> 1.26.0'
-  gem 'rubocop-rails', '~> 2.13.2', require: false
-  gem 'rubocop-rspec', '~> 2.4.0', require: false
+  gem 'rubocop', '~> 1.86'
+  gem 'rubocop-rails', '~> 2.34', require: false
+  gem 'rubocop-rspec', '~> 3.6', require: false
+  gem 'rubocop-rspec_rails', '~> 2.30', require: false
 end
 
 group :test do

@@ -12,7 +12,7 @@ describe Item do
       expect(expected_items).not_to be_empty # just to be sure
 
       results = Item.with_facet_values({ 'Medium' => 'Woodcut' })
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
 
     it 'finds items based on ORing values for a single facet' do
@@ -22,7 +22,7 @@ describe Item do
       expect(expected_items).not_to be_empty # just to be sure
 
       results = Item.with_facet_values({ 'Medium' => %w[Etching Lithograph] })
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
 
     it 'finds items based on ANDing values for multiple facets' do
@@ -32,7 +32,7 @@ describe Item do
       expect(expected_items).not_to be_empty # just to be sure
 
       results = Item.with_facet_values({ 'Appearance' => 'Color', 'Genre' => 'Landscape' })
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
 
     it 'finds items based on ANDing multiple OR values for multiple facets' do
@@ -49,7 +49,7 @@ describe Item do
 
       facet_values = { 'Medium' => %w[Etching Lithograph], 'Genre' => %w[Landscape Figurative] }
       results = Item.with_facet_values(facet_values)
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
 
     it 'handles completely bananas queries' do
@@ -76,7 +76,7 @@ describe Item do
       end
 
       results = Item.with_facet_values(facet_values)
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
 
     it 'finds items based on implicit parent material values' do
@@ -88,7 +88,7 @@ describe Item do
 
       facet_values = { 'Medium' => ['Relief'] }
       results = Item.with_facet_values(facet_values)
-      expect(results).to contain_exactly(*expected_items)
+      expect(results).to match_array(expected_items)
     end
   end
 
@@ -163,7 +163,7 @@ describe Item do
 
       item.save!
       item.reload
-      expect(item.suppressed).to eq(true)
+      expect(item.suppressed).to be(true)
       expect(item.image).to be_nil
     end
 
@@ -194,7 +194,7 @@ describe Item do
 
       item.save!
       item.reload
-      expect(item.suppressed).to eq(true)
+      expect(item.suppressed).to be(true)
       expect(item.mms_id).to be_nil
     end
 
@@ -237,7 +237,7 @@ describe Item do
           item.reload
           expect(item.mms_id).to be_nil
           expect(item.title).to eq(title)
-          expect(item.suppressed).to eq(true)
+          expect(item.suppressed).to be(true)
         end
       end
     end
@@ -287,7 +287,7 @@ describe Item do
         it 'returns nil for a missing image' do
           item = Item.find_by(artist: 'Minami, Keiko')
           item.image = nil
-          expect(item.image_uri).to eq(nil)
+          expect(item.image_uri).to be_nil
         end
       end
 
@@ -301,7 +301,7 @@ describe Item do
         it 'returns nil for a missing thumbnail' do
           item = Item.find_by(artist: 'Minami, Keiko')
           item.image = nil
-          expect(item.thumbnail_uri).to eq(nil)
+          expect(item.thumbnail_uri).to be_nil
         end
       end
     end

@@ -64,7 +64,7 @@ describe Term do
         'Photoprint',
         'Relief Etching'
       ]
-      expect(children.pluck(:value)).to contain_exactly(*expected_values)
+      expect(children.pluck(:value)).to match_array(expected_values)
       children.each do |child|
         expect(child.parent).to eq(term_intaglio)
         expect(child.facet).to eq(facet_medium)

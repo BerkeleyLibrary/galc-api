@@ -12,7 +12,7 @@ class CorsHelper < ActionDispatch::HostAuthorization::Permissions
 
     def allowed_hosts
       config = Rails.application.config
-      cors_hosts = (config.cors_hosts || [])
+      cors_hosts = config.cors_hosts || []
       cors_hosts + config.hosts # TODO: should we only do this in dev?
     end
   end

@@ -67,7 +67,7 @@ class Closure < ApplicationRecord
 
   FILTER_QUERIES.each do |scope_name, query|
     scope scope_name, -> { where("id IN (#{query})").order(**DEFAULT_ORDER) }
-    scope "not_#{scope_name}".to_sym, -> { where("id NOT IN (#{query})").order(**DEFAULT_ORDER) }
+    scope :"not_#{scope_name}", -> { where("id NOT IN (#{query})").order(**DEFAULT_ORDER) }
   end
 
   scope :filter_by, ->(filters) {

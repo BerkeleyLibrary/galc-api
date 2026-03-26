@@ -16,7 +16,7 @@ FactoryBot.define do
 
     %w[Size Decade Genre Medium Appearance].each_with_index do |facet_name, index|
       multiple = multiple_allowed.include?(facet_name)
-      factory_name = "facet_#{facet_name.downcase}".to_sym
+      factory_name = :"facet_#{facet_name.downcase}"
       factory(factory_name) do
         name { facet_name }
         ord { index }

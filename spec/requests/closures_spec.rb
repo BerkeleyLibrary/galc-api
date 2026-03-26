@@ -164,13 +164,13 @@ RSpec.describe 'Closures', type: :request do
             expect { post closures_url, params: payload, as: :jsonapi }.not_to change(Closure, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
 
           it 'fails with 422 Unprocessable Entity for an invalid date range' do
@@ -185,13 +185,13 @@ RSpec.describe 'Closures', type: :request do
             expect { post closures_url, params: payload, as: :jsonapi }.not_to change(Closure, :count)
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             actual_errors = JSON.parse(response.body)['errors']
             expected_errors = expected_errors_for(invalid_attributes)
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
           end
         end
       end
@@ -250,14 +250,14 @@ RSpec.describe 'Closures', type: :request do
             patch closure_url(closure), params: payload, as: :jsonapi
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             invalid_attributes = old_attributes.merge(start_date: nil)
             expected_errors = expected_errors_for(invalid_attributes, closure_to_update: closure)
             actual_errors = JSON.parse(response.body)['errors']
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
 
             closure.reload
             old_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }
@@ -274,14 +274,14 @@ RSpec.describe 'Closures', type: :request do
             patch closure_url(closure), params: payload, as: :jsonapi
             expect(Rails.logger).to have_received(:error).with(kind_of(ActiveRecord::RecordInvalid))
 
-            expect(response).to have_http_status(:unprocessable_entity)
+            expect(response).to have_http_status(:unprocessable_content)
             expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
 
             invalid_attributes = old_attributes.merge(start_date: bad_start_date)
             expected_errors = expected_errors_for(invalid_attributes, closure_to_update: closure)
             actual_errors = JSON.parse(response.body)['errors']
             expected_json = expected_errors.map { |err| jsonapi_for(err) }
-            expect(actual_errors).to contain_exactly(*expected_json)
+            expect(actual_errors).to match_array(expected_json)
 
             closure.reload
             old_attributes.each { |attr, val| expect(item.send(attr)).to eq(val), "Wrong value for #{attr}" }

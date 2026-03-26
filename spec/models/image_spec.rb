@@ -40,10 +40,10 @@ describe Image do
       expect(image).to be_persisted
 
       file_path = image.file_path
-      expect(File.exist?(file_path)).to eq(true)
+      expect(File.exist?(file_path)).to be(true)
 
       thumbnail_path = image.thumbnail_path
-      expect(File.exist?(thumbnail_path)).to eq(true)
+      expect(File.exist?(thumbnail_path)).to be(true)
     end
 
     it 'copies the original image' do
@@ -99,8 +99,8 @@ describe Image do
       it 'handles name collisions with files on disk' do
         image1 = Image.from_uploaded_file(uploaded_file).tap(&:delete)
         expect { Image.find(image1.id) }.to raise_error(ActiveRecord::RecordNotFound)
-        expect(File.exist?(image1.file_path)).to eq(true)
-        expect(File.exist?(image1.thumbnail_path)).to eq(true)
+        expect(File.exist?(image1.file_path)).to be(true)
+        expect(File.exist?(image1.thumbnail_path)).to be(true)
 
         image2 = Image.from_uploaded_file(uploaded_file)
 
@@ -125,7 +125,7 @@ describe Image do
         %i[file_path thumbnail_path].each do |path_attr|
           path = image1.send(path_attr)
           FileUtils.rm(path)
-          expect(File.exist?(path)).to eq(false)
+          expect(File.exist?(path)).to be(false)
         end
 
         image2 = Image.from_uploaded_file(uploaded_file)
@@ -161,10 +161,10 @@ describe Image do
         expect(image).to be_persisted
 
         file_path = image.file_path
-        expect(File.exist?(file_path)).to eq(true)
+        expect(File.exist?(file_path)).to be(true)
 
         thumbnail_path = image.thumbnail_path
-        expect(File.exist?(thumbnail_path)).to eq(true)
+        expect(File.exist?(thumbnail_path)).to be(true)
 
         original = Vips::Image.new_from_file(source_file_path)
         uploaded = Vips::Image.new_from_file(file_path)
@@ -188,10 +188,10 @@ describe Image do
         expect(image).to be_persisted
 
         file_path = image.file_path
-        expect(File.exist?(file_path)).to eq(true)
+        expect(File.exist?(file_path)).to be(true)
 
         thumbnail_path = image.thumbnail_path
-        expect(File.exist?(thumbnail_path)).to eq(true)
+        expect(File.exist?(thumbnail_path)).to be(true)
 
         original = Vips::Image.new_from_file(source_file_path)
         uploaded = Vips::Image.new_from_file(file_path)
@@ -262,12 +262,12 @@ describe Image do
     it 'deletes the image files' do
       file_path = image.file_path
       thumbnail_path = image.thumbnail_path
-      expect(File.exist?(file_path)).to eq(true) # just to be sure
-      expect(File.exist?(thumbnail_path)).to eq(true) # just to be sure
+      expect(File.exist?(file_path)).to be(true) # just to be sure
+      expect(File.exist?(thumbnail_path)).to be(true) # just to be sure
 
       image.destroy
-      expect(File.exist?(file_path)).to eq(false)
-      expect(File.exist?(thumbnail_path)).to eq(false)
+      expect(File.exist?(file_path)).to be(false)
+      expect(File.exist?(thumbnail_path)).to be(false)
     end
 
     it 'does not delete an image in use by an item' do
@@ -276,8 +276,8 @@ describe Image do
 
       expect { image.destroy }.to raise_error(ActiveRecord::DeleteRestrictionError)
       expect(Image.find(image.id)).to eq(image)
-      expect(File.exist?(image.file_path)).to eq(true)
-      expect(File.exist?(image.thumbnail_path)).to eq(true)
+      expect(File.exist?(image.file_path)).to be(true)
+      expect(File.exist?(image.thumbnail_path)).to be(true)
 
       expect(Item.find(item.id)).to eq(item)
     end

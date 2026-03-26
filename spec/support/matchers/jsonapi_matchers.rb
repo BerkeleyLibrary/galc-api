@@ -70,7 +70,7 @@ module BerkeleyLibrary
         return 'attribute' if attrs&.key?(key)
 
         rels = model_serializer.relationships_to_serialize
-        return 'relationship' if rels&.key?(key)
+        'relationship' if rels&.key?(key)
       end
     end
 

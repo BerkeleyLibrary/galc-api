@@ -33,7 +33,7 @@ class ApplicationController < ActionController::API
   #
   # @return [User] the user
   def current_user
-    @current_user ||= (user_from_token || default_user)
+    @current_user ||= user_from_token || default_user
   end
 
   # Require an authenticated user with admin privileges
