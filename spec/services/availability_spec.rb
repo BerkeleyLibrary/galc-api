@@ -208,5 +208,13 @@ describe AvailabilityService do
       availability = AvailabilityService.availability_for(mms_ids)
       expect(availability).to eq({})
     end
+
+    it 'handles a 404 response gracefully' do
+      stub_request(:get, sru_query_uri).to_return(status: 404)
+
+      availability = AvailabilityService.availability_for(mms_ids)
+
+      expect(availability).to eq({})
+    end
   end
 end
