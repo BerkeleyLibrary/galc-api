@@ -88,7 +88,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 USER $APP_USER
 
 # Base image ships with an older version of bundler
-RUN gem install bundler --version 2.5.22
+RUN gem install bundler --version 2.7.2
 
 # Install gems. We don't enforce the validity of the Gemfile.lock until the
 # final (production) stage.
