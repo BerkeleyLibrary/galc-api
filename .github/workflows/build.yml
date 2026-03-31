@@ -121,11 +121,6 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: root
     steps:
-      - name: Generate throwaway secret_key_base
-        run: |
-          mkdir -p /run/secrets
-          bundle exec rails secret > /run/secrets/SECRET_KEY_BASE
-
       - name: Run tests
         env:
           RAILS_ENV: test
@@ -137,6 +132,7 @@ jobs:
       - name: Validate database migrations
         env:
           RAILS_ENV: production
+          SECRET_KEY_BASE: dummy_test_secret_key_base
           DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
         run: bundle exec rails --trace db:drop db:create db:migrate
 
