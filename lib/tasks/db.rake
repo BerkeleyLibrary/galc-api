@@ -6,8 +6,8 @@ namespace :db do
     begin
       ActiveRecord::Base.establish_connection
 
-      ActiveRecord::Base.connection_pool.with_connection(&:active?)
-    rescue PG::ConnectionBad
+      ActiveRecord::Base.connection.verify!
+    rescue PG::ConnectionBad, ActiveRecord::DatabaseConnectionError
       raise unless (tries += 1) <= max_tries
 
       sleep_time = 2**tries # backoff exponentially (2s, 4s, 8s, ...)
