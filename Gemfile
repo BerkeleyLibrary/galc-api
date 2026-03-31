@@ -19,7 +19,7 @@ gem 'pg', '~> 1.4'
 gem 'pg_search', '~> 2.3'
 gem 'puma', '~> 7.2'
 gem 'rack-cors'
-gem 'rails', '~> 8.0.4'
+gem 'rails', '~> 8.0.5'
 gem 'ransack', '~> 4.2'
 gem 'zaru', '~> 0.3.0'
 

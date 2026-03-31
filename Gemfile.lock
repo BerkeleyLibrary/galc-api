@@ -97,7 +97,7 @@ GEM
       berkeley_library-logging (~> 0.3)
       rest-client (~> 2.1)
       typesafe_enum (~> 0.3)
-    bigdecimal (4.0.1)
+    bigdecimal (4.1.0)
     brakeman (7.1.0)
       racc
     builder (3.3.0)
@@ -416,6 +416,7 @@ GEM
 PLATFORMS
   aarch64-linux-gnu
   arm64-darwin-23
+  ruby
   x86_64-linux
   x86_64-unknown
 
@@ -442,7 +443,7 @@ DEPENDENCIES
   pg_search (~> 2.3)
   puma (~> 7.2)
   rack-cors
-  rails (~> 8.0.4)
+  rails (~> 8.0.5)
   rails-controller-testing
   ransack (~> 4.2)
   rspec (~> 3.13)
@@ -458,7 +459,7 @@ DEPENDENCIES
   zaru (~> 0.3.0)
 
 RUBY VERSION
-  ruby 3.3.9p170
+   ruby 3.3.11p205
 
 BUNDLED WITH
-  2.7.2
+   2.7.2
