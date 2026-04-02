@@ -25,10 +25,11 @@ Bundler.require(*Rails.groups)
 
 module GalcApi
   class Application < Rails::Application
-    config.load_defaults 7.0
+    config.load_defaults 8.0
 
-    # Opt in to Rails 8.1 timezone behavior early
-    config.active_support.to_time_preserves_timezone = :zone
+    # Rails 7.1 default: do not add autoload paths to $LOAD_PATH.
+    # Reduces load path size and avoids manual requires for autoloaded code.
+    config.add_autoload_paths_to_load_path = false
 
     config.api_only = true
 
