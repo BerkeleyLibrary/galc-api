@@ -25,7 +25,8 @@ Bundler.require(*Rails.groups)
 
 module GalcApi
   class Application < Rails::Application
-    config.load_defaults 7.0
+    config.load_defaults 8.0
+
     config.api_only = true
 
     # ------------------------------------------------------------

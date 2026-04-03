@@ -127,7 +127,7 @@ class Image < ApplicationRecord
 
     def jpeg_tempfile_from(uploaded_file)
       mime_type = mime_type_of(uploaded_file)
-      return uploaded_file if (mime_type) == JPEG_MIME_TYPE
+      return uploaded_file if mime_type == JPEG_MIME_TYPE
 
       logger.info("#{uploaded_file.path} (#{uploaded_file.original_filename}) is #{mime_type}; converting to #{JPEG_MIME_TYPE}")
       ImageProcessing::Vips.source(uploaded_file).convert('jpeg').call

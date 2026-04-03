@@ -4,9 +4,10 @@ namespace :db do
     tries = 0
     max_tries = 4
     begin
-      pool ||= ActiveRecord::Base.establish_connection
-      pool.connection
-    rescue PG::ConnectionBad
+      ActiveRecord::Base.establish_connection
+
+      ActiveRecord::Base.connection.verify!
+    rescue PG::ConnectionBad, ActiveRecord::DatabaseConnectionError
       raise unless (tries += 1) <= max_tries
 
       sleep_time = 2**tries # backoff exponentially (2s, 4s, 8s, ...)

@@ -29,13 +29,13 @@ RUN mkdir -p /opt/app \
 # ------------------------------------------------------------
 # Install packages common to dev and prod.
 
-# Get list of available packages
-RUN apt-get update -qq
-
 # Install standard packages from the Debian repository
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     libpq-dev \
-    libvips42
+    libvips42 \
+    libyaml-dev \
+    pkg-config \
+  && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
 # Run configuration
@@ -75,10 +75,11 @@ FROM base AS development
 USER root
 
 # Install system packages needed to build gems with C extensions.
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
-    make
+    make \
+  && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
 # Install Ruby gems
@@ -87,7 +88,7 @@ RUN apt-get install -y --no-install-recommends \
 USER $APP_USER
 
 # Base image ships with an older version of bundler
-RUN gem install bundler --version 2.5.22
+RUN gem install bundler --version 2.7.2
 
 # Install gems. We don't enforce the validity of the Gemfile.lock until the
 # final (production) stage.

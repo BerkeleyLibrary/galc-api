@@ -10,7 +10,7 @@ module ExceptionHandlers
   #
   # - StandardError -> render_jsonapi_internal_server_error
   # - ActiveRecord::RecordNotFound -> render_jsonapi_not_found
-  # - ActionController::ParameterMissing -> render_jsonapi_unprocessable_entity
+  # - ActionController::ParameterMissing -> render_jsonapi_unprocessable_content
 
   # rubocop:disable Metrics/BlockLength
   included do
@@ -21,8 +21,8 @@ module ExceptionHandlers
     rescue_from Error::ForbiddenError, with: :render_jsonapi_forbidden_error
     rescue_from ActionController::ParameterMissing, with: :render_jsonapi_parameter_missing
     rescue_from ActiveRecord::DeleteRestrictionError, with: :render_jsonapi_conflict
-    rescue_from ActiveRecord::RecordInvalid, with: :render_validation_errors_as_unprocessable_entity
-    rescue_from ActiveModel::ValidationError, with: :render_validation_errors_as_unprocessable_entity
+    rescue_from ActiveRecord::RecordInvalid, with: :render_validation_errors_as_unprocessable_content
+    rescue_from ActiveModel::ValidationError, with: :render_validation_errors_as_unprocessable_content
 
     # ------------------------------------------------------------
     # Error handlers
@@ -40,13 +40,13 @@ module ExceptionHandlers
 
     def render_jsonapi_parameter_missing(exception)
       logger.error(exception)
-      render_jsonapi_error(:unprocessable_entity, detail: exception.message)
+      render_jsonapi_error(:unprocessable_content, detail: exception.message)
     end
 
-    def render_validation_errors_as_unprocessable_entity(exception)
+    def render_validation_errors_as_unprocessable_content(exception)
       logger.error(exception)
       errors = validation_errors_from(exception) || [exception]
-      render jsonapi_errors: errors, status: :unprocessable_entity
+      render jsonapi_errors: errors, status: :unprocessable_content
     end
 
     # ------------------------------------------------------------
@@ -87,7 +87,8 @@ module ExceptionHandlers
     def validation_errors_from(exception)
       return unless (record = record_from(exception))
       return unless record.respond_to?(:errors) && (errors = record.errors)
-      return errors if errors.is_a?(Enumerable)
+
+      errors if errors.is_a?(Enumerable)
     end
 
     def render_jsonapi_error(status, detail: nil, meta: nil)

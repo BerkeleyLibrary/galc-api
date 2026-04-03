@@ -8,7 +8,7 @@ describe ExceptionHandlers do
         response_attrs = { headers: { 'Vary' => 'Accept' } }
         %i[status content_type media_type headers body].each do |attr|
           allow(response).to receive(attr) { response_attrs[attr] }
-          allow(response).to receive("#{attr}=".to_sym) { |v| response_attrs[attr] = v }
+          allow(response).to receive(:"#{attr}=") { |v| response_attrs[attr] = v }
         end
         allow(response).to receive(:reset_body!)
       end

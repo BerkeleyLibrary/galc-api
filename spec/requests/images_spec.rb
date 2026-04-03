@@ -138,12 +138,12 @@ describe ImagesController, type: :request do
         it 'deletes the image files' do
           file_path = image.file_path
           thumbnail_path = image.thumbnail_path
-          expect(File.exist?(file_path)).to eq(true) # just to be sure
-          expect(File.exist?(thumbnail_path)).to eq(true) # just to be sure
+          expect(File.exist?(file_path)).to be(true) # just to be sure
+          expect(File.exist?(thumbnail_path)).to be(true) # just to be sure
 
           delete image_url(image)
-          expect(File.exist?(file_path)).to eq(false)
-          expect(File.exist?(thumbnail_path)).to eq(false)
+          expect(File.exist?(file_path)).to be(false)
+          expect(File.exist?(thumbnail_path)).to be(false)
         end
 
         it 'does not delete an image in use by an item' do
@@ -156,8 +156,8 @@ describe ImagesController, type: :request do
           expect(Image.count).to eq(count_before)
 
           expect(Image.find(image.id)).to eq(image)
-          expect(File.exist?(image.file_path)).to eq(true)
-          expect(File.exist?(image.thumbnail_path)).to eq(true)
+          expect(File.exist?(image.file_path)).to be(true)
+          expect(File.exist?(image.thumbnail_path)).to be(true)
 
           expect(Item.find(item.id)).to eq(item)
 
@@ -205,8 +205,8 @@ describe ImagesController, type: :request do
           expect(Image.count).to eq(count_before)
 
           expect(Image.find(image.id)).to eq(image)
-          expect(File.exist?(image.file_path)).to eq(true)
-          expect(File.exist?(image.thumbnail_path)).to eq(true)
+          expect(File.exist?(image.file_path)).to be(true)
+          expect(File.exist?(image.thumbnail_path)).to be(true)
         end
       end
     end
@@ -241,8 +241,8 @@ describe ImagesController, type: :request do
           expect(Image.count).to eq(count_before)
 
           expect(Image.find(image.id)).to eq(image)
-          expect(File.exist?(image.file_path)).to eq(true)
-          expect(File.exist?(image.thumbnail_path)).to eq(true)
+          expect(File.exist?(image.file_path)).to be(true)
+          expect(File.exist?(image.thumbnail_path)).to be(true)
         end
       end
     end

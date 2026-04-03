@@ -35,7 +35,7 @@ RSpec.describe 'Users', type: :request do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to contain_jsonapi_for(current_user)
 
-        expect(parsed_response['data']['attributes']['galc_admin']).to eq(true)
+        expect(parsed_response['data']['attributes']['galc_admin']).to be(true)
       end
     end
   end

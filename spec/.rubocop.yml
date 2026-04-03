@@ -1,7 +1,8 @@
 inherit_from: ../.rubocop.yml
 
-require:
+plugins:
   - rubocop-rspec
+  - rubocop-rspec_rails
 
 Style/ClassAndModuleChildren:
   Enabled: false
@@ -58,7 +59,7 @@ RSpec/DescribeSymbol:
 
 # setup cost / time >>> failure granularity
 RSpec/ExampleLength:
-  Max: 15
+  Max: 25
   CountAsOne:
     - array
     - hash
@@ -69,7 +70,10 @@ RSpec/ExpectInHook:
   Enabled: false
 
 # your naming scheme is not in possession of all the facts
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/SpecFilePathSuffix:
   Enabled: false
 
 # explicit >>> implicit
@@ -116,5 +120,5 @@ RSpec/VerifiedDoubles:
 RSpec/IdenticalEqualityAssertion: # new in 2.4
   Enabled: true
 
-RSpec/Rails/AvoidSetupHook: # new in 2.4
+RSpecRails/AvoidSetupHook:
   Enabled: true
