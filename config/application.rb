@@ -27,10 +27,6 @@ module GalcApi
   class Application < Rails::Application
     config.load_defaults 8.0
 
-    # Rails 7.1 default: do not add autoload paths to $LOAD_PATH.
-    # Reduces load path size and avoids manual requires for autoloaded code.
-    config.add_autoload_paths_to_load_path = false
-
     config.api_only = true
 
     # ------------------------------------------------------------
