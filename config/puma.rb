@@ -41,3 +41,6 @@ pidfile ENV.fetch('PIDFILE') { 'tmp/pids/server.pid' }
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+
+# Adds a drain period during shutdown so swarm can elegantly remove it from the routing mesh
+plugin :delayed_stop
