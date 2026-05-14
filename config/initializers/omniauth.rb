@@ -18,6 +18,10 @@ OmniAuth.config.logger = Rails.logger
 # https://github.com/omniauth/omniauth/wiki/Resolving-CVE-2015-9284
 OmniAuth.config.allowed_request_methods = [:post]
 
+# API-only app: disable OmniAuth request CSRF validator.
+# OmniAuth 2.x calls this object in request_phase; setting nil skips it.
+OmniAuth.config.request_validation_phase = nil
+
 Rails.application.configure do
   cas_opts = {
     name: :calnet,

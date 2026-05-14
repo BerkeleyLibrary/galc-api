@@ -14,6 +14,15 @@ RSpec.describe Preview::PreviewController, type: :request do
         expect(response.content_type).to start_with('text/html')
       end
 
+      it 'renders a non-empty HTML response body' do
+        allow(ENV).to receive(:[]).with('GALC_API_URL').and_return('https://galc.biz')
+        get preview_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to be_empty
+        expect(response.body).to include('<html')
+      end
+
       context 'sets the API URL correctly' do
         it 'sets the url when GALC_API_URL is present' do
           allow(ENV).to receive(:[]).with('GALC_API_URL').and_return('https://galc.biz')
