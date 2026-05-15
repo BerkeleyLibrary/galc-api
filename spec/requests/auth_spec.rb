@@ -52,7 +52,10 @@ RSpec.describe AuthController, type: :request do
       get '/auth/failure'
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq('Authentication failed')
+      expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+      parsed = JSON.parse(response.body)
+      expect(parsed['errors'].first['detail']).to eq('Authentication failed')
     end
   end
 
