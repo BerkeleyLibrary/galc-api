@@ -3,6 +3,10 @@ require 'berkeley_library/util/uris'
 class AuthController < ApplicationController
   ERR_TICKET_MISMATCH = 'Ticket from callback URL parameter does not match credential from OmniAuth hash'.freeze
 
+  def failure
+    render json: 'Authentication failed', status: :unauthorized
+  end
+
   def callback
     logger.debug({ msg: 'Received omniauth callback', omniauth: auth_hash, params: params.to_unsafe_h })
 

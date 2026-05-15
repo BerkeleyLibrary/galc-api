@@ -2,6 +2,7 @@ Rails.application.routes.draw do
 
   direct(:login) { '/auth/calnet' } # convenience to provide login_url helper
   get '/logout', to: 'auth#logout', as: :logout
+  get '/auth/failure', to: 'auth#failure'
   get '/auth/:provider/callback', to: 'auth#callback', as: :omniauth_callback
 
   scope module: 'preview' do
