@@ -47,6 +47,18 @@ RSpec.describe AuthController, type: :request do
     end
   end
 
+  describe 'GET /auth/failure' do
+    it 'returns a JSON authentication failure response' do
+      get '/auth/failure'
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to start_with(JSONAPI::MEDIA_TYPE)
+
+      parsed = JSON.parse(response.body)
+      expect(parsed['errors'].first['detail']).to eq('Authentication failed')
+    end
+  end
+
   # NOTE: In effect we're just testing omniauth-cas here, but with
   #       app-specific configuration and CalNet-specific data, to
   #       be completely sure we know what we're doing
