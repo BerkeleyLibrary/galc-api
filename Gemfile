@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '~> 3.3'
+ruby '~> 3.4'
 
 gem 'berkeley_library-alma', '~> 0.1.1'
 gem 'berkeley_library-logging', '~> 0.3'
@@ -10,16 +10,16 @@ gem 'drb'
 gem 'image_processing', '~> 1.12'
 gem 'jsonapi.rb', '~> 2.0'
 gem 'jsonapi-serializer', '~> 2.2'
-gem 'jwt', '~> 2.4'
+gem 'jwt', '~> 2.10', '>= 2.10.3'
 gem 'mutex_m'
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-cas', '~> 3.0'
 gem 'pg', '~> 1.4'
 gem 'pg_search', '~> 2.3'
-gem 'puma', '~> 7.2'
+gem 'puma', '~> 7.2', '>= 7.2.1'
 gem 'puma-plugin-delayed_stop', '~> 0.1.2'
 gem 'rack-cors'
-gem 'rails', '~> 8.0.5'
+gem 'rails', '~> 8.1.3'
 gem 'ransack', '~> 4.2'
 gem 'zaru', '~> 0.3.0'
 
@@ -44,7 +44,7 @@ group :test do
   gem 'rspec', '~> 3.13'
   gem 'rspec_junit_formatter', '~> 0.6'
   gem 'rspec-rails', '~> 8.0'
-  gem 'simplecov', '~> 0.22', require: false
+  gem 'simplecov', '~> 1.0.0.rc4', require: false
   gem 'simplecov-rcov', '~> 0.3', require: false
   gem 'webmock', require: false
 end

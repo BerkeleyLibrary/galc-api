@@ -22,11 +22,7 @@ describe Image do
         t.rewind
       end
 
-      options = {
-        tempfile: tmp,
-        filename: File.basename(source_file_path),
-        type: 'image/jpeg'
-      }
+      options = { tempfile: tmp, filename: File.basename(source_file_path), type: 'image/jpeg' }
       @uploaded_file = ActionDispatch::Http::UploadedFile.new(options)
     end
 

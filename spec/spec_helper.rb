@@ -29,3 +29,5 @@ RSpec.configure do |config|
     WebMock.allow_net_connect!
   end
 end
+
+SimpleCov.start if ENV['COVERAGE']

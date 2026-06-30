@@ -13,6 +13,8 @@ module Docker
 
       # rubocop:disable Naming/AccessorMethodName
       def set_env_from(filepath)
+        return unless File.file?(filepath)
+
         secret = File.read(filepath)
         secret_name = File.basename(filepath)
         return logger.warn("Can't set ENV[#{secret_name}]; #{filepath} is empty") if secret.empty?

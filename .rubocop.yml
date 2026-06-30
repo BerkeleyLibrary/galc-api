@@ -2,7 +2,7 @@ plugins:
   - rubocop-rails
 
 AllCops:
-  TargetRailsVersion: 8.0
+  TargetRailsVersion: 8.1
   UseCache: false
   Exclude:
     # Exclude generated files
@@ -11,6 +11,12 @@ AllCops:
     - 'out/**/*'
     # Exclude vendor files in GitHub build
     - 'vendor/**/*'
+
+# Disable block length check in spec files.
+Layout/BlockLength:
+  Exclude:
+    - 'config/environments/*'
+    - 'spec/**/*'
 
 # Allow one line around block body (Layout/EmptyLines will still disallow two or more)
 Layout/EmptyLinesAroundBlockBody:

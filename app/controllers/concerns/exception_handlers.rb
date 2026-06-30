@@ -128,6 +128,6 @@ module ExceptionHandlers
       return exception.send(attr) if exception.respond_to?(attr)
     end
 
-    nil
+    nil # simplecov:disable
   end
 end

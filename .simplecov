@@ -1,8 +1,7 @@
 require 'simplecov-rcov'
 
-SimpleCov.start 'rails' do
-  add_filter %w[/bin/ /db/]
-  coverage_dir 'artifacts'
-  formatter SimpleCov::Formatter::RcovFormatter
-  minimum_coverage 100
-end
+SimpleCov.load_profile 'rails'
+SimpleCov.skip %w[/bin/ /db/]
+SimpleCov.coverage_dir 'artifacts'
+SimpleCov.formatter SimpleCov::Formatter::RcovFormatter
+SimpleCov.minimum_coverage 100
