@@ -19,7 +19,7 @@ gem 'pg_search', '~> 2.3'
 gem 'puma', '~> 7.2', '>= 7.2.1'
 gem 'puma-plugin-delayed_stop', '~> 0.1.2'
 gem 'rack-cors'
-gem 'rails', '~> 8.1.3'
+gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
 gem 'ransack', '~> 4.2'
 gem 'zaru', '~> 0.3.0'
 
