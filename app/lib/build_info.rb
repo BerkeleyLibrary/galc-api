@@ -12,7 +12,7 @@ class BuildInfo
   alias to_h info
   alias to_hash info
 
-  def method_missing(method_name, *args, &block)
+  def method_missing(method_name, *args, &)
     (k = as_key(method_name)) ? info[k] : super
   end
 
