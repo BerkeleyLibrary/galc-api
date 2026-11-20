@@ -138,17 +138,17 @@ class Image < ApplicationRecord
       ImageProcessing::Vips.source(jpeg_path).convert('jpeg').resize_to_limit(THUMBNAIL_WIDTH, nil).call
     end
 
-    def open_unique_image_file(base, ext, attempt = 0, &block)
+    def open_unique_image_file(base, ext, attempt = 0, &)
       name = attempt > 0 ? "#{base}-#{attempt}#{ext}" : "#{base}#{ext}"
       full_path = File.join(images_path, name)
 
       begin
-        return File.open(full_path, MODE_NEW_FILES, &block) unless Image.exists?(basename: name)
+        return File.open(full_path, MODE_NEW_FILES, &) unless Image.exists?(basename: name)
       rescue Errno::EEXIST
         # fall through to next attempt
       end
 
-      open_unique_image_file(base, ext, attempt + 1, &block)
+      open_unique_image_file(base, ext, attempt + 1, &)
     end
   end
 end
