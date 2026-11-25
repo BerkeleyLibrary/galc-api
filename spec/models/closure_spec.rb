@@ -165,9 +165,7 @@ RSpec.describe Closure, type: :model do
 
       after do
         ENV['TZ'] = env_tz_actual
-        # rubocop:disable Rails/TimeZoneAssignment
         Time.zone = rails_tz_actual
-        # rubocop:enable Rails/TimeZoneAssignment
       end
 
       it 'works regardless of the ENV time zone' do

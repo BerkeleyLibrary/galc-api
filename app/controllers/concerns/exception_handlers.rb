@@ -12,7 +12,7 @@ module ExceptionHandlers
   # - ActiveRecord::RecordNotFound -> render_jsonapi_not_found
   # - ActionController::ParameterMissing -> render_jsonapi_unprocessable_content
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   included do
     include JSONAPI::Errors
 
@@ -121,7 +121,6 @@ module ExceptionHandlers
       status.is_a?(String) && (valid_integer_status_code(status.to_i) || status_code_from_symbol(status.to_sym))
     end
   end
-  # rubocop:enable Metrics/BlockLength
 
   def record_from(exception)
     %i[record model].each do |attr|
