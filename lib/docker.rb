@@ -11,7 +11,7 @@ module Docker
 
       private
 
-      # rubocop:disable Naming/AccessorMethodName
+      # rubocop:disable-next Naming/AccessorMethodName
       def set_env_from(filepath)
         return unless File.file?(filepath)
 
@@ -23,7 +23,6 @@ module Docker
           ENV[secret_name] = secret
         end
       end
-      # rubocop:enable Naming/AccessorMethodName
     end
   end
 

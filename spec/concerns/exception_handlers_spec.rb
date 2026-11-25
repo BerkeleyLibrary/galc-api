@@ -16,7 +16,8 @@ describe ExceptionHandlers do
 
     let(:controller) do
       ApplicationController.new.tap do |controller|
-        controller.instance_variable_set(:@_response, response)
+        controller.set_request! ActionDispatch::TestRequest.create
+        controller.set_response! response
       end
     end
 

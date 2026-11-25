@@ -9,7 +9,7 @@ class TermSerializer
 
   class << self
     # @see { JSONAPI::Serializer#relationships_hash }
-    # rubocop:disable Metrics/ParameterLists
+    # rubocop:disable-next Metrics/ParameterLists
     def relationships_hash(record, relationships = nil, fieldset = nil, includes_list = nil, params = nil)
       # noinspection RubyMismatchedReturnType
       super.filter_map do |rel, h|
@@ -18,6 +18,5 @@ class TermSerializer
         [rel, h]
       end.to_h
     end
-    # rubocop:enable Metrics/ParameterLists
   end
 end
